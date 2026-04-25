@@ -59,6 +59,14 @@ import AnalyticsPage from "@/pages/AnalyticsPage";
 import CronPage from "@/pages/CronPage";
 import SkillsPage from "@/pages/SkillsPage";
 import ChatPage from "@/pages/ChatPage";
+import HomePage from "@/pages/HomePage";
+import LoginPage from "@/pages/LoginPage";
+import PokerPage from "@/pages/PokerPage";
+import BridgePage from "@/pages/BridgePage";
+import GuanDanPage from "@/pages/GuanDanPage";
+import XiangqiPage from "@/pages/XiangqiPage";
+import ChessPage from "@/pages/ChessPage";
+import GoPage from "@/pages/GoPage";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 import { useI18n } from "@/i18n";
@@ -89,6 +97,16 @@ const BUILTIN_ROUTES_CORE: Record<string, ComponentType> = {
   "/config": ConfigPage,
   "/env": EnvPage,
   "/docs": DocsPage,
+  // 棋牌屋路由
+  "/y002": HomePage,
+  "/y002/login": LoginPage,
+  "/y002/home": HomePage,
+  "/y002/poker": PokerPage,
+  "/y002/bridge": BridgePage,
+  "/y002/guandan": GuanDanPage,
+  "/y002/xiangqi": XiangqiPage,
+  "/y002/chess": ChessPage,
+  "/y002/go": GoPage,
 };
 
 const BUILTIN_NAV_REST: NavItem[] = [
