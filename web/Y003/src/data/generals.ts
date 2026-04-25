@@ -37,6 +37,17 @@ export interface GeneralSkill {
 }
 
 // ============================================================
+// 工具函数（避免循环导入，在数据文件内复用）
+// ============================================================
+function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
+}
+
+function getCardById(id: string, allCards: import('./cards').CardDef[]): import('./cards').CardDef | undefined {
+  return allCards.find((c) => c.id === id);
+}
+
+// ============================================================
 // 武将列表 v0.1（6名经典武将）
 // ============================================================
 

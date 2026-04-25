@@ -226,7 +226,22 @@ export function shuffleDeck(cards: CardDef[]): CardDef[] {
   return arr;
 }
 
+// 洗牌（牌ID数组版）
+export function shuffleDeckIds(cardIds: string[]): string[] {
+  const arr = [...cardIds];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
 // 根据ID从牌堆查牌
 export function getCardById(id: string, allCards: CardDef[]): CardDef | undefined {
   return allCards.find(c => c.id === id);
+}
+
+// 深拷贝工具
+export function deepClone<T>(obj: T): T {
+  return JSON.parse(JSON.stringify(obj));
 }

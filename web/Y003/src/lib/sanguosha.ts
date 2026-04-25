@@ -2,9 +2,9 @@
 // 三国杀核心游戏逻辑 v0.1
 // ============================================================
 
-import { CardDef, PlayerState, GameState, GamePhase } from './cards';
 import { ALL_GENERALS, General, getGeneralById } from '../data/generals';
-import { buildDeck, shuffleDeck, getCardById } from '../data/cards';
+import { buildDeck, shuffleDeck, shuffleDeckIds, getCardById } from '../data/cards';
+import type { CardDef, PlayerState, GameState, GamePhase } from '../data/cards';
 
 // ============================================================
 // 工具函数
@@ -99,8 +99,10 @@ export function drawCards(game: GameState, playerId: string, count: number): Gam
   if (!player) return game;
   for (let i = 0; i < count; i++) {
     if (g.deck.length === 0) {
-      // 弃牌堆洗牌进入牌堆
-      g.deck = shuffleDeck(g.deckData?.filter((c: CardDef) => g.discard.includes(c.id)) || []);
+      // 弃牌堆洗牌进入牌堆（从deckData过滤出discard中的牌，再洗牌，取ID）
+      const discardCardDefs = (g.deckData || []).filter((c: CardDef) => g.discard.includes(c.id));
+      const shuffled = shuffleDeck(discardCardDefs);
+      g.deck = shuffled.map(c => c.id);
       g.discard = [];
       if (g.deck.length === 0) break;
     }
@@ -302,7 +304,7 @@ export function initGame(
   aiRoles: Role['role'][]
 ): GameState {
   const deckData = buildDeck();
-  let deck = shuffleDeck(deckData.map(c => c.id));
+  let deck = shuffleDeckIds(deckData.map(c => c.id));
 
   const players: PlayerState[] = [];
 
@@ -317,7 +319,7 @@ export function initGame(
     alive: true,
     hand: [],
     equip: { weapon: undefined, armor: undefined, horse: undefined },
-    skills: playerGen?.skills || [],
+    skills: (playerGen?.skills || []).map((s: { id: string }) => s.id),
     marks: {},
     distance: 0,
   });
@@ -335,7 +337,7 @@ export function initGame(
       alive: true,
       hand: [],
       equip: { weapon: undefined, armor: undefined, horse: undefined },
-      skills: gen?.skills || [],
+      skills: (gen?.skills || []).map((s: { id: string }) => s.id),
       marks: {},
       distance: 0,
     });
@@ -1462,7 +1464,7 @@ export function processJudge(game: GameState, playerId: string): GameState {
       if (card.subType === 'lightning') {
         // 闪电判定：黑桃2-9 受伤3点，否则移到下家
         if (g.deck.length === 0) {
-          g.deck = shuffleDeck(g.deckData?.filter((c: CardDef) => g.discard.includes(c.id)) || []);
+          g.deck = shuffleDeckIds(g.deckData?.filter((c: CardDef) => g.discard.includes(c.id)).map(c => c.id) || []);
           g.discard = [];
         }
         const judgeCardId = g.deck.pop()!;
@@ -1489,7 +1491,7 @@ export function processJudge(game: GameState, playerId: string): GameState {
       if (card.subType === 'indulgence') {
         // 乐不思蜀判定：非红桃跳过出牌阶段
         if (g.deck.length === 0) {
-          g.deck = shuffleDeck(g.deckData?.filter((c: CardDef) => g.discard.includes(c.id)) || []);
+          g.deck = shuffleDeckIds(g.deckData?.filter((c: CardDef) => g.discard.includes(c.id)).map(c => c.id) || []);
           g.discard = [];
         }
         const judgeCardId = g.deck.pop()!;
