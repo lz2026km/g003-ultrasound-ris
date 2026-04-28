@@ -219,7 +219,7 @@ export const ALL_GENERALS: General[] = [
     ],
   },
   {
-    id: 'diaochon',
+    id: 'diaochan',
     name: '貂蝉',
     nation: 'qun',
     hp: 3,

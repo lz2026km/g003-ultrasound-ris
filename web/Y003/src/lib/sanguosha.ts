@@ -555,7 +555,7 @@ export function useCard(
     } else {
       g = equipCard(g, playerId, cardId, 'weapon');
     }
-    g.discard.push(cardId);
+    // 注意：equipCard内部已处理原装备的弃牌，不需再次push
     g.logs.push(`${player.name}装备了${card.name}。`);
     return g;
   }

@@ -124,21 +124,24 @@ function makeJinkCards(): CardDef[] {
   return result;
 }
 
-// 桃 (Peach) — 6张
+// 桃 (Peach) — 8张（方块1-8各1张 + 军争多2桃）
 function makePeachCards(): CardDef[] {
   const result: CardDef[] = [];
-  for (let i = 0; i < 6; i++) {
-    result.push(makeCard(`peach_${i}`, '桃', 'heart', (i % 13) + 1, 'basic', '你或你攻击范围内的一名濒死角色回复1点体力。', { subType: 'peach' }));
+  // 方块1-8各1张
+  for (let i = 0; i < 8; i++) {
+    result.push(makeCard(`peach_${i}`, '桃', 'diamond', i + 1, 'basic', '你或你攻击范围内的一名濒死角色回复1点体力。', { subType: 'peach' }));
   }
   return result;
 }
 
-// 酒 (Wine) — 3张
+// 酒 (Wine) — 5张（黑桃6、红桃6、方块6、草花6、草花7）
 function makeWineCards(): CardDef[] {
   return [
     makeCard('wine_0', '酒', 'spade', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
     makeCard('wine_1', '酒', 'heart', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
     makeCard('wine_2', '酒', 'diamond', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
+    makeCard('wine_3', '酒', 'club', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
+    makeCard('wine_4', '酒', 'club', 7, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
   ];
 }
 
@@ -174,10 +177,10 @@ function makeEquipCards(): CardDef[] {
 // 锦囊牌
 function makeTrickCards(): CardDef[] {
   const cards: CardDef[] = [];
-  // 过河拆桥 (Dismantling) — 3张
-  for (let i = 0; i < 3; i++) cards.push(makeCard(`dismantle_${i}`, '过河拆桥', 'spade', 4 + i % 5, 'trick', '出牌阶段，对一名有牌的角色使用，弃置其一张手牌或装备区的一张牌。', { subType: 'dismantle' }));
-  // 顺手牵羊 (Snatch) — 3张
-  for (let i = 0; i < 3; i++) cards.push(makeCard(`snatch_${i}`, '顺手牵羊', 'club', 3 + i % 5, 'trick', '出牌阶段，对一名有牌的与你距离1的角色使用，获得其一张手牌或装备区的一张牌。', { subType: 'snatch' }));
+  // 过河拆桥 (Dismantling) — 5张
+  for (let i = 0; i < 5; i++) cards.push(makeCard(`dismantle_${i}`, '过河拆桥', 'spade', 3 + i % 7, 'trick', '出牌阶段，对一名有牌的角色使用，弃置其一张手牌或装备区的一张牌。', { subType: 'dismantle' }));
+  // 顺手牵羊 (Snatch) — 5张
+  for (let i = 0; i < 5; i++) cards.push(makeCard(`snatch_${i}`, '顺手牵羊', 'club', 2 + i % 8, 'trick', '出牌阶段，对一名有牌的与你距离1的角色使用，获得其一张手牌或装备区的一张牌。', { subType: 'snatch' }));
   // 决斗 (Duel) — 2张
   for (let i = 0; i < 2; i++) cards.push(makeCard(`duel_${i}`, '决斗', 'spade', 7, 'trick', '出牌阶段，对一名角色使用。由目标开始，双方轮流打出一张杀，不打出杀的一方受到1点伤害。', { subType: 'duel' }));
   // 南蛮入侵 (Savage) — 3张
