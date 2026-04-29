@@ -576,9 +576,9 @@ export const ALL_GENERALS: General[] = [
     desc: '蜀汉名将，善养兵马',
     skills: [
       {
-        id: 'weiyan_qimou',
-        name: '奇谋',
-        desc: '出牌阶段，可失去1点体力，视为使用一张杀。此杀不计入出牌阶段使用次数限制。',
+        id: 'weiyan_kuanggu',
+        name: '狂骨',
+        desc: '当你对其他角色造成伤害后，若你与该角色的距离<=1，可以回复1点体力或摸一张牌。',
         triggered: false,
       },
     ],
@@ -607,10 +607,10 @@ export const ALL_GENERALS: General[] = [
         },
       },
       {
-        id: 'simayi_guixin',
-        name: '归心',
-        desc: '回合结束阶段，可获得每名其他角色区域的一张牌。',
-        triggered: false,
+        id: 'simayi_guicai',
+        name: '鬼才',
+        desc: '当一名角色进行判定时，你可以弃一张牌，改变其判定结果。',
+        triggered: true,
       },
     ],
   },

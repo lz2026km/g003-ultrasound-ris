@@ -92,56 +92,86 @@ function genCards(
   return cards;
 }
 
-// 杀：标准24张（4花色×5=20普通杀 + 火杀2 + 雷杀2）
+// 杀：军争标准45张
+// 组成：黑桃12 + 草花12 + 火杀3 + 雷杀3 + 红桃15 = 45张
 function makeShaCards(): CardDef[] {
-  const suits: CardSuit[] = ['spade', 'club', 'heart', 'diamond'];
   const result: CardDef[] = [];
   let n = 0;
-  for (const suit of suits) {
-    for (let p = 1; p <= 5; p++) {  // 每色5张(1-5)，标准20张普通杀
-      result.push(makeCard(`sha_${n++}`, '杀', suit, p, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', {
-        subType: 'slash',
-        range: undefined,
-      }));
-    }
+
+  // 黑桃普通杀：1-K各1张（13张），其中10-J为普通杀，Q/K保留给火杀
+  for (let p = 1; p <= 9; p++) {
+    result.push(makeCard(`sha_${n++}`, '杀', 'spade', p, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', {
+      subType: 'slash',
+    }));
   }
-  // 火杀/雷杀（各2张，共4张）
-  for (let i = 0; i < 2; i++) {
-    result.push(makeCard(`sha_${n++}`, '杀', 'spade', 6, 'basic', '火属性杀', { subType: 'fire_slash', range: undefined }));
-    result.push(makeCard(`sha_${n++}`, '杀', 'club', 6, 'basic', '雷属性杀', { subType: 'thunder_slash', range: undefined }));
+  // 黑桃10-J（3张普通杀）
+  for (const p of [10, 11]) {
+    result.push(makeCard(`sha_${n++}`, '杀', 'spade', p, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', {
+      subType: 'slash',
+    }));
   }
-  // 共24张（4×5普通杀 + 2火杀 + 2雷杀 = 24）
+  // 草花普通杀：1-9各1张（9张）
+  for (let p = 1; p <= 9; p++) {
+    result.push(makeCard(`sha_${n++}`, '杀', 'club', p, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', {
+      subType: 'slash',
+    }));
+  }
+  // 草花10-J（2张普通杀）
+  for (const p of [10, 11]) {
+    result.push(makeCard(`sha_${n++}`, '杀', 'club', p, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', {
+      subType: 'slash',
+    }));
+  }
+  // 火杀：黑桃Q/6/3各1张（3张）
+  for (const p of [3, 6, 12]) {
+    result.push(makeCard(`sha_${n++}`, '杀', 'spade', p, 'basic', '火属性杀', { subType: 'fire_slash' }));
+  }
+  // 雷杀：草花Q/6/3各1张（3张）
+  for (const p of [3, 6, 12]) {
+    result.push(makeCard(`sha_${n++}`, '杀', 'club', p, 'basic', '雷属性杀', { subType: 'thunder_slash' }));
+  }
+  // 红桃杀：1-K各1张（13张）
+  for (let p = 1; p <= 13; p++) {
+    result.push(makeCard(`sha_${n++}`, '杀', 'heart', p, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', {
+      subType: 'slash',
+    }));
+  }
+  // 额外2张红桃7/8（凑足15张红杀）
+  result.push(makeCard(`sha_${n++}`, '杀', 'heart', 7, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', { subType: 'slash' }));
+  result.push(makeCard(`sha_${n++}`, '杀', 'heart', 8, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', { subType: 'slash' }));
+
+  // 总计：黑桃普通12 + 草花普通12 + 火杀3 + 雷杀3 + 红桃15 = 45张 ✓
   return result;
 }
 
-// 闪 (Jink) — 12张（方块1-12各1张）
+// 闪 (Jink) — 15张（方块1-13各1张 + 方块额外2张）
 function makeJinkCards(): CardDef[] {
   const result: CardDef[] = [];
-  for (let i = 0; i < 12; i++) {
-    const point = (i % 13) + 1 || 13;
-    result.push(makeCard(`jink_${i}`, '闪', 'diamond', point, 'basic', '当你受到杀伤害时，打出此牌，抵消1点伤害。', { subType: 'jink' }));
+  // 方块1-13各1张（13张）
+  for (let i = 0; i < 13; i++) {
+    result.push(makeCard(`jink_${i}`, '闪', 'diamond', i + 1, 'basic', '当你受到杀伤害时，打出此牌，抵消1点伤害。', { subType: 'jink' }));
   }
+  // 额外2张（方块7/8各1张凑15张）
+  result.push(makeCard('jink_13', '闪', 'diamond', 7, 'basic', '当你受到杀伤害时，打出此牌，抵消1点伤害。', { subType: 'jink' }));
+  result.push(makeCard('jink_14', '闪', 'diamond', 8, 'basic', '当你受到杀伤害时，打出此牌，抵消1点伤害。', { subType: 'jink' }));
   return result;
 }
 
-// 桃 (Peach) — 8张（方块1-8各1张 + 军争多2桃）
+// 桃 (Peach) — 5张（方块1-5各1张）
 function makePeachCards(): CardDef[] {
   const result: CardDef[] = [];
-  // 方块1-8各1张
-  for (let i = 0; i < 8; i++) {
+  // 方块1-5各1张（5张）
+  for (let i = 0; i < 5; i++) {
     result.push(makeCard(`peach_${i}`, '桃', 'diamond', i + 1, 'basic', '你或你攻击范围内的一名濒死角色回复1点体力。', { subType: 'peach' }));
   }
   return result;
 }
 
-// 酒 (Wine) — 5张（黑桃6、红桃6、方块6、草花6、草花7）
+// 酒 (Wine) — 2张（黑桃6、草花6）
 function makeWineCards(): CardDef[] {
   return [
     makeCard('wine_0', '酒', 'spade', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
-    makeCard('wine_1', '酒', 'heart', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
-    makeCard('wine_2', '酒', 'diamond', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
-    makeCard('wine_3', '酒', 'club', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
-    makeCard('wine_4', '酒', 'club', 7, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
+    makeCard('wine_1', '酒', 'club', 6, 'basic', '使用时机①：出牌阶段限一次，你使用此牌，然后本回合你使用杀伤害+1。时机②：当你处于濒死状态时，你使用此牌，回复1点体力。', { subType: 'wine' }),
   ];
 }
 
@@ -177,10 +207,10 @@ function makeEquipCards(): CardDef[] {
 // 锦囊牌
 function makeTrickCards(): CardDef[] {
   const cards: CardDef[] = [];
-  // 过河拆桥 (Dismantling) — 5张
-  for (let i = 0; i < 5; i++) cards.push(makeCard(`dismantle_${i}`, '过河拆桥', 'spade', 3 + i % 7, 'trick', '出牌阶段，对一名有牌的角色使用，弃置其一张手牌或装备区的一张牌。', { subType: 'dismantle' }));
-  // 顺手牵羊 (Snatch) — 5张
-  for (let i = 0; i < 5; i++) cards.push(makeCard(`snatch_${i}`, '顺手牵羊', 'club', 2 + i % 8, 'trick', '出牌阶段，对一名有牌的与你距离1的角色使用，获得其一张手牌或装备区的一张牌。', { subType: 'snatch' }));
+  // 过河拆桥 (Dismantling) — 4张（原5张改为4张）
+  for (let i = 0; i < 4; i++) cards.push(makeCard(`dismantle_${i}`, '过河拆桥', 'spade', 3 + i % 7, 'trick', '出牌阶段，对一名有牌的角色使用，弃置其一张手牌或装备区的一张牌。', { subType: 'dismantle' }));
+  // 顺手牵羊 (Snatch) — 2张（原5张改为2张）
+  for (let i = 0; i < 2; i++) cards.push(makeCard(`snatch_${i}`, '顺手牵羊', 'club', 2 + i % 8, 'trick', '出牌阶段，对一名有牌的与你距离1的角色使用，获得其一张手牌或装备区的一张牌。', { subType: 'snatch' }));
   // 决斗 (Duel) — 2张
   for (let i = 0; i < 2; i++) cards.push(makeCard(`duel_${i}`, '决斗', 'spade', 7, 'trick', '出牌阶段，对一名角色使用。由目标开始，双方轮流打出一张杀，不打出杀的一方受到1点伤害。', { subType: 'duel' }));
   // 南蛮入侵 (Savage) — 3张
@@ -193,16 +223,20 @@ function makeTrickCards(): CardDef[] {
   for (let i = 0; i < 2; i++) cards.push(makeCard(`burning_${i}`, '无中生有', 'heart', 1, 'trick', '出牌阶段，对你自己使用。摸两张牌。', { subType: 'burning' }));
   // 无懈可击 (Cancel) — 4张
   for (let i = 0; i < 4; i++) cards.push(makeCard(`cancel_${i}`, '无懈可击', 'spade', 7, 'trick', '当你成为锦囊的目标时，可打出此牌，取消此锦囊对你产生的效果。', { subType: 'cancel' }));
-  // 借刀杀人 (Collateral) — 2张
-  for (let i = 0; i < 2; i++) cards.push(makeCard(`collateral_${i}`, '借刀杀人', 'club', 9, 'trick', '出牌阶段，对有武器牌的角色使用。令其对你指定的另一名角色使用一张杀，否则将其武器牌交给你。', { subType: 'collateral' }));
+  // 借刀杀人 (Collateral) — 1张（原2张改为1张）
+  cards.push(makeCard('collateral_0', '借刀杀人', 'club', 9, 'trick', '出牌阶段，对有武器牌的角色使用。令其对你指定的另一名角色使用一张杀，否则将其武器牌交给你。', { subType: 'collateral' }));
   // 乐不思蜀 (Indulgence) — 2张
   for (let i = 0; i < 2; i++) cards.push(makeCard(`indulgence_${i}`, '乐不思蜀', 'spade', 3, 'trick', '出牌阶段，对一名角色使用。判定，若结果不为红桃，跳过该角色的出牌阶段。', { subType: 'indulgence' }));
   // 兵粮寸断 (Supply) — 2张
   for (let i = 0; i < 2; i++) cards.push(makeCard(`supply_${i}`, '兵粮寸断', 'club', 9, 'trick', '出牌阶段，对距离1的一名角色使用。判定，若结果不为草花，跳过该角色的摸牌阶段。', { subType: 'supply' }));
   // 闪电 (Lightning) — 1张
   cards.push(makeCard('lightning_0', '闪电', 'spade', 1, 'trick', '出牌阶段，将此牌放置于你的武将牌上。开始判定阶段，进行判定，若结果为黑桃2-9，受到3点伤害，此牌移至弃牌堆；否则将此牌移至当前下家武将牌上。', { subType: 'lightning' }));
-  // 火攻 (FireAttack) — 2张
-  for (let i = 0; i < 2; i++) cards.push(makeCard(`fire_attack_${i}`, '火攻', 'heart', 3, 'trick', '出牌阶段，对一名有手牌的角色使用。展示其一张手牌并弃置之，然后你可重复此流程。', { subType: 'fire_attack' }));
+  // 火攻 (FireAttack) — 3张（原2张改为3张）
+  for (let i = 0; i < 3; i++) cards.push(makeCard(`fire_attack_${i}`, '火攻', 'heart', 3, 'trick', '出牌阶段，对一名有手牌的角色使用。展示其一张手牌并弃置之，然后你可重复此流程。', { subType: 'fire_attack' }));
+  // 铁索连环 (IronChain) — 3张（新增）
+  for (let i = 0; i < 3; i++) cards.push(makeCard(`iron_chain_${i}`, '铁索连环', 'spade', 4 + i, 'trick', '出牌阶段，对一名角色使用，横置该角色。出牌阶段，对一名已横置的角色使用，解除其横置状态。', { subType: 'iron_chain' }));
+  // 五谷丰登 (FiveGrain) — 2张（新增）
+  for (let i = 0; i < 2; i++) cards.push(makeCard(`five_grain_${i}`, '五谷丰登', 'heart', 4, 'trick', '出牌阶段，对所有角色使用。每名目标选择一张手牌，依次弃置之。', { subType: 'five_grain' }));
   return cards;
 }
 
