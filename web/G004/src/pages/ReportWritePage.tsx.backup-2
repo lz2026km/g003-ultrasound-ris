@@ -127,7 +127,10 @@ const STRUCTURED_TEMPLATES: { type: ReportTemplateType; label: string; icon: str
   },
 ]
 
-// 常用短语库
+  // ========== 新增：报告预览优化 ==========
+  const [printPreviewMode, setPrintPreviewMode] = useState(false)
+
+  // 常用短语库
 const COMMON_PHRASES: { category: string; phrases: string[] }[] = [
   {
     category: '食道',
@@ -1081,7 +1084,7 @@ export default function ReportWritePage() {
   const [annotatingImageId, setAnnotatingImageId] = (useState as any)<string | null>(null)
   const [activePhotoTab, setActivePhotoTab] = (useState as any)<'standard' | 'gallery'>('standard')
   const [annotationTool, setAnnotationTool] = (useState as any)<'rect' | 'arrow' | 'text' | null>(null)
-  const [annotationColor, setAnnotationColor] = useState('#dc2626')
+  const [annotationColor] = useState('#dc2626')
   const [annotationTexts, setAnnotationTexts] = (useState as any)<{ x: number; y: number; text: string; color: string }[]>([])
   const [annotationArrows, setAnnotationArrows] = (useState as any)<{ x1: number; y1: number; x2: number; y2: number; color: string }[]>([])
   const [annDragStart, setAnnDragStart] = (useState as any)<{ x: number; y: number } | null>(null)
@@ -1089,12 +1092,6 @@ export default function ReportWritePage() {
   const isGastro = (editingReport.examItemName || '').includes('胃镜')
   const currentStandard = isGastro ? GASTROSCOPY_22_STANDARD : COLONOSCOPY_22_STANDARD
   const capturedCount = Math.min(reportImages.length, currentStandard.length)
-  const capturedPercent = currentStandard.length > 0 ? Math.round(capturedCount / currentStandard.length * 100) : 0
-  const requiredTotal = currentStandard.filter(s => s.required).length
-  const requiredCapturedCount = Math.min(
-    reportImages.filter(img => img.isRequired).length,
-    requiredTotal
-  )
   const [hoveredPhrase, setHoveredPhrase] = (useState as any)<string | null>(null)
 
   // AI 辅助
@@ -1380,9 +1377,9 @@ export default function ReportWritePage() {
     const finalImages = reportImages.map(img => img.url)
     if (modalMode === 'new') {
       const id = 'RPT' + Date.now().toString().slice(-6)
-      setReports((prev: EndoscopyReport[]) => [{ ...editingReport, id, status: '书写中', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
+      setReports(prev => [{ ...editingReport, id, status: '书写中', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
     } else {
-      setReports((prev: EndoscopyReport[]) => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: r.status === '未开始' ? '书写中' : r.status, updatedTime: now } as EndoscopyReport : r))
+      setReports(prev => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: r.status === '未开始' ? '书写中' : r.status, updatedTime: now } as EndoscopyReport : r))
     }
     setFormErrors([])
     setSubmitSuccess(true)
@@ -1397,9 +1394,9 @@ export default function ReportWritePage() {
     const finalImages = reportImages.map(img => img.url)
     if (modalMode === 'new') {
       const id = 'RPT' + Date.now().toString().slice(-6)
-      setReports((prev: EndoscopyReport[]) => [{ ...editingReport, id, status: '待审核', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
+      setReports(prev => [{ ...editingReport, id, status: '待审核', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
     } else {
-      setReports((prev: EndoscopyReport[]) => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: '待审核', updatedTime: now } as EndoscopyReport : r))
+      setReports(prev => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: '待审核', updatedTime: now } as EndoscopyReport : r))
     }
     setEditingReport(prev => ({ ...prev, status: '待审核' }))
     closeModal()
@@ -1409,7 +1406,7 @@ export default function ReportWritePage() {
   const handleAuditReport = () => {
     if (!auditDoctorName.trim()) return
     const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
-    setReports((prev: EndoscopyReport[]) => prev.map(r => r.id === editingReport.id ? {
+    setReports(prev => prev.map(r => r.id === editingReport.id ? {
       ...r,
       status: '已审核',
       auditDoctorId: 'U002',

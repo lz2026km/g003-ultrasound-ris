@@ -18,6 +18,7 @@ const AppointmentPage = lazy(() => import('./pages/AppointmentPage'))
 const ExamPage = lazy(() => import('./pages/ExamPage'))
 const ReportPage = lazy(() => import('./pages/ReportPage'))
 const ReportWritePage = lazy(() => import('./pages/ReportWritePage'))
+import TestPage from './pages/TestPage'
 const EndoscopePage = lazy(() => import('./pages/EndoscopePage'))
 const DisinfectionPage = lazy(() => import('./pages/DisinfectionPage'))
 const StatisticsPage = lazy(() => import('./pages/StatisticsPage'))
