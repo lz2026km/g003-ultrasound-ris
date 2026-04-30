@@ -87,7 +87,7 @@ export default function DicomViewerPage() {
     filterRow: { display: 'flex', gap: 6, marginTop: 10, flexWrap: 'wrap' },
     filterBtn: { padding: '4px 10px', borderRadius: 4, border: '1px solid #30363d', backgroundColor: 'transparent', color: '#8b949e', cursor: 'pointer', fontSize: 12 },
     imageList: { flex: 1, overflowY: 'auto', padding: '8px' },
-    imageItem: { display: 'flex', gap: 10, padding: '10px', borderRadius: 6, cursor: 'pointer', mb: 6, border: '1px solid transparent', transition: 'all 0.15s' },
+    imageItem: { display: 'flex', gap: 10, padding: '10px', borderRadius: 6, cursor: 'pointer', marginBottom: 6, border: '1px solid transparent', transition: 'all 0.15s' },
     imageItemActive: { border: '1px solid #58a6ff', backgroundColor: '#1f3a5f' },
     thumb: { width: 60, height: 45, backgroundColor: '#21262d', borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, color: '#8b949e' },
     imageInfo: { flex: 1 },
@@ -96,7 +96,7 @@ export default function DicomViewerPage() {
     toolBtn: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 2, padding: '8px 12px', borderRadius: 6, border: 'none', cursor: 'pointer', transition: 'all 0.15s', minWidth: 60, minHeight: 44 },
     toolBtnActive: { backgroundColor: '#1f6feb', color: '#fff' },
     toolBtnDefault: { backgroundColor: '#21262d', color: '#8b949e' },
-    divider: { width: 1, height: 30, backgroundColor: '#30363d', mx: 4 },
+    divider: { width: 1, height: 30, backgroundColor: '#30363d', marginLeft: 4, marginRight: 4 },
     viewerContainer: { flex: 1, display: 'flex', overflow: 'hidden' },
     viewer: { flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'auto', position: 'relative', cursor: activeTool === 'pan' ? 'grab' : 'crosshair' },
     dicomDisplay: { width: 512 * zoom, height: 400 * zoom, backgroundColor: '#000', border: '1px solid #30363d', position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', overflow: 'hidden' },
@@ -104,11 +104,11 @@ export default function DicomViewerPage() {
     rightPanel: { width: 260, backgroundColor: '#161b22', borderLeft: '1px solid #30363d', display: 'flex', flexDirection: 'column', overflow: 'hidden' },
     panelSection: { padding: '14px 16px', borderBottom: '1px solid #30363d' },
     panelTitle: { fontSize: 13, color: '#8b949e', marginBottom: 10, fontWeight: 500 },
-    paramRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 8 },
+    paramRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
     paramLabel: { fontSize: 13, color: '#8b949e' },
     paramValue: { fontFamily: 'monospace', fontSize: 13, color: '#e6edf3' },
     slider: { width: '100%', accentColor: '#58a6ff' },
-    rangeRow: { display: 'flex', alignItems: 'center', gap: 8, mb: 6 },
+    rangeRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 },
     rangeLabel: { fontSize: 12, color: '#8b949e', width: 50 },
     actionBtn: { width: '100%', padding: '10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, minHeight: 40, transition: 'all 0.15s' },
   }
@@ -231,7 +231,7 @@ export default function DicomViewerPage() {
                 <input type="range" min={-100} max={300} value={wc} onChange={e => setWc(Number(e.target.value))} style={s.slider} />
                 <span style={{ ...s.paramValue, width: 45, textAlign: 'right' }}>{wc}</span>
               </div>
-              <div style={{ display: 'flex', gap: 6, mt: 8 }}>
+              <div style={{ display: 'flex', gap: 6, marginTop: 8 }}>
                 <button style={{ ...s.actionBtn, backgroundColor: '#21262d', color: '#e6edf3', flex: 1, fontSize: 11, padding: '6px' }} onClick={() => { setWw(400); setWc(40) }}>软组织</button>
                 <button style={{ ...s.actionBtn, backgroundColor: '#21262d', color: '#e6edf3', flex: 1, fontSize: 11, padding: '6px' }} onClick={() => { setWw(1500); setWc(-600) }}>肺窗</button>
                 <button style={{ ...s.actionBtn, backgroundColor: '#21262d', color: '#e6edf3', flex: 1, fontSize: 11, padding: '6px' }} onClick={() => { setWw(200); setWc(80) }}>骨窗</button>
@@ -244,7 +244,7 @@ export default function DicomViewerPage() {
                 <div style={{ color: '#6e7681', fontSize: 12, textAlign: 'center', padding: '10px 0' }}>暂无标注</div>
               ) : (
                 annotations.map(a => (
-                  <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 6, padding: '6px 8px', backgroundColor: '#21262d', borderRadius: 4 }}>
+                  <div key={a.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6, padding: '6px 8px', backgroundColor: '#21262d', borderRadius: 4 }}>
                     <span style={{ fontSize: 12, color: '#e6edf3' }}>{a.text}</span>
                     <button style={{ background: 'none', border: 'none', color: '#f85149', cursor: 'pointer', padding: 2 }} onClick={() => setAnnotations(ann => ann.filter(x => x.id !== a.id))}>
                       <Trash2 size={12} />
@@ -253,7 +253,7 @@ export default function DicomViewerPage() {
                 ))
               )}
               {showAnnotate ? (
-                <div style={{ display: 'flex', gap: 6, mt: 6 }}>
+                <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                   <input
                     style={{ flex: 1, padding: '6px 8px', backgroundColor: '#0d1117', border: '1px solid #30363d', borderRadius: 4, color: '#e6edf3', fontSize: 12, outline: 'none' }}
                     placeholder="输入标注文字..."
@@ -264,7 +264,7 @@ export default function DicomViewerPage() {
                   <button style={{ ...s.actionBtn, backgroundColor: '#1f6feb', color: '#fff', flex: 1, fontSize: 11, padding: '6px' }} onClick={handleAddAnnotation}>添加</button>
                 </div>
               ) : (
-                <button style={{ ...s.actionBtn, backgroundColor: '#21262d', color: '#e6edf3', mt: 6 }} onClick={() => setShowAnnotate(true)}>
+                <button style={{ ...s.actionBtn, backgroundColor: '#21262d', color: '#e6edf3', marginTop: 6 }} onClick={() => setShowAnnotate(true)}>
                   <Pen size={13} />添加标注
                 </button>
               )}

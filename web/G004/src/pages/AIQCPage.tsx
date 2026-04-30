@@ -1146,7 +1146,7 @@ export default function AIQCPage() {
                 <div style={s.dashboardCardSub}>目标: {ind.target}{ind.unit}</div>
                 <TrendChart data={ind.trend} color={ind.status === 'excellent' ? '#16a34a' : ind.status === 'good' ? '#2563eb' : ind.status === 'warning' ? '#d97706' : '#dc2626'} />
                 <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
-                  {ind.current >= ind.target ? '✓ 已达标' : `差距 ${(ind.target - ind.current).toFixed(1)}${ind.unit}`}
+                  {ind.value >= ind.target ? '✓ 已达标' : `差距 ${(ind.target - ind.value).toFixed(1)}${ind.unit}`}
                 </div>
               </div>
             ))}

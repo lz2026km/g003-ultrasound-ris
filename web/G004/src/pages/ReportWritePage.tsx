@@ -2040,7 +2040,7 @@ export default function ReportWritePage() {
                           {/* 图片采集 */}
                           <div style={s.formSection}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                              <div style={s.formSectionTitle} style={{ marginBottom: 0 }}><Camera size={13} /> 内镜图像采集</div>
+                              <div style={{ ...s.formSectionTitle, marginBottom: 0 }}><Camera size={13} /> 内镜图像采集</div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 {/* 图片质控提示 */}
                                 <div style={{
@@ -2115,7 +2115,7 @@ export default function ReportWritePage() {
                           {/* 活检管理 */}
                           <div style={s.formSection}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                              <div style={s.formSectionTitle} style={{ marginBottom: 0 }}><Scissors size={13} /> 活检管理</div>
+                              <div style={{ ...s.formSectionTitle, marginBottom: 0 }}><Scissors size={13} /> 活检管理</div>
                               <label style={s.checkbox}>
                                 <input type="checkbox" style={s.checkboxInput} checked={editingReport.biopsyTaken} onChange={e => handleField('biopsyTaken', e.target.checked)} />
                                 是否活检
@@ -2856,7 +2856,7 @@ export default function ReportWritePage() {
                 <div style={s.printInfoItem}><span style={s.printLabel}>检查日期：</span><span style={s.printValue}>{editingReport.examDate}</span></div>
                 <div style={s.printInfoItem}><span style={s.printLabel}>报告医生：</span><span style={s.printValue}>{editingReport.doctorName}</span></div>
                 <div style={s.printInfoItem}><span style={s.printLabel}>麻醉方式：</span><span style={s.printValue}>{editingReport.anesthesiaMethod || '—'}</span></div>
-                <div style={s.printInfoItem}><span style={s.printLabel}>报告ID：</span><span style={{ ...s.printValue, fontFamily: 'monospace' }}>{editingReport.id}</span></div>
+                <div style={s.printInfoItem}><span style={{ ...s.printLabel, fontFamily: 'monospace' }}>报告ID：</span><span style={s.printValue}>{editingReport.id}</span></div>
               </div>
 
               {/* 主诉 */}

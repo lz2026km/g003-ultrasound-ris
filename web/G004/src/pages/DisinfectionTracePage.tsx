@@ -10,7 +10,7 @@ import {
   Monitor, AlertCircle, ScanLine, BarChart3, Plus,
   Radio, Thermometer, FlaskConical, TestTube, Layers,
   ArrowRight, FileText, Download, Printer, CheckSquare,
-  Clock3, AlertOctagon, ShieldCheck, Leaf, X
+  Clock3, AlertOctagon, ShieldCheck, Leaf, X, Edit
 } from 'lucide-react'
 
 // ---------- 数据类型 ----------

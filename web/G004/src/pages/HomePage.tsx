@@ -461,7 +461,7 @@ const TODAY_TODOS = [
 
 // ===== 版本信息 =====
 const VERSION_INFO = [
-  { label: '系统版本', value: 'G004 v2.6.0', tag: '最新', tagBeta: false, icon: Package },
+  { label: '系统版本', value: 'G004 v0.12.0', tag: '最新', tagBeta: false, icon: Package },
   { label: '前端框架', value: 'React 18.2.0', tag: null, tagBeta: false, icon: Wrench },
   { label: '图表库', value: 'Recharts 2.10.0', tag: null, tagBeta: false, icon: BarChart3 },
   { label: '图标库', value: 'Lucide React 0.294.0', tag: null, tagBeta: false, icon: HardDrive },

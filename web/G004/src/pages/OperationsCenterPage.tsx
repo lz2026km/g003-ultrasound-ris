@@ -3,11 +3,12 @@
 // G004 内镜管理系统 - 运营指挥中心大屏
 // 科室主任/院长驾驶舱 - 竞品对标：东软BI决策支持 + 卫软主任查询统计工作站
 // ============================================================
+import { useState, useEffect } from 'react'
 import {
   Activity, AlertTriangle, ArrowUp, ArrowDown, Bell,
   Clock, Package, TrendingUp, TrendingDown, AlertCircle,
   CheckCircle, XCircle, RefreshCw, Monitor, Users,
-  Zap, Thermometer, Wrench, MessageSquare, Gauge
+  Zap, Thermometer, Wrench, MessageSquare, Gauge, Minus
 } from 'lucide-react'
 
 // ==================== 模拟数据 ====================
@@ -696,10 +697,10 @@ function ProgressBar({ label, value, color }: { label: string, value: number, co
 export default function OperationsCenterPage() {
   const [currentTime, setCurrentTime] = useState(new Date())
 
-  useState(() => {
+  useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000)
     return () => clearInterval(timer)
-  })
+  }, [])
 
   return (
     <div style={s.root}>

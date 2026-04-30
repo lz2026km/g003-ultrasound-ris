@@ -53,17 +53,17 @@ export default function CostAnalysisPage() {
 
   const s: Record<string, React.CSSProperties> = {
     root: { padding: 32, minHeight: '100vh', background: '#0d1117', color: '#e6edf3', fontFamily: 'system-ui, sans-serif' },
-    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 28 },
+    header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center',    marginBottom: 28 },
     title: { fontSize: 22, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 10 },
-    topRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, mb: 24 },
+    topRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16,    marginBottom: 24 },
     statCard: cssCard(),
     statLabel: { fontSize: 13, color: '#8b949e', marginBottom: 6 },
     statValue: { fontSize: 28, fontWeight: 700, fontFamily: 'monospace' },
     statSub: { fontSize: 12, color: '#3fb950', display: 'flex', alignItems: 'center', gap: 4 },
-    tabRow: { display: 'flex', gap: 6, mb: 24, borderBottom: '1px solid #30363d', paddingBottom: 0 },
+    tabRow: { display: 'flex', gap: 6, marginBottom: 24, borderBottom: '1px solid #30363d', paddingBottom: 0 },
     tab: { padding: '10px 18px', cursor: 'pointer', borderBottom: '2px solid transparent', color: '#8b949e', fontSize: 14, transition: 'all 0.15s', minHeight: 44, display: 'flex', alignItems: 'center', gap: 6 },
     tabActive: { borderBottom: '2px solid #58a6ff', color: '#58a6ff' },
-    grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, mb: 24 },
+    grid2: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20,    marginBottom: 24 },
     card: cssCard(),
     cardTitle: { fontSize: 15, fontWeight: 600, color: '#e6edf3', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 },
     row: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid #21262d' },
@@ -73,15 +73,14 @@ export default function CostAnalysisPage() {
     badge: { padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
     badgeGreen: { background: 'rgba(63,185,80,0.15)', color: '#3fb950' },
     badgeRed: { background: 'rgba(248,81,73,0.15)', color: '#f85149' },
-    barRow: { display: 'flex', alignItems: 'center', gap: 12, mb: 10 },
+    barRow: { display: 'flex', alignItems: 'center', gap: 12,    marginBottom: 10 },
     barLabel: { width: 70, fontSize: 12, color: '#8b949e' },
     barBg: { flex: 1, height: 8, background: '#21262d', borderRadius: 4, overflow: 'hidden' },
     barVal: { width: 50, fontSize: 12, color: '#e6edf3', textAlign: 'right', fontFamily: 'monospace' },
     rangeRow: { display: 'flex', gap: 8 },
-    rangeBtn: { padding: '6px 14px', borderRadius: 6, border: '1px solid #30363d', bgcolor: 'transparent', color: '#8b949e', cursor: 'pointer', fontSize: 12, minHeight: 36 },
-    btn: { padding: '10px 20px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, minHeight: 44, transition: 'all 0.15s' },
-    btnOutline: { bgcolor: 'transparent', border: '1px solid #30363d', color: '#8b949e' },
-    btnPrimary: { bgcolor: '#1f6feb', color: '#fff' },
+    rangeBtn: { padding: '6px 14px', borderRadius: 6, border: '1px solid #30363d', backgroundColor: 'transparent', color: '#8b949e', cursor: 'pointer', fontSize: 12, minHeight: 36 },
+    btnOutline: { backgroundColor: 'transparent', border: '1px solid #30363d', color: '#8b949e' },
+    btnPrimary: { backgroundColor: '#1f6feb', color: '#fff' },
     chartBox: { height: 180, display: 'flex', alignItems: 'flex-end', gap: 12, padding: '0 8px' },
     chartBar: { flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 },
   }
@@ -289,7 +288,7 @@ export default function CostAnalysisPage() {
                     <td style={{ ...s.td, color: '#f85149' }}>¥{Number(cost).toLocaleString()}</td>
                     <td style={{ ...s.td, color: '#e6edf3', fontWeight: 600 }}>¥{Number(profit).toLocaleString()}</td>
                     <td style={s.td}><span style={{ ...s.badge, background: 'rgba(88,166,255,0.1)', color: '#58a6ff' }}>{rate}</span></td>
-                    <td style={{ ...s.td, color: yoy.startsWith('+') ? '#3fb950' : '#f85149', fontWeight: 600 }}>{yoy}</td>
+                    <td style={{ ...s.td, color: String(yoy).startsWith('+') ? '#3fb950' : '#f85149', fontWeight: 600 }}>{yoy}</td>
                   </tr>
                 ))}
               </tbody>
