@@ -600,6 +600,7 @@ def load_gateway_config() -> GatewayConfig:
         except Exception as e:
             logger.warning("Failed to load %s: %s", gateway_json_path, e)
 
+    yaml_cfg = {}
     # Primary source: config.yaml
     try:
         import yaml
@@ -990,7 +991,15 @@ def _validate_gateway_config(config: "GatewayConfig") -> None:
 
 def _apply_env_overrides(config: GatewayConfig) -> None:
     """Apply environment variable overrides to config."""
-    
+    from pathlib import Path
+    _home = Path.home() / ".hermes"
+    import yaml
+    config_yaml_path = _home / "config.yaml"
+    yaml_cfg = {}
+    if config_yaml_path.exists():
+        with open(config_yaml_path, encoding="utf-8") as f:
+            yaml_cfg = yaml.safe_load(f) or {}
+
     # Telegram
     telegram_token = os.getenv("TELEGRAM_BOT_TOKEN")
     if telegram_token:
@@ -1389,7 +1398,7 @@ def _apply_env_overrides(config: GatewayConfig) -> None:
             name=os.getenv("BLUEBUBBLES_HOME_CHANNEL_NAME", "Home"),
         )
 
-    # QQ (Official Bot API v2)
+    # QQ (Official Bot API v2) — support both env vars and config.yaml root keys
     qq_app_id = os.getenv("QQ_APP_ID")
     qq_client_secret = os.getenv("QQ_CLIENT_SECRET")
     if qq_app_id or qq_client_secret:
