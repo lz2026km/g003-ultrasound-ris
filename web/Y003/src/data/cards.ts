@@ -33,6 +33,7 @@ export interface PlayerState {
   };
   skills: string[];     // 已触发技能
   marks: Record<string, number>; // 标记，如 duelTarget
+  chained?: boolean;   // 是否被铁索连环横置
   distance: number;      // 到当前玩家的距离
 }
 
@@ -54,6 +55,7 @@ export interface GameState {
   // 回合追踪（用于规则限制）
   shaUsedThisTurn?: Record<string, number>;  // 每回合杀的使用次数 {playerId: count}
   wineUsedThisTurn?: Record<string, number>; // 每回合酒的使用次数
+  wineDamageBoost?: Record<string, number>;  // 本回合酒增加伤害标记 {playerId: boostCount}
   turnStartHp?: Record<string, number>;       // 回合开始时体力（用于桃的限制）
   judgeArea?: string[];  // 判定区的牌ID列表
   lastDamageSource?: string; // 最后造成伤害的来源ID（用于反馈等技能）
@@ -104,8 +106,8 @@ function makeShaCards(): CardDef[] {
       subType: 'slash',
     }));
   }
-  // 黑桃10-J（3张普通杀）
-  for (const p of [10, 11]) {
+  // 黑桃10-K（4张普通杀）
+  for (const p of [10, 11, 13]) {
     result.push(makeCard(`sha_${n++}`, '杀', 'spade', p, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', {
       subType: 'slash',
     }));
@@ -116,8 +118,8 @@ function makeShaCards(): CardDef[] {
       subType: 'slash',
     }));
   }
-  // 草花10-J（2张普通杀）
-  for (const p of [10, 11]) {
+  // 草花10-K（3张普通杀）
+  for (const p of [10, 11, 13]) {
     result.push(makeCard(`sha_${n++}`, '杀', 'club', p, 'basic', '出牌阶段，对一名你有距离的目标使用，造成1点伤害。', {
       subType: 'slash',
     }));

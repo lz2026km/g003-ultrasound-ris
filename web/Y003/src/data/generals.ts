@@ -229,13 +229,13 @@ export const ALL_GENERALS: General[] = [
     desc: '闭月，吕布之妻',
     skills: [
       {
-        id: 'diaochon_liyu',
+        id: 'diaochan_liyu',
         name: '离间',
         desc: '出牌阶段限一次，你可弃置1张牌，选择两名其他男性角色，令其进行决斗。',
         triggered: true,
       },
       {
-        id: 'diaochon_biyue',
+        id: 'diaochan_biyue',
         name: '闭月',
         desc: '回合结束阶段，可摸一张牌。',
         triggered: false,
@@ -304,7 +304,7 @@ export const ALL_GENERALS: General[] = [
       {
         id: 'luxun_qianxin',
         name: '谦逊',
-        desc: '锁定技，你不能被横置，且不能成为延时类锦囊的目标。',
+        desc: '锁定技，你不能被顺手牵羊。',
         triggered: false,
       },
       {
@@ -376,7 +376,7 @@ export const ALL_GENERALS: General[] = [
     ],
   },
   {
-    id: 'zhouatai',
+    id: 'zhoutai',
     name: '周泰',
     nation: 'wu',
     hp: 4,
@@ -386,7 +386,7 @@ export const ALL_GENERALS: General[] = [
     desc: '东吴忠勇，不屈不挠',
     skills: [
       {
-        id: 'zhouatai_buqu',
+        id: 'zhoutai_buqu',
         name: '不屈',
         desc: '当你扣减体力至0时，可将任意数量的手牌置于牌堆顶，使体力回复至1，每回合限一次。',
         triggered: true,
@@ -633,8 +633,8 @@ export const ALL_GENERALS: General[] = [
     ],
   },
   {
-    id: 'zhangliao',
-    name: '张辽',
+    id: 'zhangque',
+    name: '张郃',
     nation: 'wei',
     hp: 4,
     maxHp: 4,
@@ -643,9 +643,9 @@ export const ALL_GENERALS: General[] = [
     desc: '魏国名将，五子良将',
     skills: [
       {
-        id: 'zhangliao_tuqi',
-        name: '突袭',
-        desc: '回合开始阶段，可跳过摸牌阶段，获得两名相邻角色各一张手牌。',
+        id: 'zhangque_qiaobian',
+        name: '巧变',
+        desc: '摸牌阶段，你可以放弃摸牌，改为获得至多两名其他角色的各一张手牌；出牌阶段，你可以跳过此阶段，视为使用一张任意距离的坐骑牌。',
         triggered: false,
       },
     ],
@@ -714,14 +714,15 @@ export const ALL_GENERALS: General[] = [
         triggered: false,
       },
       {
-        id: 'zhenji_gupo',
-        name: '骨牌',
+        id: 'zhenji_qingguo',
+        name: '倾国',
         desc: '当你使用锦囊牌时，可弃置一张手牌，视为使用一张无距离限制的杀。',
         triggered: false,
       },
     ],
   },
 // ===== 魏国 =====
+// 注意：张郃(巧变)已在上方，保留张辽(突袭)于此
 {
   id: 'zhangliao',
   name: '张辽',
@@ -1114,24 +1115,48 @@ export const ALL_GENERALS: General[] = [
     },
   ],
 },
-{
-  id: 'xiaoqiao',
-  name: '小乔',
-  nation: 'wu',
-  hp: 3,
-  maxHp: 3,
-  gender: 'female',
-  color: '#ffcc00',
-  desc: '江东二乔，吴宫绝色',
-  skills: [
-    {
-      id: 'xiaoqiao_tianxiang',
-      name: '天香',
-      desc: '当你受到伤害时，可以将伤害转移给你攻击范围内的一名其他角色。',
-      triggered: false,
-    },
-  ],
-},
+  {
+    id: 'xiaoqiao',
+    name: '小乔',
+    nation: 'wu',
+    hp: 3,
+    maxHp: 3,
+    gender: 'female',
+    color: '#ffcc00',
+    desc: '江东二乔，吴宫绝色',
+    skills: [
+      {
+        id: 'xiaoqiao_tianxiang',
+        name: '天香',
+        desc: '当你受到伤害时，可以将伤害转移给你攻击范围内的一名其他角色。',
+        triggered: false,
+      },
+    ],
+  },
+  {
+    id: 'dingfeng',
+    name: '丁奉',
+    nation: 'wu',
+    hp: 4,
+    maxHp: 4,
+    gender: 'male',
+    color: '#ffcc00',
+    desc: '东吴猛将，雪恨奋身',
+    skills: [
+      {
+        id: 'dingfeng_duanbing',
+        name: '短兵',
+        desc: '出牌阶段，你可以将任意一张黑色牌当过河拆桥使用。',
+        triggered: false,
+      },
+      {
+        id: 'dingfeng_xuehen',
+        name: '雪恨',
+        desc: '回合结束阶段，你可以弃置一张手牌并指定一名已受伤的角色，令其回复1点体力。',
+        triggered: false,
+      },
+    ],
+  },
 {
   id: 'sunshangxiang',
   name: '孙尚香',

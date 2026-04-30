@@ -147,10 +147,21 @@ export function damagePlayer(game: GameState, sourceId: string, targetId: string
   const target = g.players.find(p => p.id === targetId);
   if (!target || !target.alive) return game;
   g.lastDamageSource = sourceId;
-  
+
+  // 酒效果：若伤害来源本回合使用过酒，杀伤害+1
+  let finalDamage = damage;
+  if ((nature === 'normal' || nature === 'fire' || nature === 'thunder') && sourceId) {
+    const wineBoost = g.wineDamageBoost?.[sourceId] || 0;
+    if (wineBoost > 0 && (nature === 'normal')) {
+      finalDamage += wineBoost;
+      // 酒效果只对普通杀生效，每次只+1
+      if (g.wineDamageBoost) g.wineDamageBoost[sourceId] = 0;
+    }
+  }
+
   // 护甲/技能处理（简化：直接扣体力）
-  target.hp -= damage;
-  g.logs.push(`${target.name}受到了${damage}点${nature === 'fire' ? '火' : nature === 'thunder' ? '雷' : ''}伤害。`);
+  target.hp -= finalDamage;
+  g.logs.push(`${target.name}受到了${finalDamage}点${nature === 'fire' ? '火' : nature === 'thunder' ? '雷' : ''}伤害。`);
 
   if (target.hp <= 0) {
     // 濒死状态，等待桃救助
@@ -594,8 +605,14 @@ export function useCard(
     }
   } else if (card.subType === 'jink') {
     // 闪：由系统处理
+  // 酒：使用后标记本回合杀伤害+1
   } else if (card.subType === 'wine') {
-    // 酒：+1伤害（简化处理，本回合杀伤害+1暂不实现）
+    if (!g.wineUsedThisTurn) g.wineUsedThisTurn = {};
+    g.wineUsedThisTurn[playerId] = (g.wineUsedThisTurn[playerId] || 0) + 1;
+    // 酒效果：标记本回合杀伤害+1
+    if (!g.wineDamageBoost) g.wineDamageBoost = {};
+    g.wineDamageBoost[playerId] = (g.wineDamageBoost[playerId] || 0) + 1;
+    g.logs.push(`${player.name}使用了酒，本回合杀伤害+1。`);
   } else if (card.subType === 'dismantle') {
     // 过河拆桥（目标已选择，由UI处理具体拆哪张牌）
   } else if (card.subType === 'snatch') {
@@ -636,6 +653,20 @@ export function useCard(
     for (const p of g.players) {
       if (p.alive) {
         g = healPlayer(g, p.id, 1);
+      }
+    }
+  } else if (card.subType === 'iron_chain') {
+    // 铁索连环：横置目标或解除横置状态
+    for (const targetId of targetIds) {
+      const target = g.players.find(p => p.id === targetId);
+      if (target) {
+        if (!target.chained) {
+          target.chained = true;
+          g.logs.push(`${target.name}被横置了。`);
+        } else {
+          target.chained = false;
+          g.logs.push(`${target.name}的横置状态解除了。`);
+        }
       }
     }
   } else if (card.subType === 'fire_attack') {
@@ -1169,10 +1200,11 @@ export function checkVictory(game: GameState): string[] | null {
     return winners.map(p => p.id);
   }
 
-  // 忠臣死亡后只剩主公+内奸→单挑
+  // 忠臣死亡后只剩主公+内奸→单挑（返回null表示游戏继续）
   const loyalists = g.players.filter(p => p.role === 'loyalist' && p.alive);
   if (rebels.length === 0 && loyalists.length === 0 && traitors.length === 1 && alivePlayers.length === 2) {
-    // 单挑模式，后续扩展
+    // 单挑模式，游戏继续，暂不宣告胜利
+    return null;
   }
 
   return null;
