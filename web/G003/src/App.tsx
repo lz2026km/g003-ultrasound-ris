@@ -286,7 +286,7 @@ function AppShell() {
         <div style={s.sidebarFooter}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声RIS信息管理系统</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.1.0</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.2.0</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
           </div>
         </div>
@@ -313,7 +313,7 @@ function AppShell() {
             </span>
           </div>
           <div style={s.topbarRight}>
-            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.1.0</div>
+            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.2.0</div>
             <div style={s.topbarBadge}>
               <Bell size={20} />
               <span style={s.badge}>1</span>
@@ -404,9 +404,17 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.1.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.2.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
+                  核心流程升级：患者检查全流程闭环、DICOM增强、AI质控、统计图表ECharts、科室运营大屏
+                </div>
+              </div>
+              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
+                  v0.1.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（历史版本）</span>
+                </div>
+                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
                   智慧超声RIS信息管理系统 v0.1.0 首发版本，基于G004内镜系统架构全面重构。集成患者管理、预约登记、检查执行、报告书写、叫号分诊、图像采集、数据统计等核心模块。对标蓝网科技、东软医疗US-RIS、联影医疗、开立医疗、岱嘉超声RIS等全网竞品，汇聚所有产品优点于一体。
                 </div>
               </div>

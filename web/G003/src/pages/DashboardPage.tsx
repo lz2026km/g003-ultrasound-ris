@@ -1,451 +1,600 @@
 // @ts-nocheck
 // ============================================================
-// G003 超声RIS系统 - 仪表盘页面
-// 综合监控面板 / 实时数据 / 快捷入口 / 系统状态
+// G003 超声RIS系统 - 科室运营大屏 v0.2.0
+// 超声科运营指挥中心 · 实时数据 · 大屏展示
 // ============================================================
-import { useState } from 'react'
-import { useNavigate as useNavigateRouter } from 'react-router-dom'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import {
-  Dashboard as DashboardIcon, Activity, FileText, Users, Clock,
-  AlertTriangle, AlertCircle, CheckCircle, TrendingUp, TrendingDown,
-  Calendar, CalendarClock, Stethoscope, Monitor, Bell, BellRing,
-  RefreshCw, Settings, Eye, Plus, ChevronRight, Package,
-  Wrench, HardDrive, ShieldAlert, Wifi, WifiOff, Server,
-  Database, Cpu, MemoryStick, Gauge, Thermometer,
-  PackageSearch, HeartPulse, ClipboardCheck, UserPlus
+  Activity, Users, Stethoscope, Clock, AlertTriangle,
+  CheckCircle, RefreshCw, Maximize2, TrendingUp,
+  Monitor, Wifi, WifiOff, Wrench, Scissors, CalendarClock,
+  Bell, AlertCircle, Plus, FileText
 } from 'lucide-react'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   Legend, ResponsiveContainer
 } from 'recharts'
-import { initialStatisticsData } from '../data/initialData'
+import ReactECharts from 'echarts-for-react'
+
+// ---------- 颜色常量 ----------
+const C = {
+  bg: '#0f172a',
+  card: '#1e293b',
+  cardBorder: '#334155',
+  text: '#f1f5f9',
+  textMuted: '#94a3b8',
+  blue: '#3b82f6',
+  green: '#22c55e',
+  yellow: '#eab308',
+  red: '#ef4444',
+  purple: '#8b5cf6',
+  teal: '#14b8a6',
+  orange: '#f97316',
+}
+
+// ---------- 模拟数据生成 ----------
+const ROOMS = ['检查室1', '检查室2', '检查室3', '检查室4', '检查室5', '检查室6']
+const ROOM_STATES = ['空闲', '检查中', '等待中']
+const ROOM_COLORS = { '空闲': C.green, '检查中': C.yellow, '等待中': C.red }
+
+const generateRoomData = () =>
+  ROOMS.map((name) => ({
+    name,
+    state: ROOM_STATES[Math.floor(Math.random() * 3)],
+  }))
+
+const DEVICES = [
+  { name: '彩超仪 A', status: '在线' },
+  { name: '彩超仪 B', status: '在线' },
+  { name: '便携超声 A', status: '在线' },
+  { name: '床旁超声 B', status: '维护中' },
+  { name: '介入超声', status: '离线' },
+]
+
+const CRITICAL_ALERTS = [
+  { id: 1, patient: '王建国', exam: '腹部超声', item: '肝功能异常', time: '10:32', level: '危急' },
+  { id: 2, patient: '李红梅', exam: '心血管超声', item: '肌钙蛋白升高', time: '09:15', level: '危急' },
+  { id: 3, patient: '张伟', exam: '妇产科超声', item: '胎心率异常', time: '08:45', level: '危急' },
+  { id: 4, patient: '赵丽华', exam: '浅表器官', item: '结节伴钙化', time: '11:20', level: '危急' },
+]
+
+const SURGERIES = [
+  { id: 1, patient: '孙中山', type: '超声引导下穿刺活检', doctor: '李明辉', time: '09:00', status: '进行中' },
+  { id: 2, patient: '周婷', type: '超声引导下引流术', doctor: '王晓燕', time: '10:30', status: '待开始' },
+  { id: 3, patient: '吴磊', type: '超声造影检查', doctor: '张伟', time: '14:00', status: '已预约' },
+]
+
+const generateRealtimeData = () => {
+  const now = new Date()
+  const h = now.getHours().toString().padStart(2, '0')
+  const m = now.getMinutes().toString().padStart(2, '0')
+  return {
+    time: `${h}:${m}`,
+    value: Math.floor(Math.random() * 30 + 20),
+  }
+}
 
 // ---------- 样式 ----------
 const s: Record<string, React.CSSProperties> = {
-  root: { padding: 0 },
-  header: { marginBottom: 24 },
-  title: { fontSize: 20, fontWeight: 700, color: '#1a3a5c', margin: 0 },
-  subtitle: { fontSize: 13, color: '#64748b', marginTop: 4 },
-  headerRight: { display: 'flex', gap: 8, marginTop: 8 },
-  // 状态指示器
-  statusDot: {
-    width: 8, height: 8, borderRadius: '50%', display: 'inline-block', marginRight: 6,
+  root: { background: C.bg, minHeight: '100vh', color: C.text, padding: '20px 24px' },
+  header: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: 24, paddingBottom: 16, borderBottom: `1px solid ${C.cardBorder}`,
   },
-  // 快速入口
-  quickGrid: {
-    display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 24,
+  title: { fontSize: 28, fontWeight: 800, color: C.text, margin: 0, letterSpacing: 2 },
+  subtitle: { fontSize: 13, color: C.textMuted, marginTop: 4 },
+  headerBtns: { display: 'flex', gap: 8 },
+  // 通用卡片
+  card: {
+    background: C.card, borderRadius: 12, padding: 20,
+    border: `1px solid ${C.cardBorder}`,
   },
-  quickItem: {
-    background: '#fff', borderRadius: 12, padding: '20px 16px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex',
-    flexDirection: 'column', alignItems: 'center', gap: 12, cursor: 'pointer',
-    transition: 'all 0.2s', border: 'none', textAlign: 'center',
-  },
-  quickIcon: {
-    width: 48, height: 48, borderRadius: 12, display: 'flex',
-    alignItems: 'center', justifyContent: 'center',
-  },
-  quickLabel: { fontSize: 13, fontWeight: 600, color: '#1a3a5c' },
-  quickSub: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
-  // 统计卡片行
-  statRow: {
-    display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24,
-  },
-  statCard: {
-    background: '#fff', borderRadius: 12, padding: '20px 24px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex',
-    alignItems: 'center', gap: 16,
-  },
-  statIconWrap: {
-    width: 52, height: 52, borderRadius: 12, display: 'flex',
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
-  statInfo: { flex: 1, minWidth: 0 },
-  statValue: { fontSize: 28, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.2 },
-  statLabel: { fontSize: 12, color: '#64748b', marginTop: 4 },
-  statTrend: { fontSize: 11, marginTop: 6, display: 'flex', alignItems: 'center', gap: 2 },
-  // 图表行
-  chartRow: {
-    display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16, marginBottom: 24,
-  },
-  chartCard: {
-    background: '#fff', borderRadius: 12, padding: 20,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-  },
-  chartTitle: {
-    fontSize: 14, fontWeight: 600, color: '#1a3a5c', marginBottom: 16,
+  cardTitle: {
+    fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 16,
     display: 'flex', alignItems: 'center', gap: 8,
   },
-  chartIcon: { color: '#64748b' },
-  // 实时监控卡片
-  monitorCard: {
-    background: '#fff', borderRadius: 12, padding: 20,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 24,
+  cardIcon: { color: C.textMuted },
+  // 顶部统计行
+  topStats: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 },
+  topStatCard: {
+    background: C.card, borderRadius: 12, padding: '20px 24px',
+    border: `1px solid ${C.cardBorder}`, display: 'flex',
+    alignItems: 'center', gap: 16,
   },
-  monitorHeader: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16,
+  topStatIcon: {
+    width: 52, height: 52, borderRadius: 12,
+    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
   },
-  monitorTitle: { fontSize: 14, fontWeight: 600, color: '#1a3a5c', display: 'flex', alignItems: 'center', gap: 8 },
-  monitorGrid: {
-    display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16,
+  topStatValue: { fontSize: 32, fontWeight: 800, color: C.text, lineHeight: 1.1 },
+  topStatLabel: { fontSize: 12, color: C.textMuted, marginTop: 4 },
+  // 主内容区 3列
+  mainGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 },
+  // 检查室网格
+  roomGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 },
+  roomCard: { borderRadius: 10, padding: '16px', display: 'flex', flexDirection: 'column', gap: 8 },
+  roomName: { fontSize: 14, fontWeight: 600, color: C.text },
+  roomState: { fontSize: 20, fontWeight: 800, color: C.text },
+  roomDot: { width: 10, height: 10, borderRadius: '50%' },
+  // 危急值列表
+  criticalList: { display: 'flex', flexDirection: 'column', gap: 8 },
+  criticalItem: {
+    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
+    borderRadius: 8, padding: '12px 16px', display: 'flex',
+    justifyContent: 'space-between', alignItems: 'center',
   },
-  monitorItem: {
-    padding: '16px', background: '#f8fafc', borderRadius: 10,
-    display: 'flex', alignItems: 'center', gap: 12,
+  criticalLeft: { display: 'flex', flexDirection: 'column', gap: 2 },
+  criticalPatient: { fontSize: 13, fontWeight: 600, color: C.text },
+  criticalExam: { fontSize: 11, color: C.textMuted },
+  criticalRight: { textAlign: 'right' as const },
+  criticalItem2: { fontSize: 12, fontWeight: 600, color: C.red },
+  criticalTime: { fontSize: 11, color: C.textMuted, marginTop: 2 },
+  // 手术列表
+  surgeryItem: {
+    background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)',
+    borderRadius: 8, padding: '12px 16px', marginBottom: 8,
   },
-  monitorIcon: {
-    width: 40, height: 40, borderRadius: 10, display: 'flex',
-    alignItems: 'center', justifyContent: 'center',
+  surgeryTop: { display: 'flex', justifyContent: 'space-between', marginBottom: 4 },
+  surgeryPatient: { fontSize: 13, fontWeight: 600, color: C.text },
+  surgeryType: { fontSize: 11, color: C.blue },
+  surgeryBottom: { display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.textMuted },
+  // 底部分区
+  bottomGrid: { display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 16 },
+  // 按钮
+  btn: {
+    padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
+    fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
   },
-  monitorInfo: { flex: 1 },
-  monitorLabel: { fontSize: 11, color: '#94a3b8', marginBottom: 2 },
-  monitorValue: { fontSize: 16, fontWeight: 700, color: '#1a3a5c' },
-  // 系统状态卡片
-  systemCard: {
-    background: '#fff', borderRadius: 12, padding: 20,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 24,
+  btnOutline: {
+    background: 'transparent', border: `1px solid ${C.cardBorder}`, color: C.textMuted,
   },
-  systemItem: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '12px 0', borderBottom: '1px solid #f1f5f9',
+  btnPrimary: {
+    background: C.blue, color: '#fff',
   },
-  systemLabel: { fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 8 },
-  systemValue: { fontSize: 13, fontWeight: 600, color: '#1a3a5c' },
-  systemBadge: {
-    fontSize: 11, fontWeight: 600, padding: '3px 10px',
-    borderRadius: 10,
-  },
-  // 告警卡片
-  alertCard: {
-    background: '#fff', borderRadius: 12, padding: 20,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 24,
-  },
-  alertItem: {
-    display: 'flex', gap: 14, padding: '14px 0',
-    borderBottom: '1px solid #f1f5f9', alignItems: 'flex-start',
-  },
-  alertIcon: {
-    width: 40, height: 40, borderRadius: 10, display: 'flex',
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
-  alertContent: { flex: 1 },
-  alertTitle: { fontSize: 13, fontWeight: 600, color: '#1a3a5c', marginBottom: 4 },
-  alertDesc: { fontSize: 12, color: '#64748b' },
-  alertTime: { fontSize: 11, color: '#94a3b8', marginTop: 4 },
-  alertBadge: {
-    fontSize: 10, fontWeight: 600, padding: '3px 8px',
-    borderRadius: 8, flexShrink: 0,
-  },
-  // 颜色
-  blue: { backgroundColor: '#eff6ff', color: '#3b82f6' },
-  green: { backgroundColor: '#f0fdf4', color: '#22c55e' },
-  orange: { backgroundColor: '#fff7ed', color: '#f97316' },
-  red: { backgroundColor: '#fef2f2', color: '#ef4444' },
-  purple: { backgroundColor: '#f5f3ff', color: '#8b5cf6' },
-  teal: { backgroundColor: '#f0fdfa', color: '#14b8a6' },
+  // 全屏
+  fullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, overflow: 'auto' },
 }
 
-const PIE_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#8b5cf6', '#14b8a6']
-
-const tooltipStyle = {
-  contentStyle: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 },
-  labelStyle: { color: '#1a3a5c', fontWeight: 600 },
-}
-
-const QUICK_ENTRIES = [
-  { icon: UserPlus, label: '新增患者', sub: '快速建档', bg: '#eff6ff', color: '#3b82f6', path: '/patients' },
-  { icon: CalendarClock, label: '预约检查', sub: '日程安排', bg: '#f5f3ff', color: '#8b5cf6', path: '/appointments' },
-  { icon: Stethoscope, label: '书写报告', sub: '电子病历', bg: '#f0fdfa', color: '#14b8a6', path: '/report-write' },
-  { icon: ClipboardCheck, label: '检查工作台', sub: '执行检查', bg: '#fff7ed', color: '#f97316', path: '/exams' },
-  { icon: Package, label: '耗材管理', sub: '物资管理', bg: '#f0fdf4', color: '#22c55e', path: '/materials' },
-]
-
-const REALTIME_MONITORS = [
-  { label: 'CPU 使用率', value: '34%', icon: Cpu, bg: '#eff6ff', color: '#3b82f6', status: 'normal' },
-  { label: '内存占用', value: '2.8 GB', icon: MemoryStick, bg: '#f5f3ff', color: '#8b5cf6', status: 'normal' },
-  { label: '磁盘使用', value: '156 GB', icon: Database, bg: '#fff7ed', color: '#f97316', status: 'normal' },
-  { label: '网络延迟', value: '12 ms', icon: Wifi, bg: '#f0fdf4', color: '#22c55e', status: 'normal' },
-  { label: '在线设备', value: '3/3', icon: Monitor, bg: '#f0fdfa', color: '#14b8a6', status: 'normal' },
-  { label: '活跃用户', value: '12', icon: Users, bg: '#fef2f2', color: '#ef4444', status: 'normal' },
-  { label: '温度', value: '42°C', icon: Thermometer, bg: '#eff6ff', color: '#3b82f6', status: 'normal' },
-  { label: '运行时间', value: '99.9%', icon: Gauge, bg: '#f0fdf4', color: '#22c55e', status: 'normal' },
-]
-
-const SYSTEM_STATUS = [
-  { label: '系统状态', value: '运行正常', icon: CheckCircle, badge: '正常', badgeBg: '#f0fdf4', badgeColor: '#22c55e' },
-  { label: '数据库', value: '已连接', icon: Database, badge: '正常', badgeBg: '#f0fdf4', badgeColor: '#22c55e' },
-  { label: '接口服务', value: '正常', icon: Server, badge: '正常', badgeBg: '#f0fdf4', badgeColor: '#22c55e' },
-  { label: '备份状态', value: '已执行', icon: Package, badge: '完成', badgeBg: '#eff6ff', badgeColor: '#3b82f6' },
-  { label: '安全扫描', value: '无威胁', icon: ShieldAlert, badge: '安全', badgeBg: '#f0fdf4', badgeColor: '#22c55e' },
-]
-
-const ALERTS = [
-  { id: 1, type: 'warning', icon: AlertTriangle, iconBg: '#fff7ed', iconColor: '#f97316', title: '耗材库存预警', desc: '耦合剂库存仅剩 20 瓶，建议尽快补货', time: '10分钟前', badge: '警告', badgeBg: '#fff7ed', badgeColor: '#f97316' },
-  { id: 2, type: 'info', icon: Bell, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '设备维护提醒', desc: '彩超仪 A 累计使用 800 小时', time: '30分钟前', badge: '通知', badgeBg: '#eff6ff', badgeColor: '#3b82f6' },
-  { id: 3, type: 'urgent', icon: AlertCircle, iconBg: '#fef2f2', iconColor: '#ef4444', title: '危急值待处理', desc: '患者王五危急值已通报 30 分钟', time: '45分钟前', badge: '紧急', badgeBg: '#fef2f2', badgeColor: '#ef4444' },
-]
-
-const HOURLY_TREND = [
-  { hour: '08:00', 检查数: 12, 报告数: 10 },
-  { hour: '09:00', 检查数: 18, 报告数: 15 },
-  { hour: '10:00', 检查数: 22, 报告数: 20 },
-  { hour: '11:00', 检查数: 16, 报告数: 14 },
-  { hour: '12:00', 检查数: 8, 报告数: 7 },
-  { hour: '13:00', 检查数: 14, 报告数: 12 },
-  { hour: '14:00', 检查数: 20, 报告数: 18 },
-  { hour: '15:00', 检查数: 18, 报告数: 16 },
-  { hour: '16:00', 检查数: 15, 报告数: 14 },
-  { hour: '17:00', 检查数: 10, 报告数: 9 },
-]
+// ---------- 组件 ----------
+const SectionTitle = ({ icon: Icon, title }: { icon: any; title: string }) => (
+  <div style={s.cardTitle}>
+    <Icon size={16} style={s.cardIcon} />
+    {title}
+  </div>
+)
 
 export default function DashboardPage() {
-  const navigate = useNavigateRouter()
-  const stats = initialStatisticsData
+  const [isFullscreen, setIsFullscreen] = useState(false)
+  const [lastUpdate, setLastUpdate] = useState(new Date())
+  const [onDuty, setOnDuty] = useState({ doctors: 8, nurses: 12 })
+  const [examProgress, setExamProgress] = useState({ completed: 42, inProgress: 8, pending: 12 })
+  const [rooms, setRooms] = useState(generateRoomData())
+  const [realtimeChart, setRealtimeChart] = useState(() => {
+    const arr = []
+    for (let i = 23; i >= 0; i--) {
+      const t = new Date(Date.now() - i * 60000)
+      arr.push({
+        time: `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}`,
+        value: Math.floor(Math.random() * 30 + 20),
+      })
+    }
+    return arr
+  })
+  const [hourlyData] = useState([
+    { hour: '08:00', count: 12 }, { hour: '09:00', count: 22 },
+    { hour: '10:00', count: 28 }, { hour: '11:00', count: 24 },
+    { hour: '12:00', count: 10 }, { hour: '13:00', count: 18 },
+    { hour: '14:00', count: 26 }, { hour: '15:00', count: 30 },
+    { hour: '16:00', count: 22 }, { hour: '17:00', count: 16 },
+  ])
+  const [doctorAttendance] = useState([
+    { name: '出勤', value: 8 }, { name: '休息', value: 2 },
+  ])
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
-  const trendData = stats.examTrend.map((item, i) => ({
-    date: item.date.slice(5),
-    检查数: item.count,
-    报告数: stats.reportTrend[i]?.count ?? 0,
-  }))
+  const refresh = useCallback(() => {
+    setLastUpdate(new Date())
+    setOnDuty({ doctors: Math.floor(Math.random() * 4) + 7, nurses: Math.floor(Math.random() * 4) + 11 })
+    setExamProgress({
+      completed: Math.floor(Math.random() * 10) + 38,
+      inProgress: Math.floor(Math.random() * 6) + 4,
+      pending: Math.floor(Math.random() * 8) + 8,
+    })
+    setRooms(generateRoomData())
+  }, [])
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setRealtimeChart((prev) => {
+        const next = [...prev.slice(1)]
+        next.push(generateRealtimeData())
+        return next
+      })
+    }, 5000)
+    return () => { if (timerRef.current) clearInterval(timerRef.current) }
+  }, [])
+
+  const toggleFullscreen = () => setIsFullscreen((v) => !v)
+
+  // ECharts 环形进度图
+  const ringOption = {
+    series: [{
+      type: 'gauge',
+      startAngle: 90,
+      endAngle: -270,
+      radius: '90%',
+      pointer: { show: false },
+      progress: {
+        show: true,
+        overlap: false,
+        roundCap: true,
+        clip: false,
+        itemStyle: {
+          color: {
+            type: 'linear',
+            x: 0, y: 0, x2: 1, y2: 0,
+            colorStops: [
+              { offset: 0, color: C.green },
+              { offset: 0.5, color: C.yellow },
+              { offset: 1, color: C.red },
+            ],
+          },
+        },
+      },
+      axisLine: { lineStyle: { width: 14, color: [[1, C.cardBorder]] } },
+      splitLine: { show: false },
+      axisTick: { show: false },
+      axisLabel: { show: false },
+      data: [{ value: Math.round((examProgress.completed / (examProgress.completed + examProgress.inProgress + examProgress.pending)) * 100), name: '完成率' }],
+      title: { show: false },
+      detail: {
+        fontSize: 28, color: C.text, fontWeight: 800,
+        offsetCenter: [0, 0],
+        formatter: '{value}%',
+      },
+    }],
+  }
+
+  // ECharts 仪表盘（设备状态）
+  const gaugeOption = (val: number, color: string) => ({
+    series: [{
+      type: 'gauge',
+      startAngle: 200,
+      endAngle: -20,
+      min: 0, max: 100,
+      radius: '100%',
+      pointer: { show: false },
+      progress: { show: false },
+      axisLine: {
+        lineStyle: { width: 6, color: [[1, color]] },
+      },
+      axisTick: { show: false },
+      splitLine: { show: false },
+      axisLabel: { show: false },
+      data: [{ value: val }],
+      detail: {
+        fontSize: 14, color: C.text, fontWeight: 700,
+        offsetCenter: [0, 0],
+        formatter: '{value}%',
+      },
+      title: { show: false },
+    }],
+  })
+
+  // 24小时实时折线图
+  const realtimeOption = {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'axis', backgroundColor: C.card,
+      borderColor: C.cardBorder, textStyle: { color: C.text, fontSize: 12 },
+    },
+    grid: { top: 20, right: 20, bottom: 30, left: 50 },
+    xAxis: {
+      type: 'category', data: realtimeChart.map((d) => d.time),
+      axisLine: { lineStyle: { color: C.cardBorder } },
+      axisLabel: { color: C.textMuted, fontSize: 10, interval: 3 },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: 'value', min: 0, max: 60,
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: C.cardBorder, type: 'dashed' } },
+      axisLabel: { color: C.textMuted, fontSize: 10 },
+    },
+    series: [{
+      type: 'line',
+      data: realtimeChart.map((d) => d.value),
+      smooth: true,
+      lineStyle: { color: C.blue, width: 2 },
+      areaStyle: {
+        color: {
+          type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: 'rgba(59,130,246,0.4)' },
+            { offset: 1, color: 'rgba(59,130,246,0)' },
+          ],
+        },
+      },
+      symbol: 'none',
+    }],
+  }
+
+  // 当日各时段柱状图
+  const barOption = {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'axis', backgroundColor: C.card,
+      borderColor: C.cardBorder, textStyle: { color: C.text, fontSize: 12 },
+    },
+    grid: { top: 10, right: 10, bottom: 30, left: 40 },
+    xAxis: {
+      type: 'category', data: hourlyData.map((d) => d.hour),
+      axisLine: { lineStyle: { color: C.cardBorder } },
+      axisLabel: { color: C.textMuted, fontSize: 10 },
+      axisTick: { show: false },
+    },
+    yAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      splitLine: { lineStyle: { color: C.cardBorder, type: 'dashed' } },
+      axisLabel: { color: C.textMuted, fontSize: 10 },
+    },
+    series: [{
+      type: 'bar',
+      data: hourlyData.map((d) => d.count),
+      itemStyle: {
+        color: {
+          type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
+          colorStops: [
+            { offset: 0, color: C.blue },
+            { offset: 1, color: 'rgba(59,130,246,0.3)' },
+          ],
+        },
+        borderRadius: [4, 4, 0, 0],
+      },
+    }],
+  }
+
+  // 医生出勤率环形图
+  const attendanceOption = {
+    backgroundColor: 'transparent',
+    tooltip: {
+      trigger: 'item', backgroundColor: C.card,
+      borderColor: C.cardBorder, textStyle: { color: C.text, fontSize: 12 },
+    },
+    series: [{
+      type: 'pie',
+      radius: ['50%', '75%'],
+      avoidLabelOverlap: false,
+      label: { show: false },
+      data: [
+        { value: doctorAttendance[0].value, name: '出勤', itemStyle: { color: C.green } },
+        { value: doctorAttendance[1].value, name: '休息', itemStyle: { color: C.cardBorder } },
+      ],
+    }],
+  }
+
+  const rootStyle = isFullscreen ? s.fullscreen : s.root
+  const updateStr = `${lastUpdate.getHours().toString().padStart(2, '0')}:${lastUpdate.getMinutes().toString().padStart(2, '0')}:${lastUpdate.getSeconds().toString().padStart(2, '0')}`
 
   return (
-    <div style={s.root}>
-      {/* 标题 */}
+    <div style={rootStyle}>
+      {/* 顶部标题栏 */}
       <div style={s.header}>
         <div>
-          <h1 style={s.title}>综合监控面板</h1>
+          <h1 style={s.title}>超声科运营指挥中心</h1>
           <p style={s.subtitle}>
-            实时数据监控 · 系统状态 · 综合看板
-            <span style={{ marginLeft: 12, display: 'inline-flex', alignItems: 'center' }}>
-              <span style={{ ...s.statusDot, background: '#22c55e' }} />
-              <span style={{ color: '#22c55e', fontSize: 12 }}>系统运行正常</span>
+            实时监控 · 数据驱动 · 智慧管理
+            <span style={{ marginLeft: 16, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+              <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.green }} />
+              <span style={{ color: C.green, fontSize: 12 }}>系统正常 · 更新 {updateStr}</span>
             </span>
           </p>
         </div>
-        <div style={s.headerRight}>
-          <button style={{ padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <RefreshCw size={14} color="#64748b" /> 刷新数据
+        <div style={s.headerBtns}>
+          <button style={{ ...s.btn, ...s.btnOutline }} onClick={refresh}>
+            <RefreshCw size={14} /> 刷新数据
           </button>
-          <button style={{ padding: '8px 16px', borderRadius: 8, border: 'none', background: '#3b82f6', color: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <Settings size={14} /> 设置
+          <button style={{ ...s.btn, ...s.btnPrimary }} onClick={toggleFullscreen}>
+            <Maximize2 size={14} /> {isFullscreen ? '退出全屏' : '全屏模式'}
           </button>
         </div>
       </div>
 
-      {/* 快速入口 */}
-      <div style={s.quickGrid}>
-        {QUICK_ENTRIES.map((entry) => (
-          <button key={entry.label} style={s.quickItem} onClick={() => navigate(entry.path)}>
-            <div style={{ ...s.quickIcon, background: entry.bg, color: entry.color }}>
-              <entry.icon size={22} />
-            </div>
-            <div style={s.quickLabel}>{entry.label}</div>
-            <div style={s.quickSub}>{entry.sub}</div>
-          </button>
-        ))}
-      </div>
-
-      {/* 统计卡片行 */}
-      <div style={s.statRow}>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#eff6ff' }}>
-            <Activity size={24} color="#3b82f6" />
+      {/* 顶部统计卡片 */}
+      <div style={s.topStats}>
+        <div style={s.topStatCard}>
+          <div style={{ ...s.topStatIcon, background: 'rgba(59,130,246,0.15)' }}>
+            <Stethoscope size={24} color={C.blue} />
           </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>{stats.todayExams}</div>
-            <div style={s.statLabel}>今日检查</div>
-            <div style={{ ...s.statTrend, color: '#22c55e' }}>
-              <TrendingUp size={12} /> +12% 较昨日
-            </div>
+          <div>
+            <div style={s.topStatValue}>{onDuty.doctors}</div>
+            <div style={s.topStatLabel}>在岗医生</div>
           </div>
         </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#f0fdf4' }}>
-            <FileText size={24} color="#22c55e" />
+        <div style={s.topStatCard}>
+          <div style={{ ...s.topStatIcon, background: 'rgba(20,184,166,0.15)' }}>
+            <Users size={24} color={C.teal} />
           </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>{stats.todayReports}</div>
-            <div style={s.statLabel}>今日报告</div>
-            <div style={{ ...s.statTrend, color: '#22c55e' }}>
-              <TrendingUp size={12} /> +8% 较昨日
-            </div>
+          <div>
+            <div style={s.topStatValue}>{onDuty.nurses}</div>
+            <div style={s.topStatLabel}>在岗护士</div>
           </div>
         </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#fff7ed' }}>
-            <CalendarClock size={24} color="#f97316" />
+        <div style={s.topStatCard}>
+          <div style={{ ...s.topStatIcon, background: 'rgba(34,197,94,0.15)' }}>
+            <CheckCircle size={24} color={C.green} />
           </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>{stats.todayAppointments}</div>
-            <div style={s.statLabel}>今日预约</div>
-            <div style={{ ...s.statTrend, color: '#94a3b8' }}>
-              <TrendingDown size={12} /> 持平
-            </div>
+          <div>
+            <div style={s.topStatValue}>{examProgress.completed}</div>
+            <div style={s.topStatLabel}>今日已完成</div>
           </div>
         </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#fef2f2' }}>
-            <AlertTriangle size={24} color="#ef4444" />
+        <div style={s.topStatCard}>
+          <div style={{ ...s.topStatIcon, background: 'rgba(239,68,68,0.15)' }}>
+            <AlertCircle size={24} color={C.red} />
           </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>{stats.pendingReports}</div>
-            <div style={s.statLabel}>待写报告</div>
-            <div style={{ ...s.statTrend, color: '#ef4444' }}>
-              <TrendingUp size={12} /> +3 新增
-            </div>
+          <div>
+            <div style={s.topStatValue}>{CRITICAL_ALERTS.length}</div>
+            <div style={s.topStatLabel}>危急值预警</div>
           </div>
         </div>
       </div>
 
-      {/* 图表行 */}
-      <div style={s.chartRow}>
-        <div style={s.chartCard}>
-          <div style={s.chartTitle}>
-            <TrendingUp size={16} style={s.chartIcon} />
-            7日检查与报告趋势
+      {/* 主内容区 */}
+      <div style={s.mainGrid}>
+        {/* 左：今日实时检查进度 环形图 */}
+        <div style={s.card}>
+          <SectionTitle icon={Activity} title="今日实时检查进度" />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+            <ReactECharts option={ringOption} style={{ height: 180, width: 180 }} />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              {[
+                { label: '已完成', value: examProgress.completed, color: C.green },
+                { label: '进行中', value: examProgress.inProgress, color: C.yellow },
+                { label: '待检查', value: examProgress.pending, color: C.red },
+              ].map((item) => (
+                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }} />
+                  <span style={{ fontSize: 13, color: C.textMuted, width: 50 }}>{item.label}</span>
+                  <span style={{ fontSize: 18, fontWeight: 700, color: C.text }}>{item.value}</span>
+                </div>
+              ))}
+            </div>
           </div>
-          <ResponsiveContainer width="100%" height={240}>
-            <AreaChart data={trendData}>
-              <defs>
-                <linearGradient id="colorExam" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorReport" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <Tooltip {...tooltipStyle} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Area type="monotone" dataKey="检查数" stroke="#3b82f6" fill="url(#colorExam)" strokeWidth={2} />
-              <Area type="monotone" dataKey="报告数" stroke="#22c55e" fill="url(#colorReport)" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
         </div>
-        <div style={s.chartCard}>
-          <div style={s.chartTitle}>
-            <PieChartIcon size={16} style={s.chartIcon} />
-            检查类型分布
-          </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={stats.examTypeDistribution}
-                cx="50%"
-                cy="50%"
-                innerRadius={45}
-                outerRadius={80}
-                paddingAngle={3}
-                dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
-              >
-                {stats.examTypeDistribution.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip {...tooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
 
-      {/* 实时监控 */}
-      <div style={s.monitorCard}>
-        <div style={s.monitorHeader}>
-          <div style={s.monitorTitle}>
-            <Activity size={16} style={{ color: '#64748b' }} />
-            实时系统监控
-          </div>
-          <div style={{ fontSize: 11, color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 4 }}>
-            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#22c55e', display: 'inline-block' }} />
-            实时更新中
-          </div>
-        </div>
-        <div style={s.monitorGrid}>
-          {REALTIME_MONITORS.map((item) => (
-            <div key={item.label} style={s.monitorItem}>
-              <div style={{ ...s.monitorIcon, background: item.bg, color: item.color }}>
-                <item.icon size={18} />
+        {/* 中：各检查室实时状态 */}
+        <div style={s.card}>
+          <SectionTitle icon={Monitor} title="各检查室实时状态" />
+          <div style={s.roomGrid}>
+            {rooms.map((room) => (
+              <div key={room.name} style={{
+                ...s.roomCard,
+                background: `rgba(${ROOM_COLORS[room.state] === C.green ? '34,197,94' : ROOM_COLORS[room.state] === C.yellow ? '234,179,8' : '239,68,68'},0.1)`,
+                border: `1px solid ${ROOM_COLORS[room.state]}33`,
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={s.roomName}>{room.name}</span>
+                  <span style={{ ...s.roomDot, background: ROOM_COLORS[room.state] }} />
+                </div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: ROOM_COLORS[room.state] }}>
+                  {room.state}
+                </div>
+                <div style={{ fontSize: 11, color: C.textMuted }}>
+                  {room.state === '空闲' ? '可接诊' : room.state === '检查中' ? '检查进行中' : '等待患者'}
+                </div>
               </div>
-              <div style={s.monitorInfo}>
-                <div style={s.monitorLabel}>{item.label}</div>
-                <div style={s.monitorValue}>{item.value}</div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
+        </div>
+
+        {/* 右：设备运行状态 */}
+        <div style={s.card}>
+          <SectionTitle icon={Wifi} title="设备运行状态" />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            {DEVICES.map((device) => {
+              const statusColor = device.status === '在线' ? C.green : device.status === '维护中' ? C.yellow : C.red
+              const usageVal = device.status === '在线' ? Math.floor(Math.random() * 40) + 60 : device.status === '维护中' ? 0 : 0
+              return (
+                <div key={device.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                    background: statusColor,
+                    boxShadow: `0 0 6px ${statusColor}`,
+                  }} />
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                      <span style={{ fontSize: 13, color: C.text }}>{device.name}</span>
+                      <span style={{ fontSize: 12, color: statusColor, fontWeight: 600 }}>{device.status}</span>
+                    </div>
+                    <div style={{ background: C.cardBorder, borderRadius: 4, height: 6, overflow: 'hidden' }}>
+                      <div style={{
+                        width: `${usageVal}%`, height: '100%',
+                        background: `linear-gradient(90deg, ${statusColor}88, ${statusColor})`,
+                        borderRadius: 4,
+                        transition: 'width 0.5s',
+                      }} />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         </div>
       </div>
 
-      {/* 系统状态 + 今日时段分布 */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 16, marginBottom: 24 }}>
-        <div style={s.systemCard}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: '#1a3a5c', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Server size={16} style={{ color: '#64748b' }} /> 系统状态
+      {/* 底部分区 */}
+      <div style={s.bottomGrid}>
+        {/* 左：24小时实时曲线 + 当日各时段柱状图 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={s.card}>
+            <SectionTitle icon={TrendingUp} title="24小时检查量实时曲线（每5秒刷新）" />
+            <ReactECharts option={realtimeOption} style={{ height: 200 }} />
           </div>
-          {SYSTEM_STATUS.map((item) => (
-            <div key={item.label} style={s.systemItem}>
-              <div style={s.systemLabel}>
-                <item.icon size={14} color="#64748b" />
-                {item.label}
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={s.systemValue}>{item.value}</span>
-                <span style={{ ...s.systemBadge, background: item.badgeBg, color: item.badgeColor }}>
-                  {item.badge}
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
-        <div style={s.chartCard}>
-          <div style={s.chartTitle}>
-            <Clock size={16} style={s.chartIcon} />
-            今日时段分布
+          <div style={s.card}>
+            <SectionTitle icon={Clock} title="当日各时段检查量" />
+            <ReactECharts option={barOption} style={{ height: 180 }} />
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={HOURLY_TREND}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="hour" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <Tooltip {...tooltipStyle} />
-              <Legend wrapperStyle={{ fontSize: 12 }} />
-              <Bar dataKey="检查数" fill="#3b82f6" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="报告数" fill="#22c55e" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
         </div>
-      </div>
 
-      {/* 告警通知 */}
-      <div style={s.alertCard}>
-        <div style={{ fontSize: 14, fontWeight: 600, color: '#1a3a5c', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <BellRing size={16} style={{ color: '#64748b' }} />
-          告警通知
-          <span style={{ fontSize: 11, fontWeight: 600, padding: '2px 8px', borderRadius: 10, background: '#fef2f2', color: '#ef4444', marginLeft: 8 }}>
-            {ALERTS.length} 条
-          </span>
+        {/* 中：今日危急值预警 */}
+        <div style={s.card}>
+          <SectionTitle icon={Bell} title="今日危急值预警" />
+          <div style={s.criticalList}>
+            {CRITICAL_ALERTS.map((alert) => (
+              <div key={alert.id} style={s.criticalItem}>
+                <div style={s.criticalLeft}>
+                  <span style={s.criticalPatient}>{alert.patient}</span>
+                  <span style={s.criticalExam}>{alert.exam} · {alert.item}</span>
+                </div>
+                <div style={s.criticalRight}>
+                  <div style={s.criticalItem2}>{alert.level}</div>
+                  <div style={s.criticalTime}>{alert.time}</div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
-        {ALERTS.map((alert) => (
-          <div key={alert.id} style={s.alertItem}>
-            <div style={{ ...s.alertIcon, background: alert.iconBg, color: alert.iconColor }}>
-              <alert.icon size={18} />
-            </div>
-            <div style={s.alertContent}>
-              <div style={s.alertTitle}>{alert.title}</div>
-              <div style={s.alertDesc}>{alert.desc}</div>
-              <div style={s.alertTime}>{alert.time}</div>
-            </div>
-            <div style={{ ...s.alertBadge, background: alert.badgeBg, color: alert.badgeColor }}>
-              {alert.badge}
+
+        {/* 右：手术/介入超声 + 医生出勤率 */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={s.card}>
+            <SectionTitle icon={Scissors} title="今日手术/介入超声" />
+            {SURGERIES.map((surgery) => (
+              <div key={surgery.id} style={s.surgeryItem}>
+                <div style={s.surgeryTop}>
+                  <span style={s.surgeryPatient}>{surgery.patient}</span>
+                  <span style={{
+                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 8,
+                    background: surgery.status === '进行中' ? 'rgba(239,68,68,0.2)' :
+                      surgery.status === '待开始' ? 'rgba(234,179,8,0.2)' : 'rgba(59,130,246,0.2)',
+                    color: surgery.status === '进行中' ? C.red :
+                      surgery.status === '待开始' ? C.yellow : C.blue,
+                  }}>
+                    {surgery.status}
+                  </span>
+                </div>
+                <div style={s.surgeryType}>{surgery.type}</div>
+                <div style={s.surgeryBottom}>
+                  <span>👨‍⚕️ {surgery.doctor}</span>
+                  <span>⏰ {surgery.time}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={s.card}>
+            <SectionTitle icon={Users} title="医生出勤率" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+              <ReactECharts option={attendanceOption} style={{ height: 120, width: 120 }} />
+              <div>
+                <div style={{ fontSize: 24, fontWeight: 800, color: C.green }}>{doctorAttendance[0].value}人</div>
+                <div style={{ fontSize: 12, color: C.textMuted }}>已出勤 / 共{doctorAttendance[0].value + doctorAttendance[1].value}人</div>
+                <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>出勤率 {Math.round(doctorAttendance[0].value / (doctorAttendance[0].value + doctorAttendance[1].value) * 100)}%</div>
+              </div>
             </div>
           </div>
-        ))}
+        </div>
       </div>
     </div>
   )
