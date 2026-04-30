@@ -54,6 +54,9 @@ const QueueCallPage = lazy(() => import('./pages/QueueCallPage'))
 const DataReportCenterPage = lazy(() => import('./pages/DataReportCenterPage'))
 const EquipmentLifecyclePage = lazy(() => import('./pages/EquipmentLifecyclePage'))
 const OperationsCenterPage = lazy(() => import('./pages/OperationsCenterPage'))
+const DicomViewerPage = lazy(() => import('./pages/DicomViewerPage'))
+const CostAnalysisPage = lazy(() => import('./pages/CostAnalysisPage'))
+const ImagingModesPage = lazy(() => import('./pages/ImagingModesPage'))
 
 // 骨架屏 Loading 组件
 const SkeletonBlock = ({ width = '100%', height = 20, style = {} }: { width?: string | number, height?: number, style?: React.CSSProperties }) => (
@@ -181,6 +184,8 @@ const NAV_ITEMS = [
       { path: '/critical-value', icon: Bell, label: '危急值' },
       { path: '/critical-alert', icon: AlertTriangle, label: '危机预警' },
       { path: '/images', icon: Camera, label: '影像管理' },
+      { path: '/dicom', icon: Camera, label: 'DICOM浏览器' },
+      { path: '/imaging-modes', icon: Camera, label: '成像模式介绍' },
       { path: '/templates', icon: FileText, label: '检查模板' },
       { path: '/nursing', icon: ClipboardCheck, label: '护理记录' },
       { path: '/preop', icon: ClipboardCheck, label: '术前评估' },
@@ -218,6 +223,7 @@ const NAV_ITEMS = [
       { path: '/stats-enhanced', icon: BarChart3, label: '统计分析' },
       { path: '/dashboard', icon: BarChart3, label: '科室看板' },
       { path: '/operations', icon: BarChart3, label: '运营指挥中心' },
+      { path: '/cost-analysis', icon: BarChart3, label: '成本效益分析' },
       { path: '/authority', icon: ShieldAlert, label: '权限管理' },
       { path: '/dictionary', icon: BookOpen, label: '数据字典' },
       { path: '/audit', icon: Shield, label: '审计日志' },
@@ -296,8 +302,9 @@ function AppShell() {
         </nav>
           <div style={s.sidebarFooter}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>内镜诊疗信息管理系统</div>
-          <div style={s.userInfo}>
-            <span>v0.9.0</span>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.10.0</div>
+            <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} onClick={() => alert('版本历史：\\n\\nv0.10.0 — DICOM浏览器/成本分析/成像模式/权限管理增强\\nv0.9.0 — 38个页面精细化/AI质控增强\\nv0.8.0 — 排班增强/洗消追溯/报告书写\\nv0.7.0 — 手术管理增强/数据上报\\nv0.6.0 — 核心功能完善\\nv0.5.0 — 基础框架搭建')}>历史版本 ▾</div>
           </div>
         </div>
       </aside>
@@ -323,6 +330,7 @@ function AppShell() {
             </span>
           </div>
           <div style={s.topbarRight}>
+            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600 }}>v0.10.0</div>
             <div style={s.topbarBadge}>
               <Bell size={20} />
               <span style={s.badge}>1</span>
@@ -384,6 +392,9 @@ function AppShell() {
             <Route path="/surgery-records" element={<SurgeryRecordPage />} />
             <Route path="/national-report" element={<NationalReportPage />} />
             <Route path="/insurance-audit" element={<InsuranceAuditPage />} />
+            <Route path="/dicom" element={<DicomViewerPage />} />
+            <Route path="/cost-analysis" element={<CostAnalysisPage />} />
+            <Route path="/imaging-modes" element={<ImagingModesPage />} />
             <Route path="/research" element={<ResearchPage />} />
             <Route path="/training" element={<TrainingPage />} />
             <Route path="/queue-call" element={<QueueCallPage />} />

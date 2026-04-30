@@ -19,7 +19,221 @@ import { initialEndoscopyReports, initialReportTemplates, initialEndoscopyExams 
 const GASTROSCOPY_MIN_PHOTOS = 22
 const COLONOSCOPY_MIN_PHOTOS = 20
 
-// 常用短语库
+// ========== 22张图片标准数据 ==========
+const GASTROSCOPY_22_STANDARD: { id: string; name: string; description: string; required: boolean }[] = [
+  { id: 'G01', name: '食道上段', description: '距门齿约15-20cm，吸气相', required: true },
+  { id: 'G02', name: '食道中段', description: '距门齿约25-30cm', required: true },
+  { id: 'G03', name: '食道下段', description: '距门齿约35-38cm', required: true },
+  { id: 'G04', name: '齿状线（Z线）', description: '清晰显示Z线位置', required: true },
+  { id: 'G05', name: '胃底（倒镜）', description: '倒镜观察胃底', required: true },
+  { id: 'G06', name: '胃底黏液湖', description: '观察黏液湖性状', required: true },
+  { id: 'G07', name: '胃体上部', description: '倒镜观察胃体上部', required: true },
+  { id: 'G08', name: '胃体中部', description: '观察胃体中部大弯', required: true },
+  { id: 'G09', name: '胃体下部', description: '观察胃体下部', required: true },
+  { id: 'G10', name: '胃角（正面）', description: '清晰显示胃角形态', required: true },
+  { id: 'G11', name: '胃角（远景）', description: '显示胃角与周围关系', required: true },
+  { id: 'G12', name: '胃窦（远景）', description: '显示胃窦全貌', required: true },
+  { id: 'G13', name: '胃窦（近景）', description: '近距观察胃窦黏膜', required: true },
+  { id: 'G14', name: '幽门（开放）', description: '幽门管开放状态', required: true },
+  { id: 'G15', name: '幽门（关闭）', description: '幽门管关闭状态', required: true },
+  { id: 'G16', name: '十二指肠球部', description: '显示十二指肠球部', required: true },
+  { id: 'G17', name: '十二指肠降部', description: '显示十二指肠降部', required: true },
+  { id: 'G18', name: '后壁位（胃体）', description: '胃体后壁', required: false },
+  { id: 'G19', name: '小弯位（胃体）', description: '胃体小弯', required: false },
+  { id: 'G20', name: '病变部位1', description: '如有病变需特写', required: false },
+  { id: 'G21', name: '病变部位2', description: '如有病变需特写', required: false },
+  { id: 'G22', name: 'NBI/色素染色', description: '特殊检查（如有）', required: false },
+]
+
+const COLONOSCOPY_22_STANDARD: { id: string; name: string; description: string; required: boolean }[] = [
+  { id: 'C01', name: '肛管', description: '观察肛管病变', required: true },
+  { id: 'C02', name: '直肠（远景）', description: '直肠全貌', required: true },
+  { id: 'C03', name: '直肠（近景）', description: '直肠黏膜', required: true },
+  { id: 'C04', name: '直肠乙状结肠交界', description: '观察交界处', required: true },
+  { id: 'C05', name: '乙状结肠（近景）', description: '乙状结肠黏膜', required: true },
+  { id: 'C06', name: '乙状结肠（远景）', description: '乙状结肠全貌', required: true },
+  { id: 'C07', name: '降结肠', description: '降结肠黏膜', required: true },
+  { id: 'C08', name: '脾曲', description: '脾曲通过', required: true },
+  { id: 'C09', name: '横结肠（近景）', description: '横结肠黏膜', required: true },
+  { id: 'C10', name: '横结肠（远景）', description: '横结肠全貌', required: true },
+  { id: 'C11', name: '肝曲', description: '肝曲通过', required: true },
+  { id: 'C12', name: '升结肠', description: '升结肠黏膜', required: true },
+  { id: 'C13', name: '盲肠', description: '盲肠黏膜', required: true },
+  { id: 'C14', name: '回盲瓣（正面）', description: '清晰显示回盲瓣', required: true },
+  { id: 'C15', name: '回肠末段', description: '回肠末段黏膜', required: true },
+  { id: 'C16', name: '阑尾开口', description: '阑尾开口位置', required: true },
+  { id: 'C17', name: '退镜观察（直肠）', description: '退镜时直肠观察', required: true },
+  { id: 'C18', name: '退镜观察（乙状）', description: '退镜时乙状结肠', required: true },
+  { id: 'C19', name: 'BBPS评分图像', description: 'BBPS评分部位', required: false },
+  { id: 'C20', name: '病变部位1', description: '如有病变需特写', required: false },
+  { id: 'C21', name: '病变部位2', description: '如有病变需特写', required: false },
+  { id: 'C22', name: '染色/NBI图像', description: '特殊检查（如有）', required: false },
+]
+
+// ========== 结构化报告模板类型 ==========
+type ReportTemplateType = 'diagnosis' | 'surgery' | 'emergency' | 'followup'
+
+const STRUCTURED_TEMPLATES: { type: ReportTemplateType; label: string; icon: string; description: string; sections: { title: string; placeholder: string }[] }[] = [
+  {
+    type: 'diagnosis',
+    label: '诊断报告模板',
+    icon: '📋',
+    description: '标准诊断报告结构，包含检查所见和诊断结论',
+    sections: [
+      { title: '检查所见', placeholder: '请详细描述各部位黏膜情况...' },
+      { title: '诊断结论', placeholder: '1. ...\n2. ...\n3. ...' },
+      { title: '建议', placeholder: '建议定期复查或进一步检查...' },
+    ],
+  },
+  {
+    type: 'surgery',
+    label: '手术报告模板',
+    icon: '🔪',
+    description: '手术操作详细记录模板',
+    sections: [
+      { title: '手术名称', placeholder: '如：内镜下息肉切除术（EMR）' },
+      { title: '术前诊断', placeholder: '结肠多发息肉' },
+      { title: '手术步骤', placeholder: '1. 黏膜下注射...\n2. 切开...\n3. 剥离...\n4. 止血...' },
+      { title: '术后诊断', placeholder: '结肠多发息肉（已切除）' },
+      { title: '术中情况', placeholder: '术中出血约5ml，未发生穿孔...' },
+      { title: '标本处理', placeholder: '标本已送病理检查' },
+    ],
+  },
+  {
+    type: 'emergency',
+    label: '急诊报告模板',
+    icon: '🚨',
+    description: '急诊绿色通道快速报告模板',
+    sections: [
+      { title: '急诊主诉', placeholder: '呕血2小时伴晕厥一次...' },
+      { title: '检查所见', placeholder: '食管胃底静脉曲张破裂出血...' },
+      { title: '紧急处理', placeholder: '已行套扎术止血，过程顺利...' },
+      { title: '诊断结论', placeholder: '食管胃底静脉曲张破裂出血（急诊）' },
+      { title: '危急值', placeholder: '请立即通知临床医生' },
+    ],
+  },
+  {
+    type: 'followup',
+    label: '随访报告模板',
+    icon: '📅',
+    description: '术后/治疗后随访对比报告',
+    sections: [
+      { title: '上次检查情况', placeholder: '2025-10-15胃镜：胃溃疡（A1期）...' },
+      { title: '本次检查所见', placeholder: '溃疡已形成白色疤痕...' },
+      { title: '治疗效果评估', placeholder: 'S2期愈合中，HP已根除' },
+      { title: '本次诊断', placeholder: '胃溃疡疤痕形成期' },
+      { title: '下次复查建议', placeholder: '建议6-12个月复查胃镜' },
+    ],
+  },
+]
+
+  // ========== 新增：22张图片标准展示面板 ==========
+  // 图片标注工具（区域标注/箭头/文字）
+  const [annotationTool, setAnnotationTool] = useState<'rect' | 'arrow' | 'text' | null>(null)
+  const [annotationColor, setAnnotationColor] = useState('#dc2626')
+  const [annotationTexts, setAnnotationTexts] = useState<{ x: number; y: number; text: string; color: string }[]>([])
+  const [annotationArrows, setAnnotationArrows] = useState<{ x1: number; y1: number; x2: number; y2: number; color: string }[]>([])
+  const [activePhotoTab, setActivePhotoTab] = useState<'standard' | 'gallery'>('standard')
+
+  const isGastro = (editingReport.examItemName || '').includes('胃镜')
+  const currentStandard = isGastro ? GASTROSCOPY_22_STANDARD : COLONOSCOPY_22_STANDARD
+  const capturedCount = Math.min(reportImages.length, currentStandard.length)
+  const capturedPercent = Math.round((capturedCount / currentStandard.length) * 100)
+  const requiredCapturedCount = currentStandard.filter(s => s.required).filter((_, i) => i < capturedCount).length
+  const requiredTotal = currentStandard.filter(s => s.required).length
+
+  const annotationColors = ['#dc2626', '#ea580c', '#16a34a', '#2563eb', '#7c3aed', '#fff']
+
+  // 打开标注编辑器
+  const openAnnotationEditor = (img: ReportImage) => {
+    setAnnotatingImageId(img.id)
+    setAnnotationTexts([])
+    setAnnotationArrows([])
+    setAnnotationTool(null)
+  }
+
+  const getAnnotationCanvasRef = () => document.getElementById('annotationCanvas') as HTMLCanvasElement | null
+
+  const handleCanvasClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!annotationTool) return
+    const canvas = getAnnotationCanvasRef()
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    if (annotationTool === 'text') {
+      const text = prompt('请输入标注文字:')
+      if (text) setAnnotationTexts(prev => [...prev, { x, y, text, color: annotationColor }])
+    }
+  }
+
+  const handleCanvasMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (annotationTool !== 'rect' && annotationTool !== 'arrow') return
+    const canvas = getAnnotationCanvasRef()
+    if (!canvas) return
+    const rect = canvas.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const y = e.clientY - rect.top
+    ;(canvas as any)._startX = x
+    ;(canvas as any)._startY = y
+  }
+
+  const handleCanvasMouseUp = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (annotationTool !== 'rect' && annotationTool !== 'arrow') return
+    const canvas = getAnnotationCanvasRef()
+    if (!canvas) return
+    const startX = (canvas as any)._startX
+    const startY = (canvas as any)._startY
+    if (startX === undefined) return
+    const rect = canvas.getBoundingClientRect()
+    const x2 = e.clientX - rect.left
+    const y2 = e.clientY - rect.top
+    if (annotationTool === 'arrow') {
+      setAnnotationArrows(prev => [...prev, { x1: startX, y1: startY, x2, y2, color: annotationColor }])
+    }
+    ;(canvas as any)._startX = undefined
+    ;(canvas as any)._startY = undefined
+  }
+
+  const drawAnnotations = () => {
+    const canvas = getAnnotationCanvasRef()
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    annotationArrows.forEach(arrow => {
+      ctx.strokeStyle = arrow.color
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(arrow.x1, arrow.y1)
+      ctx.lineTo(arrow.x2, arrow.y2)
+      ctx.stroke()
+      // 画箭头
+      const angle = Math.atan2(arrow.y2 - arrow.y1, arrow.x2 - arrow.x1)
+      ctx.beginPath()
+      ctx.moveTo(arrow.x2, arrow.y2)
+      ctx.lineTo(arrow.x2 - 10 * Math.cos(angle - Math.PI / 6), arrow.y2 - 10 * Math.sin(angle - Math.PI / 6))
+      ctx.lineTo(arrow.x2 - 10 * Math.cos(angle + Math.PI / 6), arrow.y2 - 10 * Math.sin(angle + Math.PI / 6))
+      ctx.closePath()
+      ctx.fillStyle = arrow.color
+      ctx.fill()
+    })
+    annotationTexts.forEach(txt => {
+      ctx.fillStyle = txt.color
+      ctx.font = '14px sans-serif'
+      const lines = txt.text.split('\n')
+      lines.forEach((line, i) => {
+        ctx.fillText(line, txt.x, txt.y + i * 16)
+      })
+    })
+  }
+
+  useEffect(() => { drawAnnotations() }, [annotationTexts, annotationArrows])
+
+  // ========== 新增：报告预览优化 ==========
+  const [printPreviewMode, setPrintPreviewMode] = useState(false)
+
+  // 常用短语库
 const COMMON_PHRASES: { category: string; phrases: string[] }[] = [
   {
     category: '食道',
@@ -746,6 +960,115 @@ const s: Record<string, React.CSSProperties> = {
     padding: '10px 16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0',
     display: 'flex', gap: 10, alignItems: 'center',
   },
+  // ========== 新增：22张图片标准面板 ==========
+  photoStdPanel: {
+    borderLeft: '1px solid #e2e8f0', padding: 14, background: '#fafbfc',
+    overflowY: 'auto', maxHeight: 'calc(90vh - 120px)',
+  },
+  photoStdPanelTitle: {
+    fontSize: 12, fontWeight: 700, color: '#1a3a5c', marginBottom: 10,
+    display: 'flex', alignItems: 'center', gap: 6,
+  },
+  photoStdGrid: {
+    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6,
+  },
+  photoStdItem: {
+    background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6,
+    padding: '6px 8px', display: 'flex', flexDirection: 'column', gap: 2,
+    transition: 'all 0.15s', cursor: 'pointer',
+  },
+  photoStdItemCaptured: {
+    background: '#f0fdf4', border: '1px solid #86efac',
+  },
+  photoStdItemRequired: {
+    borderLeft: '2px solid #dc2626',
+  },
+  photoStdItemName: { fontSize: 11, fontWeight: 600, color: '#334155' },
+  photoStdItemDesc: { fontSize: 9, color: '#94a3b8' },
+  photoStdStatusBadge: {
+    display: 'inline-flex', alignItems: 'center', gap: 2,
+    padding: '1px 4px', borderRadius: 6, fontSize: 9, fontWeight: 600,
+    marginTop: 2,
+  },
+  photoStdProgress: {
+    marginTop: 10, padding: '8px 10px', background: '#f8fafc',
+    borderRadius: 6, border: '1px solid #e2e8f0',
+  },
+  photoStdProgressBar: {
+    height: 6, background: '#e2e8f0', borderRadius: 3, overflow: 'hidden', marginTop: 6,
+  },
+  photoStdProgressFill: { height: '100%', borderRadius: 3, transition: 'width 0.3s' },
+  photoStdProgressText: { fontSize: 11, color: '#64748b', marginTop: 4 },
+  // ========== 新增：结构化模板选择 ==========
+  structTemplateGrid: {
+    display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 14,
+  },
+  structTemplateCard: {
+    background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8,
+    padding: '10px 12px', cursor: 'pointer', transition: 'all 0.15s',
+    display: 'flex', flexDirection: 'column', gap: 4,
+  },
+  structTemplateCardActive: {
+    background: '#e0e7ff', border: '1px solid #818cf8',
+  },
+  structTemplateHeader: {
+    display: 'flex', alignItems: 'center', gap: 6,
+  },
+  structTemplateIcon: { fontSize: 16 },
+  structTemplateLabel: { fontSize: 12, fontWeight: 700, color: '#1a3a5c' },
+  structTemplateDesc: { fontSize: 10, color: '#64748b' },
+  // ========== 新增：图片标注工具栏 ==========
+  annotationToolBar: {
+    display: 'flex', gap: 8, alignItems: 'center', padding: '8px 0',
+  },
+  annotationToolBtn: {
+    display: 'flex', alignItems: 'center', gap: 4,
+    padding: '6px 12px', borderRadius: 6, border: '1px solid #e2e8f0',
+    background: '#fff', fontSize: 12, cursor: 'pointer', color: '#475569',
+    transition: 'all 0.15s',
+  },
+  annotationToolBtnActive: {
+    background: '#2563eb', color: '#fff', border: '1px solid #2563eb',
+  },
+  annotationToolBtnDanger: {
+    background: '#fee2e2', color: '#dc2626', border: '1px solid #fca5a5',
+  },
+  annotationColorPicker: {
+    display: 'flex', gap: 4, alignItems: 'center',
+  },
+  annotationColorDot: {
+    width: 20, height: 20, borderRadius: '50%', cursor: 'pointer', border: '2px solid transparent',
+    transition: 'all 0.15s',
+  },
+  annotationColorDotActive: {
+    border: '2px solid #1a3a5c', transform: 'scale(1.2)',
+  },
+  // ========== 新增：报告预览优化 ==========
+  printPreviewToolbar: {
+    padding: '10px 16px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0',
+    display: 'flex', gap: 10, alignItems: 'center', justifyContent: 'space-between',
+  },
+  printPreviewActions: { display: 'flex', gap: 8 },
+  // ========== 新增：术语提示完善 ==========
+  termHintSection: {
+    marginTop: 10, padding: '10px 12px', background: '#f8fafc',
+    borderRadius: 6, border: '1px solid #e2e8f0',
+  },
+  termHintSectionTitle: {
+    fontSize: 11, fontWeight: 600, color: '#475569', marginBottom: 8,
+    display: 'flex', alignItems: 'center', gap: 4,
+  },
+  termHintGrid: {
+    display: 'flex', flexWrap: 'wrap', gap: 4,
+  },
+  termHintChip: {
+    padding: '3px 8px', background: '#fff', border: '1px solid #e2e8f0',
+    borderRadius: 12, fontSize: 11, color: '#334155', cursor: 'pointer',
+    transition: 'all 0.15s',
+  },
+  termHintChipHover: {
+    background: '#e0e7ff', border: '1px solid #818cf8', color: '#4338ca',
+  },
 }
 
 // ---------- 状态标签样式映射 ----------
@@ -837,6 +1160,7 @@ export default function ReportWritePage() {
   const [modalMode, setModalMode] = useState<'view' | 'edit' | 'new' | null>(null)
   const [editingReport, setEditingReport] = useState<Partial<EndoscopyReport>>(emptyReport())
   const [selectedTemplate, setSelectedTemplate] = useState<ReportTemplate | null>(null)
+  const [selectedStructTemplate, setSelectedStructTemplate] = useState<(typeof STRUCTURED_TEMPLATES)[0] | null>(null)
   const [formErrors, setFormErrors] = useState<string[]>([])
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
@@ -1530,6 +1854,33 @@ export default function ReportWritePage() {
                         </div>
                       )}
 
+                      {/* 结构化模板选择 */}
+                      {modalMode === 'new' && (
+                        <div style={{ marginBottom: 14, marginTop: 4 }}>
+                          <div style={{ fontSize: 11, color: '#64748b', marginBottom: 6, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                            <FileText size={11} /> 结构化模板
+                          </div>
+                          <div style={s.structTemplateGrid}>
+                            {STRUCTURED_TEMPLATES.map(tpl => (
+                              <div
+                                key={tpl.type}
+                                style={{
+                                  ...s.structTemplateCard,
+                                  ...(selectedStructTemplate?.type === tpl.type ? s.structTemplateCardActive : {}),
+                                }}
+                                onClick={() => setSelectedStructTemplate(tpl)}
+                              >
+                                <div style={s.structTemplateHeader}>
+                                  <span style={s.structTemplateIcon}>{tpl.icon}</span>
+                                  <span style={s.structTemplateLabel}>{tpl.label}</span>
+                                </div>
+                                <div style={s.structTemplateDesc}>{tpl.description}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
                       {/* 模板列表 */}
                       {templates.map(tpl => (
                         <div
@@ -1932,8 +2283,189 @@ export default function ReportWritePage() {
                       )}
                     </div>
 
-                    {/* 右侧：常用短语 */}
+                    {/* 右侧：22张图片标准展示 + 常用短语 */}
                     <div style={s.phrasePanel}>
+                      {/* 22张图片标准切换Tab */}
+                      <div style={{ display: 'flex', gap: 4, marginBottom: 10 }}>
+                        <button
+                          style={{
+                            flex: 1, padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0',
+                            background: activePhotoTab === 'standard' ? '#2563eb' : '#fff',
+                            color: activePhotoTab === 'standard' ? '#fff' : '#64748b',
+                            fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                          }}
+                          onClick={() => setActivePhotoTab('standard')}
+                        >
+                          <Camera size={11} /> 22张标准
+                        </button>
+                        <button
+                          style={{
+                            flex: 1, padding: '6px 8px', borderRadius: 6, border: '1px solid #e2e8f0',
+                            background: activePhotoTab === 'gallery' ? '#2563eb' : '#fff',
+                            color: activePhotoTab === 'gallery' ? '#fff' : '#64748b',
+                            fontSize: 11, fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
+                          }}
+                          onClick={() => setActivePhotoTab('gallery')}
+                        >
+                          <Image size={11} /> 图片库
+                        </button>
+                      </div>
+
+                      {/* 22张图片标准 */}
+                      {activePhotoTab === 'standard' && (
+                        <>
+                          <div style={s.photoStdPanelTitle}>
+                            <Camera size={12} />
+                            {isGastro ? '胃镜22张标准' : '肠镜22张标准'}
+                          </div>
+                          <div style={s.photoStdGrid}>
+                            {currentStandard.map((item, idx) => {
+                              const captured = idx < capturedCount
+                              return (
+                                <div
+                                  key={item.id}
+                                  style={{
+                                    ...s.photoStdItem,
+                                    ...(captured ? s.photoStdItemCaptured : {}),
+                                    ...(item.required && !captured ? s.photoStdItemRequired : {}),
+                                  }}
+                                  title={item.description}
+                                >
+                                  <div style={s.photoStdItemName}>
+                                    {captured && <CheckCircle2 size={9} color="#16a34a" style={{ marginRight: 2 }} />}
+                                    {item.name}
+                                  </div>
+                                  <div style={s.photoStdItemDesc}>{item.description}</div>
+                                  <div style={{
+                                    ...s.photoStdStatusBadge,
+                                    background: captured ? '#dcfce7' : '#f1f5f9',
+                                    color: captured ? '#16a34a' : '#94a3b8',
+                                  }}>
+                                    {captured ? '✓ 已采集' : item.required ? '○ 必采' : '○ 选采'}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                          {/* 达标进度 */}
+                          <div style={s.photoStdProgress}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11 }}>
+                              <span style={{ color: '#64748b' }}>总达标率</span>
+                              <span style={{ fontWeight: 700, color: capturedPercent >= 90 ? '#16a34a' : capturedPercent >= 70 ? '#d97706' : '#dc2626' }}>{capturedPercent}%</span>
+                            </div>
+                            <div style={s.photoStdProgressBar}>
+                              <div style={{ ...s.photoStdProgressFill, width: `${capturedPercent}%`, background: capturedPercent >= 90 ? '#16a34a' : capturedPercent >= 70 ? '#d97706' : '#dc2626' }} />
+                            </div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
+                              <span>已采 {capturedCount}/{currentStandard.length} 张</span>
+                              <span>必采 {requiredCapturedCount}/{requiredTotal} 张</span>
+                            </div>
+                          </div>
+                          {/* 图片标注工具入口 */}
+                          <div style={{ marginTop: 10 }}>
+                            <div style={{ fontSize: 11, fontWeight: 600, color: '#475569', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 4 }}>
+                              <Flag size={11} /> 图片标注工具
+                            </div>
+                            <div style={s.annotationToolBar}>
+                              <button
+                                style={{ ...s.annotationToolBtn, ...(annotationTool === 'rect' ? s.annotationToolBtnActive : {}) }}
+                                onClick={() => setAnnotationTool(annotationTool === 'rect' ? null : 'rect')}
+                                title="区域标注"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 12 12"><rect x="1" y="1" width="10" height="10" fill="none" stroke="currentColor" strokeWidth="1.5" /></svg>
+                              </button>
+                              <button
+                                style={{ ...s.annotationToolBtn, ...(annotationTool === 'arrow' ? s.annotationToolBtnActive : {}) }}
+                                onClick={() => setAnnotationTool(annotationTool === 'arrow' ? null : 'arrow')}
+                                title="箭头标注"
+                              >
+                                <svg width="12" height="12" viewBox="0 0 12 12"><path d="M1 11 L11 1 M7 1H11V5" stroke="currentColor" strokeWidth="1.5" fill="none" /></svg>
+                              </button>
+                              <button
+                                style={{ ...s.annotationToolBtn, ...(annotationTool === 'text' ? s.annotationToolBtnActive : {}) }}
+                                onClick={() => setAnnotationTool(annotationTool === 'text' ? null : 'text')}
+                                title="文字标注"
+                              >
+                                T
+                              </button>
+                              <div style={{ flex: 1 }} />
+                              <div style={s.annotationColorPicker}>
+                                {annotationColors.map(c => (
+                                  <div
+                                    key={c}
+                                    style={{
+                                      ...s.annotationColorDot,
+                                      background: c,
+                                      ...(annotationColor === c ? s.annotationColorDotActive : {}),
+                                    }}
+                                    onClick={() => setAnnotationColor(c)}
+                                  />
+                                ))}
+                              </div>
+                              {annotationArrows.length > 0 || annotationTexts.length > 0 ? (
+                                <button style={{ ...s.annotationToolBtn, ...s.annotationToolBtnDanger }} onClick={() => { setAnnotationArrows([]); setAnnotationTexts([]) }}>
+                                  <RotateCcw size={10} />
+                                </button>
+                              ) : null}
+                            </div>
+                            <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
+                              {annotationTool ? `当前工具: ${annotationTool === 'rect' ? '区域' : annotationTool === 'arrow' ? '箭头' : '文字'}标注` : '选择工具后在图片上操作'}
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* 图片库Tab */}
+                      {activePhotoTab === 'gallery' && (
+                        <>
+                          <div style={s.photoStdPanelTitle}>
+                            <Image size={12} /> 已采集图片 ({reportImages.length}张)
+                          </div>
+                          {reportImages.length === 0 ? (
+                            <div style={{ textAlign: 'center', padding: '20px 0', color: '#94a3b8', fontSize: 12 }}>
+                              <Camera size={24} style={{ marginBottom: 6 }} />
+                              <div>暂无图片</div>
+                              <div style={{ fontSize: 11, marginTop: 4 }}>请在检查所见中添加图像</div>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                              {reportImages.map((img, idx) => (
+                                <div
+                                  key={img.id}
+                                  style={{
+                                    background: '#fff', border: '1px solid #e2e8f0', borderRadius: 6,
+                                    padding: 6, display: 'flex', gap: 8, alignItems: 'center',
+                                    cursor: 'pointer',
+                                  }}
+                                  onClick={() => setSelectedImageId(img.id)}
+                                >
+                                  <div style={{ width: 48, height: 36, background: '#f1f5f9', borderRadius: 4, overflow: 'hidden', flexShrink: 0 }}>
+                                    <img src={img.url} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  </div>
+                                  <div style={{ flex: 1, minWidth: 0 }}>
+                                    <div style={{ fontSize: 11, fontWeight: 600, color: '#334155', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                      图像 #{idx + 1}
+                                    </div>
+                                    <div style={{ fontSize: 10, color: '#94a3b8' }}>
+                                      {idx < currentStandard.length ? currentStandard[idx].name : '附加图像'}
+                                    </div>
+                                    {img.annotation && (
+                                      <div style={{ fontSize: 9, color: '#dc2626', display: 'flex', alignItems: 'center', gap: 2, marginTop: 2 }}>
+                                        <Flag size={8} /> 已标注
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </>
+                      )}
+
+                      {/* 分隔线 */}
+                      <div style={{ borderTop: '1px solid #e2e8f0', marginTop: 14, marginBottom: 10 }} />
+
+                      {/* 常用短语标题 */}
                       <div style={s.phrasePanelTitle}>
                         <BookOpen size={13} /> 常用短语
                       </div>
