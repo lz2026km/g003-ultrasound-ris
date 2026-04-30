@@ -50,6 +50,10 @@ const NationalReportPage = lazy(() => import('./pages/NationalReportPage'))
 const InsuranceAuditPage = lazy(() => import('./pages/InsuranceAuditPage'))
 const ResearchPage = lazy(() => import('./pages/ResearchPage'))
 const TrainingPage = lazy(() => import('./pages/TrainingPage'))
+const QueueCallPage = lazy(() => import('./pages/QueueCallPage'))
+const DataReportCenterPage = lazy(() => import('./pages/DataReportCenterPage'))
+const EquipmentLifecyclePage = lazy(() => import('./pages/EquipmentLifecyclePage'))
+const OperationsCenterPage = lazy(() => import('./pages/OperationsCenterPage'))
 
 // 骨架屏 Loading 组件
 const SkeletonBlock = ({ width = '100%', height = 20, style = {} }: { width?: string | number, height?: number, style?: React.CSSProperties }) => (
@@ -171,6 +175,7 @@ const NAV_ITEMS = [
     section: '检查与报告',
     items: [
       { path: '/exams', icon: Activity, label: '检查执行' },
+      { path: '/queue-call', icon: Bell, label: '叫号管理' },
       { path: '/reports', icon: FileText, label: '报告管理' },
       { path: '/report-write', icon: Stethoscope, label: '报告书写' },
       { path: '/critical-value', icon: Bell, label: '危急值' },
@@ -212,15 +217,18 @@ const NAV_ITEMS = [
       { path: '/statistics', icon: BarChart3, label: '数据统计' },
       { path: '/stats-enhanced', icon: BarChart3, label: '统计分析' },
       { path: '/dashboard', icon: BarChart3, label: '科室看板' },
+      { path: '/operations', icon: BarChart3, label: '运营指挥中心' },
       { path: '/authority', icon: ShieldAlert, label: '权限管理' },
       { path: '/dictionary', icon: BookOpen, label: '数据字典' },
       { path: '/audit', icon: Shield, label: '审计日志' },
       { path: '/materials', icon: Package, label: '耗材管理' },
+      { path: '/equipment-lifecycle', icon: Microscope, label: '设备全生命周期' },
       { path: '/followup', icon: Activity, label: '随访管理' },
       { path: '/cancer-screen', icon: AlertTriangle, label: '早癌筛查' },
       { path: '/national-report', icon: ShieldAlert, label: '国家数据上报' },
-      { path: '/research', icon: Database, label: '临床数据中心' },
+      { path: '/data-report', icon: Database, label: '数据上报中心' },
       { path: '/insurance-audit', icon: ShieldCheck, label: '医保审核' },
+      { path: '/research', icon: Database, label: '临床数据中心' },
     ],
   },
   {
@@ -289,7 +297,7 @@ function AppShell() {
           <div style={s.sidebarFooter}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>内镜诊疗信息管理系统</div>
           <div style={s.userInfo}>
-            <span>v0.8.0</span>
+            <span>v0.9.0</span>
           </div>
         </div>
       </aside>
@@ -378,6 +386,10 @@ function AppShell() {
             <Route path="/insurance-audit" element={<InsuranceAuditPage />} />
             <Route path="/research" element={<ResearchPage />} />
             <Route path="/training" element={<TrainingPage />} />
+            <Route path="/queue-call" element={<QueueCallPage />} />
+            <Route path="/data-report" element={<DataReportCenterPage />} />
+            <Route path="/equipment-lifecycle" element={<EquipmentLifecyclePage />} />
+            <Route path="/operations" element={<OperationsCenterPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </Suspense>
@@ -404,18 +416,18 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.8.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.9.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
-                  新增国家数据上报系统（对接国家消化内镜质控中心/省级平台/上报流程）；新增医保审核系统（限制类药品审核/适应证校验/智能提示）。大幅升级耗材管理系统（库存看板/效期预警/申领审批流）；升级报告管理（DICOM缩略图浏览器/图像标注）；升级AI质控中心（CADe息肉检测模拟/实时警报）；升级早癌筛查（地图分布/ADR趋势/高危追踪）；扩充演示数据至2000+患者、3000+检查记录、5000+预约，演示规模超越东软、美迪康同类产品
+                  新增运营指挥中心（科室主任驾驶舱，6大看板区，KPI实时指标）；新增叫号管理系统（实时叫号大屏/诊室状态/候诊队列/模拟呼叫按钮）；新增数据上报中心（多格式报表生成/Excel+CSV+PDF导出/历史报表记录/数据脱敏）；新增设备全生命周期管理（设备资产台账/维保计划/维保记录/到期预警/成本分析/报废管理）；新增运营指挥中心（科室主任驾驶舱大屏）；对标东软EIS/开立医疗/卫软信息三大竞品，全新功能超越同类产品；所有版本日志页About区域同步更新v0.9.0
                 </div>
               </div>
               <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
                 <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                  v0.5.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（上一版本）</span>
+                  v0.8.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（上一版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                  新增会诊管理系统（MDT多学科会诊/30条会诊数据）；感染管理系统（院感监控/职业暴露/环境监测/40条数据）；手术录像管理系统（点播回放/归档管理/25条录像数据）。深度优化首页（医生工作台/环形进度/Sparkline趋势）、报告书写（AI辅助面板/图像标注/质量评分）、检查执行（状态看板/流程时间轴/质量评分）、护理记录（交接班/护理评分）、术前评估（ASA分级/Mallampati/核对清单）、影像管理（标注工具/质量评级/对比）、统计分析（预测分析/医生绩效/同比环比）、教育培训（考核/题库/培训档案）。导航重构为9大模块，演示数据规模大幅扩充，超越美迪康全功能
+                  新增国家数据上报系统（对接国家消化内镜质控中心/省级平台/上报流程）；新增医保审核系统（限制类药品审核/适应证校验/智能提示）。大幅升级耗材管理系统（库存看板/效期预警/申领审批流）；升级报告管理（DICOM缩略图浏览器/图像标注）；升级AI质控中心（CADe息肉检测模拟/实时警报）；升级早癌筛查（地图分布/ADR趋势/高危追踪）；扩充演示数据至2000+患者、3000+检查记录、5000+预约，演示规模超越东软、美迪康同类产品
                 </div>
               </div>
               <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
