@@ -1,579 +1,614 @@
 // @ts-nocheck
 // ============================================================
-// G003 超声RIS系统 - 肿瘤筛查页面 v0.2.0
-// 癌症早筛 / 风险评估 / 随访管理 / 筛查统计
+// G004 消化道早癌筛查平台
+// 消化道早癌筛查 - 筛查任务/高危评估/早癌追踪/数据地图
 // ============================================================
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
-  Search, Filter, Download, Plus, AlertTriangle,
-  Activity, TrendingUp, Users, Calendar, Clock,
-  CheckCircle, XCircle, ChevronRight, Heart,
-  ShieldAlert, FileText, BarChart3, PieChart as PieChartIcon,
-  Bell, Edit2, Trash2, Eye, RefreshCw, Zap, AlertOctagon
+  Users, AlertTriangle, Target, Heart, MapPin, TrendingUp,
+  Plus, Search, Filter, Download, RefreshCw,
+  Activity, Shield, Clock, CheckCircle, XCircle, PauseCircle,
+  ArrowUp, ArrowDown, AlertCircle, Microscope, Calendar,
+  ChevronDown, ChevronRight, Edit, Trash2, Eye, ClipboardList,
+  FileSearch, UserCheck, Inbox
 } from 'lucide-react'
-import ReactECharts from 'echarts-for-react'
+
+// ---------- 统计数据 ----------
+const statsData = [
+  { label: '累计筛查人数', value: '12,856', unit: '人', icon: Users, color: '#2563eb', bg: '#eff6ff' },
+  { label: '高危人群', value: '1,856', unit: '人', sub: '14.4%', icon: AlertTriangle, color: '#ea580c', bg: '#fff7ed' },
+  { label: '早癌检出', value: '428', unit: '例', sub: '检出率3.27%', icon: Target, color: '#dc2626', bg: '#fef2f2' },
+  { label: '早癌治愈率', value: '91.2', unit: '%', icon: Heart, color: '#16a34a', bg: '#f0fdf4' },
+  { label: '筛查覆盖地区', value: '18', unit: '个省市', icon: MapPin, color: '#7c3aed', bg: '#f5f3ff' },
+  { label: '本月新增筛查', value: '856', unit: '人', trend: 'up', icon: TrendingUp, color: '#0891b2', bg: '#ecfeff' },
+]
 
 // ---------- 样式 ----------
 const s: Record<string, React.CSSProperties> = {
   root: { padding: 0 },
-  header: { marginBottom: 24 },
+  header: { marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 20, fontWeight: 700, color: '#1a3a5c', margin: 0 },
   subtitle: { fontSize: 13, color: '#64748b', marginTop: 4 },
-  headerRight: { display: 'flex', gap: 8 },
-  statRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 },
-  statCard: { background: '#fff', borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 16 },
-  statIconWrap: { width: 48, height: 48, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  statInfo: { flex: 1, minWidth: 0 },
-  statValue: { fontSize: 26, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.2 },
-  statLabel: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  statTrend: { fontSize: 11, color: '#22c55e', marginTop: 4, display: 'flex', alignItems: 'center', gap: 2 },
-  searchBar: { display: 'flex', gap: 12, marginBottom: 20, alignItems: 'center' },
-  searchInput: { flex: 1, padding: '10px 16px', border: '1px solid #e2e8f0', borderRadius: 10, fontSize: 13, outline: 'none', background: '#fff' },
-  tabs: { display: 'flex', gap: 4, marginBottom: 20, borderBottom: '2px solid #f1f5f9' },
-  tab: { padding: '10px 20px', fontSize: 13, fontWeight: 600, color: '#64748b', cursor: 'pointer', borderBottom: '2px solid transparent', marginBottom: -2 },
-  tabActive: { padding: '10px 20px', fontSize: 13, fontWeight: 600, color: '#3b82f6', cursor: 'pointer', borderBottom: '2px solid #3b82f6', marginBottom: -2 },
-  // 表格
-  table: { width: '100%', borderCollapse: 'collapse', fontSize: 13 },
-  th: { padding: '12px 16px', textAlign: 'left', color: '#64748b', fontWeight: 600, borderBottom: '2px solid #f1f5f9', fontSize: 12, whiteSpace: 'nowrap' },
-  td: { padding: '14px 16px', color: '#475569', borderBottom: '1px solid #f1f5f9' },
-  // 按钮
-  btn: { padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6, transition: 'all 0.2s' },
-  btnPrimary: { background: '#3b82f6', color: '#fff' },
-  btnOutline: { padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: 13, fontWeight: 500, display: 'inline-flex', alignItems: 'center', gap: 6, background: '#fff', color: '#475569' },
-  btnSuccess: { background: '#22c55e', color: '#fff' },
-  btnWarning: { background: '#f97316', color: '#fff' },
-  btnDanger: { background: '#ef4444', color: '#fff' },
-  btnSmall: { padding: '5px 10px', fontSize: 12 },
-  // 标签
-  tag: { fontSize: 12, fontWeight: 600, padding: '4px 12px', borderRadius: 20, display: 'inline-flex', alignItems: 'center', gap: 4 },
-  // 卡片
-  card: { background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16 },
-  cardTitle: { fontSize: 15, fontWeight: 600, color: '#1a3a5c', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 },
-  // 图表
-  chartRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 24 },
-  chartCard: { background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  // 配置项
-  configGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 16 },
-  configItem: { border: '1px solid #e2e8f0', borderRadius: 12, padding: 16, display: 'flex', alignItems: 'center', gap: 12 },
-  configIcon: { width: 44, height: 44, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center' },
-  configInfo: { flex: 1 },
-  configName: { fontSize: 14, fontWeight: 600, color: '#1a3a5c' },
-  configDesc: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  // 问卷
-  formGroup: { marginBottom: 16 },
-  formLabel: { fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 6, display: 'block' },
-  formInput: { width: '100%', padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box' },
-  formSelect: { width: '100%', padding: '10px 14px', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 13, outline: 'none', background: '#fff' },
-  formRow: { display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 },
-  radioGroup: { display: 'flex', gap: 20, flexWrap: 'wrap' },
-  radioItem: { display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer' },
-  // 高危标记
-  highRiskTag: { background: '#fef2f2', color: '#ef4444', border: '1px solid #fecaca' },
-  warningIcon: { color: '#ef4444' },
+  // 统计卡片行
+  statsRow: { display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 12, marginBottom: 24 },
+  statCard: {
+    background: '#fff', borderRadius: 12, padding: '18px 14px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', position: 'relative', overflow: 'hidden',
+  },
+  statIcon: { width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 10 },
+  statValue: { fontSize: 26, fontWeight: 800, color: '#1a3a5c', lineHeight: 1.1 },
+  statLabel: { fontSize: 12, color: '#64748b', marginTop: 4 },
+  statSub: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
+  statTrend: { position: 'absolute', top: 14, right: 14, fontSize: 11, fontWeight: 600 },
+  // 功能区分区
+  section: { background: '#fff', borderRadius: 12, padding: 20, marginBottom: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
+  sectionTitle: { fontSize: 15, fontWeight: 700, color: '#1a3a5c', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 },
+  // 任务管理
+  taskGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
+  taskLeft: {},
+  taskRight: {},
+  taskToolbar: { display: 'flex', gap: 8, marginBottom: 12 },
+  searchInput: {
+    flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0',
+    fontSize: 13, outline: 'none',
+  },
+  btn: {
+    padding: '8px 14px', borderRadius: 8, border: '1px solid #e2e8f0',
+    background: '#fff', cursor: 'pointer', fontSize: 13, display: 'flex',
+    alignItems: 'center', gap: 6, fontWeight: 500,
+  },
+  btnPrimary: { padding: '8px 14px', borderRadius: 8, border: 'none', background: '#2563eb', color: '#fff', cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, fontWeight: 500 },
+  table: { width: '100%', borderCollapse: 'collapse', fontSize: 12 },
+  th: { textAlign: 'left', padding: '10px 8px', borderBottom: '2px solid #f1f5f9', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' },
+  td: { padding: '10px 8px', borderBottom: '1px solid #f8fafc', color: '#334155' },
+  statusBadge: { padding: '3px 8px', borderRadius: 20, fontSize: 11, fontWeight: 600 },
+  // 高危评估
+  assessGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 },
+  assessForm: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 },
+  formItem: {},
+  formLabel: { fontSize: 12, color: '#64748b', marginBottom: 4 },
+  formSelect: { width: '100%', padding: '8px 10px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13, outline: 'none', background: '#fff' },
+  riskCard: {
+    borderRadius: 12, padding: 20, textAlign: 'center', marginBottom: 16,
+    border: '2px solid transparent', cursor: 'pointer', transition: 'all 0.2s',
+  },
+  riskValue: { fontSize: 48, fontWeight: 800, lineHeight: 1 },
+  riskLabel: { fontSize: 14, marginTop: 6, fontWeight: 600 },
+  riskScore: { fontSize: 12, marginTop: 4, opacity: 0.8 },
+  // 早癌检出
+  detectionGrid: { display: 'grid', gridTemplateColumns: '1fr', gap: 0 },
+  detectionRow: {
+    display: 'grid', gridTemplateColumns: '100px 80px 80px 120px 80px 80px 80px 80px',
+    gap: 8, padding: '10px 8px', borderBottom: '1px solid #f1f5f9', alignItems: 'center', fontSize: 12,
+  },
+  detectionHeader: { background: '#f8fafc', borderRadius: 8, marginBottom: 4, fontWeight: 600, color: '#64748b', fontSize: 12 },
+  tag: { padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, display: 'inline-block', textAlign: 'center' },
+  // 地图
+  mapGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 },
+  mapSvg: { position: 'relative', background: '#f8fafc', borderRadius: 12, padding: 16, minHeight: 400 },
+  mapPlaceholder: { display: 'flex', flexWrap: 'wrap', gap: 6, justifyContent: 'center' },
+  mapProvince: { padding: '6px 10px', borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: 'default' },
+  provinceTable: { fontSize: 12 },
+  provinceTh: { textAlign: 'left', padding: '8px 10px', borderBottom: '2px solid #f1f5f9', color: '#64748b', fontWeight: 600 },
+  provinceTd: { padding: '8px 10px', borderBottom: '1px solid #f8fafc', color: '#334155' },
+  // 滚动容器
+  scrollBox: { maxHeight: 320, overflowY: 'auto' },
+  // 空状态
+  emptyState: {
+    textAlign: 'center',
+    padding: '48px 20px',
+    color: '#94a3b8',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: 12,
+  },
+  emptyStateIcon: { opacity: 0.35, marginBottom: 4 },
+  emptyStateText: { fontSize: 14, color: '#64748b', fontWeight: 500 },
+  emptyStateHint: { fontSize: 12, color: '#94a3b8', marginTop: 4 },
 }
 
-// 颜色常量
-const COLORS = {
-  primary: '#1a3a5c',
-  blue: '#3b82f6',
-  green: '#22c55e',
-  orange: '#f97316',
-  red: '#ef4444',
-  gray: '#94a3b8',
+// ---------- 组件 ----------
+const StatCard = ({ label, value, unit, sub, icon: Icon, color, bg, trend }: typeof statsData[0]) => (
+  <div style={s.statCard}>
+    <div style={{ ...s.statIcon, background: bg }}>
+      <Icon size={20} color={color} />
+    </div>
+    <div style={s.statValue}>{value}<span style={{ fontSize: 14, fontWeight: 400, color: '#64748b' }}>{unit}</span></div>
+    <div style={s.statLabel}>{label}</div>
+    {sub && <div style={s.statSub}>{sub}</div>}
+    {trend && <div style={{ ...s.statTrend, color: trend === 'up' ? '#16a34a' : '#dc2626' }}><ArrowUp size={12} />{trend === 'up' ? '↑' : '↓'}</div>}
+  </div>
+)
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const colors: Record<string, { bg: string; text: string }> = {
+    '招募中': { bg: '#fefce8', text: '#ca8a04' },
+    '进行中': { bg: '#eff6ff', text: '#2563eb' },
+    '已完成': { bg: '#f0fdf4', text: '#16a34a' },
+  }
+  const c = colors[status] || { bg: '#f1f5f9', text: '#64748b' }
+  return <span style={{ ...s.statusBadge, background: c.bg, color: c.text }}>{status}</span>
 }
 
-// 筛查类型配置
-const SCREENING_TYPES = [
-  { id: 'liver', name: '肝癌筛查', icon: '🦠', color: '#fef3c7', textColor: '#d97706', desc: '肝功能/超声 AFP联合筛查' },
-  { id: 'breast', name: '乳腺癌筛查', icon: '🎀', color: '#fce7f3', textColor: '#db2777', desc: '乳腺超声+钼靶检查' },
-  { id: 'thyroid', name: '甲状腺癌筛查', icon: '🦋', color: '#e0f2fe', textColor: '#0284c7', desc: '甲状腺超声+甲功检测' },
-  { id: 'prostate', name: '前列腺癌筛查', icon: '♂️', color: '#ede9fe', textColor: '#7c3aed', desc: 'PSA+前列腺超声' },
-  { id: 'ovarian', name: '卵巢癌筛查', icon: '🌸', color: '#fce7f3', textColor: '#ec4899', desc: 'CA125+妇科超声' },
-]
+const CancerScreenPage = () => {
+  const [tab, setTab] = useState(1)
+  const [taskSearch, setTaskSearch] = useState('')
+  const [currentScore, setCurrentScore] = useState(0)
+  const [currentRisk, setCurrentRisk] = useState<'低危' | '中危' | '高危' | '极高危'>('低危')
 
-// 筛查任务数据
-const SCREENING_TASKS = [
-  { id: 1, name: '张三', age: 52, gender: '男', type: '肝癌筛查', date: '2024-12-15', result: '阳性', status: '待确认', doctor: '王主任' },
-  { id: 2, name: '李红', age: 45, gender: '女', type: '乳腺癌筛查', date: '2024-12-14', result: '阴性', status: '已完成', doctor: '李医生' },
-  { id: 3, name: '王五', age: 38, gender: '女', type: '甲状腺癌筛查', date: '2024-12-14', result: '可疑', status: '复查中', doctor: '张医生' },
-  { id: 4, name: '赵丽', age: 55, gender: '女', type: '乳腺癌筛查', date: '2024-12-13', result: '阴性', status: '已完成', doctor: '李医生' },
-  { id: 5, name: '钱伟', age: 62, gender: '男', type: '前列腺癌筛查', date: '2024-12-12', result: '阳性', status: '随访中', doctor: '王主任' },
-  { id: 6, name: '孙芳', age: 35, gender: '女', type: '卵巢癌筛查', date: '2024-12-11', result: '阴性', status: '已完成', doctor: '刘医生' },
-  { id: 7, name: '周涛', age: 48, gender: '男', type: '肝癌筛查', date: '2024-12-10', result: '可疑', status: '复查中', doctor: '张医生' },
-]
-
-// 高危患者数据
-const HIGH_RISK_PATIENTS = [
-  { id: 1, name: '张三', age: 52, gender: '男', type: '肝癌筛查', riskScore: 92, result: '阳性', status: '高危', alertLevel: 'urgent' },
-  { id: 2, name: '钱伟', age: 62, gender: '男', type: '前列腺癌筛查', riskScore: 88, result: '阳性', status: '高危', alertLevel: 'urgent' },
-  { id: 3, name: '李红', age: 45, gender: '女', type: '乳腺癌筛查', riskScore: 75, result: '可疑', status: '高危', alertLevel: 'warning' },
-]
-
-// 随访计划数据
-const FOLLOWUP_PLANS = [
-  { id: 1, patient: '张三', cancer: '肝癌', nextDate: '2025-01-15', interval: '3个月', purpose: '复查AFP+超声', status: '待执行' },
-  { id: 2, patient: '钱伟', cancer: '前列腺癌', nextDate: '2025-01-10', interval: '1个月', purpose: 'PSA复查', status: '待执行' },
-  { id: 3, patient: '李红', cancer: '乳腺癌', nextDate: '2024-12-28', interval: '2周', purpose: '乳腺钼靶复查', status: '即将到期' },
-]
-
-// 统计数据
-const STATS_DATA = {
-  monthlyScreening: [
-    { month: '7月', count: 120, positive: 5, negative: 115 },
-    { month: '8月', count: 145, positive: 7, negative: 138 },
-    { month: '9月', count: 138, positive: 4, negative: 134 },
-    { month: '10月', count: 156, positive: 9, negative: 147 },
-    { month: '11月', count: 168, positive: 6, negative: 162 },
-    { month: '12月', count: 180, positive: 8, negative: 172 },
-  ],
-  positiveRate: 4.2,
-  followupCompletion: 87.5,
-  monthlyGrowth: 12,
-}
-
-// 问卷问题
-const QUESTIONNAIRE_QUESTIONS = [
-  { id: 'age', question: '年龄', type: 'input', placeholder: '请输入年龄' },
-  { id: 'family_history', question: '家族肿瘤史', type: 'radio', options: ['无', '父亲/母亲', '兄弟姐妹', '多个亲属'] },
-  { id: 'smoking', question: '吸烟习惯', type: 'radio', options: ['从不', '偶尔', '经常', '已戒烟'] },
-  { id: 'drinking', question: '饮酒习惯', type: 'radio', options: ['从不', '偶尔', '经常', '已戒酒'] },
-  { id: 'diet', question: '饮食习惯', type: 'radio', options: ['规律健康', '偶尔油腻', '经常油腻', '不规律'] },
-  { id: 'exercise', question: '运动习惯', type: 'radio', options: ['每周3次以上', '每周1-2次', '偶尔', '几乎不'] },
-  { id: 'weight', question: '体重变化', type: 'radio', options: ['稳定', '近期减轻', '近期增加', '明显减轻'] },
-]
-
-export default function CancerScreenPage() {
-  const [activeTab, setActiveTab] = useState('list')
-  const [searchText, setSearchText] = useState('')
-  const [selectedTask, setSelectedTask] = useState<number | null>(null)
-  const [showResultModal, setShowResultModal] = useState(false)
-  const [resultForm, setResultForm] = useState({ result: '阴性', notes: '' })
-  const [showQuestionnaire, setShowQuestionnaire] = useState(false)
-  const [questionnaireAnswers, setQuestionnaireAnswers] = useState<Record<string, string>>({})
-
-  // 工具函数
-  const getResultColor = (result: string) => {
-    switch (result) {
-      case '阳性': return '#ef4444'
-      case '阴性': return '#22c55e'
-      case '可疑': return '#f97316'
-      case '待确认': return '#94a3b8'
-      default: return '#64748b'
+  // ---------- 数据 (useMemo避免重复计算) ----------
+  const taskStatuses = ['招募中', '进行中', '已完成']
+  const regions = ['山东省', '河南省', '内蒙古', '青海省', '四川省', '广东省', '江苏省', '浙江省', '安徽省', '福建省', '江西省', '湖南省', '湖北省', '河北省', '山西省', '陕西省', '辽宁省', '吉林省']
+  const tasks = useMemo(() => Array.from({ length: 60 }, (_, i) => {
+    const status = taskStatuses[Math.floor(Math.random() * 3)]
+    const target = 200 + Math.floor(Math.random() * 800)
+    const completed = status === '已完成' ? target : Math.floor(target * (0.1 + Math.random() * 0.85))
+    const year = i < 30 ? 2025 : 2026
+    const month = 1 + (i % 11)
+    const day = 10 + (i % 18)
+    return {
+      id: i + 1,
+      name: `${regions[i % regions.length]}第${Math.floor(i / regions.length) + 1}批消化道早癌筛查`,
+      region: regions[i % regions.length],
+      target,
+      completed,
+      rate: Math.round((completed / target) * 100),
+      status,
+      startDate: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      doctor: `张${['伟', '磊', '涛', '勇', '强', '军', '波', '辉', '彬', '龙'][i % 10]}医生`,
     }
-  }
+  }), [])
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case '已完成': return '#22c55e'
-      case '复查中': return '#f97316'
-      case '待确认': return '#94a3b8'
-      case '高危': return '#ef4444'
-      case '待执行': return '#3b82f6'
-      case '即将到期': return '#f97316'
-      default: return '#64748b'
+  const riskColors: Record<string, string> = { '低危': '#16a34a', '中危': '#ca8a04', '高危': '#ea580c', '极高危': '#dc2626' }
+  const riskBgColors: Record<string, string> = { '低危': '#f0fdf4', '中危': '#fefce8', '高危': '#fff7ed', '极高危': '#fef2f2' }
+  const names = ['王建国', '李明华', '张秀英', '刘德伟', '陈淑芳', '杨志国', '赵丽娟', '黄文博', '周玉珍', '吴洪亮', '徐海燕', '孙志远', '马晓东', '朱艳红', '胡金生', '郭彩云', '林国栋', '何秀兰', '高建新', '罗春梅', '郑成文', '梁晓燕', '宋立功', '唐桂英', '许志鹏', '韩素芳', '邓小刚', '冯翠花', '曹德华', '彭丽华']
+  const assessments = useMemo(() => Array.from({ length: 30 }, (_, i) => {
+    const totalScore = 5 + Math.floor(Math.random() * 45)
+    let risk: string
+    if (totalScore < 15) risk = '低危'
+    else if (totalScore < 25) risk = '中危'
+    else if (totalScore < 35) risk = '高危'
+    else risk = '极高危'
+    const year = i < 15 ? 2025 : 2026
+    const month = 1 + (i % 11)
+    const day = 10 + (i % 18)
+    return {
+      id: i + 1,
+      date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      name: names[i],
+      age: 35 + Math.floor(Math.random() * 40),
+      totalScore,
+      risk,
+      doctor: `李${['敏', '娜', '霞', '琳', '燕', '芳', '娟', '玲', '婷', '颖'][i % 10]}医生`,
     }
+  }), [])
+
+  const [assessmentForm, setAssessmentForm] = useState({
+    age: 45, gender: '男', diet: '一般', hp: '无', family: '无', symptoms: '无', history: '无', region: '低风险'
+  })
+  const assessmentDimensions = [
+    { key: 'age', label: '年龄', options: [{ v: 0, l: '<40岁' }, { v: 1, l: '40-50岁' }, { v: 2, l: '50-60岁' }, { v: 3, l: '>60岁' }] },
+    { key: 'gender', label: '性别', options: [{ v: 0, l: '女' }, { v: 1, l: '男' }] },
+    { key: 'diet', label: '饮食习惯', options: [{ v: 0, l: '规律' }, { v: 1, l: '一般' }, { v: 2, l: '不规律' }] },
+    { key: 'hp', label: 'HP史', options: [{ v: 0, l: '无' }, { v: 2, l: '有' }] },
+    { key: 'family', label: '肿瘤家族史', options: [{ v: 0, l: '无' }, { v: 3, l: '有' }] },
+    { key: 'symptoms', label: '胃肠道症状', options: [{ v: 0, l: '无' }, { v: 2, l: '轻微' }, { v: 4, l: '明显' }] },
+    { key: 'history', label: '既往史', options: [{ v: 0, l: '无' }, { v: 2, l: '胃炎' }, { v: 4, l: '溃疡' }] },
+    { key: 'region', label: '地区风险', options: [{ v: 0, l: '低风险' }, { v: 2, l: '中风险' }, { v: 4, l: '高风险' }] },
+  ]
+
+  const lesionTypes = ['早期食管癌', '早期胃癌', '早期结直肠癌', '癌前病变', '高级别上皮内瘤变']
+  const locations = ['食管下段', '胃窦', '胃体', '结肠右曲', '直肠', '食管中段', '胃底', '降结肠']
+  const diffLevels = ['高分化', '中分化', '低分化', '未分化']
+  const treatments = ['ESD', '手术', '保守', '待定']
+  const treatmentColors: Record<string, { bg: string; text: string }> = {
+    'ESD': { bg: '#eff6ff', text: '#2563eb' },
+    '手术': { bg: '#fef2f2', text: '#dc2626' },
+    '保守': { bg: '#f8fafc', text: '#64748b' },
+    '待定': { bg: '#fefce8', text: '#ca8a04' },
+  }
+  const followUpStatuses = ['在访', '失访', '治愈']
+  const patientNames = ['李秀英', '王德明', '张建华', '刘玉兰', '陈国庆', '杨文军', '赵桂英', '黄伟东', '周丽娟', '吴洪波', '徐海峰', '孙桂芳', '马志远', '朱秀云', '胡金生', '郭彩霞', '林国强', '何春梅', '高建波', '罗素芳']
+  const detections = useMemo(() => Array.from({ length: 20 }, (_, i) => {
+    const year = i < 10 ? 2025 : 2026
+    const month = 1 + (i % 11)
+    const day = 5 + (i % 20)
+    return {
+      id: i + 1,
+      date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      name: patientNames[i],
+      lesionType: lesionTypes[i % lesionTypes.length],
+      location: locations[i % locations.length],
+      diffLevel: diffLevels[i % diffLevels.length],
+      treatment: treatments[i % treatments.length],
+      followUp: followUpStatuses[Math.floor(Math.random() * 3)],
+    }
+  }), [])
+
+  const provinces = [
+    { name: '山东', covered: '已覆盖', instCount: 28, screenCount: 2156, rate: 3.2 },
+    { name: '河南', covered: '已覆盖', instCount: 24, screenCount: 1892, rate: 3.5 },
+    { name: '内蒙古', covered: '覆盖中', instCount: 12, screenCount: 856, rate: 2.8 },
+    { name: '青海', covered: '覆盖中', instCount: 8, screenCount: 524, rate: 2.4 },
+    { name: '四川', covered: '已覆盖', instCount: 32, screenCount: 2432, rate: 3.8 },
+    { name: '广东', covered: '已覆盖', instCount: 36, screenCount: 2654, rate: 3.1 },
+    { name: '江苏', covered: '已覆盖', instCount: 30, screenCount: 2286, rate: 3.6 },
+    { name: '浙江', covered: '已覆盖', instCount: 26, screenCount: 2034, rate: 3.3 },
+    { name: '安徽', covered: '已覆盖', instCount: 18, screenCount: 1456, rate: 2.9 },
+    { name: '福建', covered: '覆盖中', instCount: 14, screenCount: 982, rate: 2.6 },
+    { name: '江西', covered: '已覆盖', instCount: 16, screenCount: 1124, rate: 2.7 },
+    { name: '湖南', covered: '已覆盖', instCount: 20, screenCount: 1568, rate: 3.0 },
+    { name: '湖北', covered: '已覆盖', instCount: 22, screenCount: 1682, rate: 3.4 },
+    { name: '河北', covered: '已覆盖', instCount: 19, screenCount: 1342, rate: 2.8 },
+    { name: '山西', covered: '覆盖中', instCount: 11, screenCount: 724, rate: 2.5 },
+    { name: '陕西', covered: '已覆盖', instCount: 17, screenCount: 1286, rate: 3.1 },
+    { name: '辽宁', covered: '已覆盖', instCount: 21, screenCount: 1534, rate: 2.9 },
+    { name: '吉林', covered: '未覆盖', instCount: 0, screenCount: 0, rate: 0 },
+  ]
+
+  const screenStatuses = ['待审核', '已登记', '筛查中', '已完成']
+  const screenTypes = ['一般筛查', '高危筛查', '术后复查']
+  const screenings = useMemo(() => Array.from({ length: 60 }, (_, i) => {
+    const status = screenStatuses[Math.floor(Math.random() * 4)]
+    const year = i < 30 ? 2025 : 2026
+    const month = 1 + (i % 11)
+    const day = 5 + (i % 20)
+    return {
+      id: i + 1,
+      date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      name: ['王秀兰', '李建国', '张桂英', '刘志明', '陈丽娟', '杨文华', '赵德福', '黄秀云', '周小刚', '吴翠花', '徐志远', '孙丽芳', '马金龙', '朱秀英', '胡金生', '郭彩霞', '林国强', '何春梅', '高建波', '罗素芳', '郑成文', '梁晓燕', '宋立功', '唐桂英', '许志鹏', '韩素芳', '邓小刚', '冯翠花', '曹德华', '彭丽华', '田秀英', '董建军', '蒋桂花', '熊国强', '韩秀英', '龚志鹏', '万翠花', '韦小刚', '郎丽芳', '戚秀英', '焦建军', '甄桂花', '令狐国强', '端木秀英', '上官志鹏', '欧阳翠花', '司马小刚', '公孙丽芳', '赫连秀英', '呼延建军', '闾丘桂花', '公冶国强', '子车秀英', '颛孙志鹏', '端星翠花', '谷梁小刚', '百里丽芳', '东郭秀英', '南门建军'][i % 60],
+      age: 30 + Math.floor(Math.random() * 45),
+      gender: i % 2 === 0 ? '男' : '女',
+      phone: `138${String(1000 + i).padStart(4, '0')}${String(100 + (i * 7) % 900).padStart(3, '0')}`,
+      type: screenTypes[i % 3],
+      result: status === '已完成' ? (Math.random() > 0.7 ? '阳性' : '阴性') : '-',
+      status,
+      institution: ['山东省立医院', '河南省人民医院', '内蒙古医学院附院', '青海大学附院', '华西医院', '广东省人民医院', '南京鼓楼医院', '浙大一院', '安医大一附院', '福建协和医院', '南昌大一附院', '湘雅医院', '武汉同济医院', '河北医大一院', '山西大医院', '西京医院', '中国医大一院', '长春吉大一院'][i % 18],
+    }
+  }), [])
+
+  const followUpModes = ['电话随访', '门诊随访', '住院随访', '在线随访']
+  const followUpResults = ['稳定', '好转', '恶化', '失访']
+  const followUps = useMemo(() => Array.from({ length: 40 }, (_, i) => {
+    const year = i < 20 ? 2025 : 2026
+    const month = 1 + (i % 11)
+    const day = 8 + (i % 18)
+    const result = followUpResults[Math.floor(Math.random() * 4)]
+    return {
+      id: i + 1,
+      date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      nextDate: `${year + (month > 10 ? 1 : 0)}-${String((month + 2) % 12 || 12).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+      patientName: ['李秀英', '王德明', '张建华', '刘玉兰', '陈国庆', '杨文军', '赵桂英', '黄伟东', '周丽娟', '吴洪波', '徐海峰', '孙桂芳', '马志远', '朱秀云', '胡金生', '郭彩霞', '林国强', '何春梅', '高建波', '罗素芳'][i % 20],
+      phone: `139${String(2000 + i).padStart(4, '0')}${String(200 + (i * 11) % 800).padStart(3, '0')}`,
+      mode: followUpModes[i % 4],
+      result,
+      notes: result === '失访' ? '多次联系未果' : (result === '稳定' ? '各项指标正常' : result === '好转' ? '病灶明显缩小' : '病情进展需密切观察'),
+      doctor: `王${['敏', '娜', '霞', '琳', '燕', '芳', '娟', '玲', '婷', '颖'][i % 10]}医生`,
+    }
+  }), [])
+
+  const monthlyData = [
+    { month: '2025-01', screenings: 820, detections: 28, rate: 3.4 },
+    { month: '2025-02', screenings: 756, detections: 24, rate: 3.2 },
+    { month: '2025-03', screenings: 920, detections: 32, rate: 3.5 },
+    { month: '2025-04', screenings: 886, detections: 30, rate: 3.4 },
+    { month: '2025-05', screenings: 1050, detections: 38, rate: 3.6 },
+    { month: '2025-06', screenings: 1120, detections: 42, rate: 3.8 },
+    { month: '2025-07', screenings: 980, detections: 35, rate: 3.6 },
+    { month: '2025-08', screenings: 1080, detections: 40, rate: 3.7 },
+    { month: '2025-09', screenings: 1200, detections: 45, rate: 3.8 },
+    { month: '2025-10', screenings: 1150, detections: 42, rate: 3.7 },
+    { month: '2025-11', screenings: 1280, detections: 48, rate: 3.8 },
+    { month: '2025-12', screenings: 1350, detections: 52, rate: 3.9 },
+    { month: '2026-01', screenings: 1100, detections: 40, rate: 3.6 },
+    { month: '2026-02', screenings: 980, detections: 35, rate: 3.6 },
+    { month: '2026-03', screenings: 1250, detections: 46, rate: 3.7 },
+  ]
+
+  const ageDistribution = [
+    { range: '30-40', male: 420, female: 380 },
+    { range: '41-50', male: 680, female: 620 },
+    { range: '51-60', male: 920, female: 840 },
+    { range: '61-70', male: 760, female: 680 },
+    { range: '71-80', male: 380, female: 320 },
+    { range: '>80', male: 120, female: 100 },
+  ]
+
+  const cancerTypes = [
+    { type: '早期食管癌', count: 156, proportion: 28.5 },
+    { type: '早期胃癌', count: 198, proportion: 36.2 },
+    { type: '早期结直肠癌', count: 124, proportion: 22.6 },
+    { type: '癌前病变', count: 48, proportion: 8.8 },
+    { type: '高级别上皮内瘤变', count: 21, proportion: 3.8 },
+  ]
+
+  const treatmentOutcome = [
+    { treatment: 'ESD', total: 320, cured: 296, improved: 18, stable: 6 },
+    { treatment: '手术', total: 156, cured: 128, improved: 20, stable: 8 },
+    { treatment: '保守治疗', total: 86, cured: 52, improved: 24, stable: 10 },
+  ]
+
+  const coveredColors: Record<string, string> = { '已覆盖': '#16a34a', '覆盖中': '#ca8a04', '未覆盖': '#e2e8f0' }
+  const followUpColors: Record<string, { bg: string; text: string }> = {
+    '在访': { bg: '#f0fdf4', text: '#16a34a' },
+    '失访': { bg: '#fef2f2', text: '#dc2626' },
+    '治愈': { bg: '#eff6ff', text: '#2563eb' },
   }
 
-  // 导出报表
-  const handleExport = () => {
-    const headers = ['姓名', '年龄', '性别', '筛查类型', '日期', '结果', '状态', '医生']
-    const rows = SCREENING_TASKS.map(t => [t.name, t.age, t.gender, t.type, t.date, t.result, t.status, t.doctor])
-    const csv = [headers, ...rows].map(r => r.join(',')).join('\n')
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `肿瘤筛查报表_${new Date().toISOString().split('T')[0]}.csv`
-    a.click()
-    URL.revokeObjectURL(url)
+  const calcRisk = (score: number) => {
+    if (score < 15) return '低危'
+    if (score < 25) return '中危'
+    if (score < 35) return '高危'
+    return '极高危'
   }
 
-  // 生成随访计划
-  const generateFollowup = (patient: typeof HIGH_RISK_PATIENTS[0]) => {
-    alert(`为 ${patient.name} 生成随访计划：\n- 筛查类型：${patient.type}\n- 风险评分：${patient.riskScore}\n- 建议随访间隔：1-3个月\n- 下次复查：${new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString()}`)
+  const handleDimChange = (key: string, val: number) => {
+    const newForm = { ...assessmentForm, [key]: val }
+    setAssessmentForm(newForm as typeof assessmentForm)
+    const score = Object.entries(newForm).reduce((acc, [k, v]) => {
+      const dim = assessmentDimensions.find(d => d.key === k)
+      if (!dim) return acc
+      const opt = dim.options.find(o => o.l === v)
+      return acc + (opt?.v || 0)
+    }, 0)
+    setCurrentScore(score)
+    setCurrentRisk(calcRisk(score))
   }
 
-  // ECharts 配置
-  const getScreeningTrendOption = () => ({
-    tooltip: { trigger: 'axis', backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 8, textStyle: { color: '#1a3a5c' } },
-    legend: { data: ['筛查人数', '阳性', '阴性'], bottom: 0, textStyle: { fontSize: 12 } },
-    grid: { left: 50, right: 20, top: 20, bottom: 50 },
-    xAxis: { type: 'category', data: STATS_DATA.monthlyScreening.map(d => d.month), axisLine: { lineStyle: { color: '#e2e8f0' } }, axisLabel: { color: '#94a3b8', fontSize: 11 } },
-    yAxis: { type: 'value', axisLine: { show: false }, splitLine: { lineStyle: { color: '#f1f5f9' } }, axisLabel: { color: '#94a3b8', fontSize: 11 } },
-    series: [
-      { name: '筛查人数', type: 'bar', data: STATS_DATA.monthlyScreening.map(d => d.count), itemStyle: { color: '#3b82f6', borderRadius: [4, 4, 0, 0] }, barWidth: '40%' },
-      { name: '阳性', type: 'line', data: STATS_DATA.monthlyScreening.map(d => d.positive), itemStyle: { color: '#ef4444' }, lineStyle: { width: 2 }, symbol: 'circle', symbolSize: 6 },
-      { name: '阴性', type: 'line', data: STATS_DATA.monthlyScreening.map(d => d.negative), itemStyle: { color: '#22c55e' }, lineStyle: { width: 2 }, symbol: 'circle', symbolSize: 6 },
-    ],
-  })
-
-  const getPositiveRateOption = () => ({
-    tooltip: { trigger: 'item', backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 8, textStyle: { color: '#1a3a5c' } },
-    series: [{
-      type: 'gauge',
-      startAngle: 180,
-      endAngle: 0,
-      min: 0,
-      max: 100,
-      splitNumber: 4,
-      itemStyle: { color: '#ef4444' },
-      progress: { show: true, width: 18 },
-      pointer: { show: false },
-      axisLine: { lineStyle: { width: 18, color: [[1, '#e2e8f0']] } },
-      axisTick: { show: false },
-      splitLine: { show: false },
-      axisLabel: { show: false },
-      title: { offsetCenter: [0, '20%'], fontSize: 12, color: '#64748b' },
-      detail: { valueAnimation: true, fontSize: 32, fontWeight: 700, offsetCenter: [0, '-10%'], formatter: '{value}%', color: '#ef4444' },
-      data: [{ value: STATS_DATA.positiveRate }],
-    }],
-  })
-
-  const getFollowupCompletionOption = () => ({
-    tooltip: { trigger: 'item', backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 8, textStyle: { color: '#1a3a5c' } },
-    series: [{
-      type: 'gauge',
-      startAngle: 180,
-      endAngle: 0,
-      min: 0,
-      max: 100,
-      splitNumber: 4,
-      itemStyle: { color: '#22c55e' },
-      progress: { show: true, width: 18 },
-      pointer: { show: false },
-      axisLine: { lineStyle: { width: 18, color: [[1, '#e2e8f0']] } },
-      axisTick: { show: false },
-      splitLine: { show: false },
-      axisLabel: { show: false },
-      title: { offsetCenter: [0, '20%'], fontSize: 12, color: '#64748b' },
-      detail: { valueAnimation: true, fontSize: 32, fontWeight: 700, offsetCenter: [0, '-10%'], formatter: '{value}%', color: '#22c55e' },
-      data: [{ value: STATS_DATA.followupCompletion }],
-    }],
-  })
-
-  const getTypeDistributionOption = () => ({
-    tooltip: { trigger: 'item', backgroundColor: '#fff', borderColor: '#e2e8f0', borderRadius: 8, textStyle: { color: '#1a3a5c' }, formatter: '{b}: {c}人 ({d}%)' },
-    legend: { orient: 'vertical', right: 20, top: 'center', textStyle: { fontSize: 12 } },
-    series: [{
-      type: 'pie',
-      radius: ['45%', '70%'],
-      center: ['35%', '50%'],
-      avoidLabelOverlap: false,
-      itemStyle: { borderRadius: 6, borderColor: '#fff', borderWidth: 2 },
-      label: { show: false },
-      emphasis: { label: { show: true, fontSize: 14, fontWeight: 600 } },
-      data: [
-        { value: 35, name: '乳腺癌', itemStyle: { color: '#ec4899' } },
-        { value: 28, name: '甲状腺癌', itemStyle: { color: '#0284c7' } },
-        { value: 20, name: '肝癌', itemStyle: { color: '#d97706' } },
-        { value: 10, name: '前列腺癌', itemStyle: { color: '#7c3aed' } },
-        { value: 7, name: '卵巢癌', itemStyle: { color: '#db2777' } },
-      ],
-    }],
-  })
+  const filteredTasks = tasks.filter(t =>
+    t.name.includes(taskSearch) || t.region.includes(taskSearch)
+  )
 
   return (
     <div style={s.root}>
-      {/* 标题栏 */}
+      {/* Header */}
       <div style={s.header}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h1 style={s.title}>早癌筛查系统</h1>
-            <p style={s.subtitle}>肿瘤筛查 · 风险评估 · 随访管理 · 报表统计</p>
-          </div>
-          <div style={s.headerRight}>
-            <button style={s.btnOutline} onClick={handleExport}><Download size={14} /> 导出报表</button>
-            <button style={{ ...s.btn, ...s.btnPrimary }} onClick={() => setShowQuestionnaire(true)}><Plus size={14} /> 风险评估</button>
-          </div>
+        <div>
+          <h1 style={s.title}>消化道早癌筛查平台</h1>
+          <p style={s.subtitle}> Gastrointestinal Early Cancer Screening Platform · 数据更新于 2024-08-15</p>
+        </div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button style={s.btn}><RefreshCw size={14} /> 同步数据</button>
+          <button style={s.btn}><Download size={14} /> 导出报告</button>
         </div>
       </div>
 
-      {/* 统计卡片 */}
-      <div style={s.statRow}>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#eff6ff' }}><Activity size={22} color="#3b82f6" /></div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>{STATS_DATA.monthlyScreening.reduce((a, b) => a + b.count, 0)}</div>
-            <div style={s.statLabel}>本月筛查总数</div>
-            <div style={s.statTrend}><TrendingUp size={11} /> +{STATS_DATA.monthlyGrowth}%</div>
-          </div>
-        </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#fef2f2' }}><AlertTriangle size={22} color="#ef4444" /></div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>{HIGH_RISK_PATIENTS.length}</div>
-            <div style={s.statLabel}>高危患者</div>
-            <div style={{ ...s.statTrend, color: '#ef4444' }}><AlertOctagon size={11} /> 需重点关注</div>
-          </div>
-        </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#fff7ed' }}><ShieldAlert size={22} color="#f97316" /></div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>{STATS_DATA.positiveRate}%</div>
-            <div style={s.statLabel}>本月阳性率</div>
-          </div>
-        </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#f0fdf4' }}><CheckCircle size={22} color="#22c55e" /></div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>{STATS_DATA.followupCompletion}%</div>
-            <div style={s.statLabel}>随访完成率</div>
-          </div>
-        </div>
+      {/* 6大指标卡片 */}
+      <div style={s.statsRow}>
+        {statsData.map((stat, i) => <StatCard key={i} {...stat} />)}
       </div>
 
-      {/* 搜索栏 */}
-      <div style={s.searchBar}>
-        <input style={s.searchInput} placeholder="搜索患者姓名..." value={searchText} onChange={(e) => setSearchText(e.target.value)} />
-        <button style={s.btnOutline}><Filter size={14} /> 筛选</button>
-        <button style={s.btnOutline}><RefreshCw size={14} /> 刷新</button>
-      </div>
-
-      {/* 标签页 */}
-      <div style={s.tabs}>
+      {/* 功能区Tab导航 */}
+      <div style={{ display: 'flex', gap: 4, marginBottom: 20, background: '#f1f5f9', padding: 4, borderRadius: 10 }}>
         {[
-          { key: 'list', label: '筛查任务' },
-          { key: 'config', label: '筛查项目配置' },
-          { key: 'highrisk', label: '高危患者' },
-          { key: 'followup', label: '随访计划' },
-          { key: 'stats', label: '统计分析' },
-        ].map(tab => (
-          <div key={tab.key} style={activeTab === tab.key ? s.tabActive : s.tab} onClick={() => setActiveTab(tab.key)}>
-            {tab.label}
-          </div>
+          { label: '筛查任务管理', icon: Target },
+          { label: '高危评估', icon: AlertTriangle },
+          { label: '早癌检出追踪', icon: Microscope },
+          { label: '筛查数据地图', icon: MapPin },
+        ].map((t, i) => (
+          <button
+            key={i}
+            onClick={() => setTab(i + 1)}
+            style={{
+              flex: 1, padding: '10px 16px', borderRadius: 8, border: 'none',
+              background: tab === i + 1 ? '#fff' : 'transparent',
+              color: tab === i + 1 ? '#2563eb' : '#64748b',
+              fontWeight: tab === i + 1 ? 700 : 500, cursor: 'pointer',
+              fontSize: 13, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
+              boxShadow: tab === i + 1 ? '0 1px 4px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.2s',
+            }}
+          >
+            <t.icon size={15} />{t.label}
+          </button>
         ))}
       </div>
 
-      {/* 筛查任务列表 */}
-      {activeTab === 'list' && (
-        <div style={s.card}>
-          <div style={{ ...s.cardTitle, marginBottom: 12 }}>
-            <Users size={18} color="#3b82f6" />
-            <span>筛查任务列表</span>
-            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>共 {SCREENING_TASKS.length} 条记录</span>
+      {/* ========== 功能区1: 筛查任务管理 ========== */}
+      {tab === 1 && (
+        <div style={s.section}>
+          <div style={s.sectionTitle}><Target size={16} color='#dc2626' />筛查任务管理</div>
+          <div style={s.taskToolbar}>
+            <input
+              style={s.searchInput}
+              placeholder='搜索任务名称或地区...'
+              value={taskSearch}
+              onChange={e => setTaskSearch(e.target.value)}
+            />
+            <button style={{ ...s.btn, minHeight: 44, padding: '8px 16px', fontSize: 14 }}><Filter size={16} />筛选条件</button>
+            <button style={{ ...s.btnPrimary, minHeight: 44, padding: '8px 20px', fontSize: 14 }}><Plus size={16} />新建筛查任务</button>
           </div>
-          <table style={s.table}>
-            <thead>
-              <tr>
-                <th style={s.th}>患者姓名</th>
-                <th style={s.th}>年龄/性别</th>
-                <th style={s.th}>筛查项目</th>
-                <th style={s.th}>筛查日期</th>
-                <th style={s.th}>筛查结果</th>
-                <th style={s.th}>状态</th>
-                <th style={s.th}>主治医生</th>
-                <th style={s.th}>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {SCREENING_TASKS.filter(t => t.name.includes(searchText) || t.type.includes(searchText)).map(task => (
-                <tr key={task.id}>
-                  <td style={{ ...s.td, fontWeight: 600, color: '#1a3a5c' }}>{task.name}</td>
-                  <td style={s.td}>{task.age}岁 / {task.gender}</td>
-                  <td style={s.td}>{task.type}</td>
-                  <td style={s.td}>{task.date}</td>
-                  <td style={s.td}>
-                    <span style={{ ...s.tag, background: task.result === '阳性' ? '#fef2f2' : task.result === '可疑' ? '#fff7ed' : '#f0fdf4', color: getResultColor(task.result) }}>
-                      {task.result === '阳性' && <AlertTriangle size={12} />}
-                      {task.result}
-                    </span>
-                  </td>
-                  <td style={s.td}>
-                    <span style={{ ...s.tag, background: task.status === '高危' ? '#fef2f2' : task.status === '复查中' || task.status === '即将到期' ? '#fff7ed' : '#f0fdf4', color: getStatusColor(task.status) }}>
-                      {task.status}
-                    </span>
-                  </td>
-                  <td style={s.td}>{task.doctor}</td>
-                  <td style={s.td}>
-                    <div style={{ display: 'flex', gap: 6 }}>
-                      <button style={{ ...s.btn, ...s.btnPrimary, ...s.btnSmall }} onClick={() => { setSelectedTask(task.id); setShowResultModal(true); }}><Edit2 size={12} /> 录入</button>
-                      <button style={{ ...s.btn, ...s.btnOutline, ...s.btnSmall }}><Eye size={12} /> 查看</button>
-                    </div>
-                  </td>
+          <div style={s.scrollBox}>
+            <table style={s.table}>
+              <thead>
+                <tr>
+                  <th style={s.th}>任务名称</th>
+                  <th style={s.th}>地区</th>
+                  <th style={s.th}>目标人数</th>
+                  <th style={s.th}>完成人数</th>
+                  <th style={s.th}>完成率</th>
+                  <th style={s.th}>状态</th>
+                  <th style={s.th}>操作</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* 筛查项目配置 */}
-      {activeTab === 'config' && (
-        <div>
-          <div style={s.card}>
-            <div style={s.cardTitle}><Zap size={18} color="#3b82f6" />筛查项目配置</div>
-            <div style={s.configGrid}>
-              {SCREENING_TYPES.map(type => (
-                <div key={type.id} style={s.configItem}>
-                  <div style={{ ...s.configIcon, background: type.color }}>
-                    <span style={{ fontSize: 20 }}>{type.icon}</span>
-                  </div>
-                  <div style={s.configInfo}>
-                    <div style={s.configName}>{type.name}</div>
-                    <div style={s.configDesc}>{type.desc}</div>
-                  </div>
-                  <label style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
-                    <input type="checkbox" defaultChecked style={{ width: 18, height: 18, accentColor: '#3b82f6' }} />
-                  </label>
-                </div>
-              ))}
-            </div>
+              </thead>
+              <tbody>
+                {filteredTasks.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={s.emptyState}>
+                      <FileSearch size={48} style={s.emptyStateIcon} />
+                      <div style={s.emptyStateText}>未找到匹配的任务记录</div>
+                      <div style={s.emptyStateHint}>请尝试调整搜索关键词或筛选条件</div>
+                    </td>
+                  </tr>
+                ) : filteredTasks.slice(0, 15).map(task => (
+                  <tr key={task.id}>
+                    <td style={s.td}>{task.name}</td>
+                    <td style={s.td}>{task.region}</td>
+                    <td style={s.td}>{task.target}</td>
+                    <td style={s.td}>{task.completed}</td>
+                    <td style={s.td}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                        <div style={{ width: 60, height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                          <div style={{ width: `${task.rate}%`, height: '100%', background: task.rate >= 100 ? '#16a34a' : task.rate >= 50 ? '#2563eb' : '#ca8a04', borderRadius: 3 }} />
+                        </div>
+                        <span style={{ fontSize: 11, color: '#64748b' }}>{task.rate}%</span>
+                      </div>
+                    </td>
+                    <td style={s.td}><StatusBadge status={task.status} /></td>
+                    <td style={s.td}>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button style={{ ...s.btn, padding: '4px 8px', fontSize: 11 }}><Eye size={12} /></button>
+                        <button style={{ ...s.btn, padding: '4px 8px', fontSize: 11 }}><Edit size={12} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div style={{ marginTop: 12, fontSize: 12, color: '#94a3b8', textAlign: 'right' }}>
+            显示 1-15 条，共 {filteredTasks.length} 条任务
           </div>
         </div>
       )}
 
-      {/* 高危患者 */}
-      {activeTab === 'highrisk' && (
-        <div>
-          {HIGH_RISK_PATIENTS.map(patient => (
-            <div key={patient.id} style={{ ...s.card, borderLeft: '4px solid #ef4444', marginBottom: 12 }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                <div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                    <span style={{ fontSize: 15, fontWeight: 600, color: '#1a3a5c' }}>{patient.name}</span>
-                    <span style={{ ...s.tag, ...s.highRiskTag }}>
-                      <AlertOctagon size={12} /> 高危
-                    </span>
-                    {patient.alertLevel === 'urgent' && (
-                      <span style={{ ...s.tag, background: '#7f1d1d', color: '#fff' }}>
-                        <Bell size={12} /> 紧急
-                      </span>
-                    )}
+      {/* ========== 功能区2: 高危评估 ========== */}
+      {tab === 2 && (
+        <div style={s.section}>
+          <div style={s.sectionTitle}><AlertTriangle size={16} color='#ea580c' />高危评估</div>
+          <div style={s.assessGrid}>
+            {/* 左: 评估表单 */}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 12 }}>当前评估</div>
+              <div style={s.assessForm}>
+                {assessmentDimensions.map(dim => (
+                  <div key={dim.key} style={s.formItem}>
+                    <div style={s.formLabel}>{dim.label}</div>
+                    <select
+                      style={s.formSelect}
+                      value={assessmentForm[dim.key as keyof typeof assessmentForm]}
+                      onChange={e => handleDimChange(dim.key, dim.options.findIndex(o => o.l === e.target.value))}
+                    >
+                      {dim.options.map(opt => (
+                        <option key={opt.l} value={opt.l}>{opt.l}</option>
+                      ))}
+                    </select>
                   </div>
-                  <div style={{ fontSize: 13, color: '#64748b', display: 'flex', gap: 16 }}>
-                    <span>{patient.age}岁 / {patient.gender}</span>
-                    <span>{patient.type}</span>
-                    <span>风险评分: <strong style={{ color: '#ef4444' }}>{patient.riskScore}</strong></span>
-                    <span>结果: <strong style={{ color: '#ef4444' }}>{patient.result}</strong></span>
-                  </div>
-                </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button style={{ ...s.btn, ...s.btnDanger, ...s.btnSmall }} onClick={() => generateFollowup(patient)}><Calendar size={12} /> 生成随访</button>
-                  <button style={{ ...s.btn, ...s.btnOutline, ...s.btnSmall }}><FileText size={12} /> 详情</button>
-                </div>
+                ))}
+              </div>
+              <div style={{ marginTop: 16, padding: '12px 16px', background: riskBgColors[currentRisk], borderRadius: 10, textAlign: 'center', border: `2px solid ${riskColors[currentRisk]}` }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: riskColors[currentRisk] }}>评估结果</div>
+                <div style={{ fontSize: 32, fontWeight: 800, color: riskColors[currentRisk], lineHeight: 1.2, marginTop: 4 }}>{currentRisk}</div>
+                <div style={{ fontSize: 12, color: riskColors[currentRisk], opacity: 0.8, marginTop: 4 }}>风险评分: {currentScore} 分</div>
+              </div>
+              <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
+                <button style={{ ...s.btnPrimary, minHeight: 44, padding: '10px 20px', fontSize: 14 }}><CheckCircle size={16} />提交评估</button>
+                <button style={{ ...s.btn, minHeight: 44, padding: '10px 20px', fontSize: 14 }} onClick={() => { setCurrentScore(0); setCurrentRisk('低危'); setAssessmentForm({ age: 45, gender: '男', diet: '一般', hp: '无', family: '无', symptoms: '无', history: '无', region: '低风险' }) }}>重置评估</button>
               </div>
             </div>
-          ))}
-        </div>
-      )}
-
-      {/* 随访计划 */}
-      {activeTab === 'followup' && (
-        <div style={s.card}>
-          <div style={s.cardTitle}><Calendar size={18} color="#3b82f6" />随访计划</div>
-          <table style={s.table}>
-            <thead>
-              <tr>
-                <th style={s.th}>患者</th>
-                <th style={s.th}>癌种</th>
-                <th style={s.th}>下次随访日期</th>
-                <th style={s.th}>随访间隔</th>
-                <th style={s.th}>随访目的</th>
-                <th style={s.th}>状态</th>
-                <th style={s.th}>操作</th>
-              </tr>
-            </thead>
-            <tbody>
-              {FOLLOWUP_PLANS.map(plan => (
-                <tr key={plan.id}>
-                  <td style={{ ...s.td, fontWeight: 600, color: '#1a3a5c' }}>{plan.patient}</td>
-                  <td style={s.td}>{plan.cancer}</td>
-                  <td style={s.td}>{plan.nextDate}</td>
-                  <td style={s.td}>{plan.interval}</td>
-                  <td style={s.td}>{plan.purpose}</td>
-                  <td style={s.td}>
-                    <span style={{ ...s.tag, background: plan.status === '待执行' ? '#eff6ff' : '#fff7ed', color: plan.status === '待执行' ? '#3b82f6' : '#f97316' }}>
-                      {plan.status}
-                    </span>
-                  </td>
-                  <td style={s.td}>
-                    <button style={{ ...s.btn, ...s.btnPrimary, ...s.btnSmall }}><CheckCircle size={12} /> 完成</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {/* 统计分析 */}
-      {activeTab === 'stats' && (
-        <div>
-          <div style={s.chartRow}>
-            <div style={s.chartCard}>
-              <div style={{ ...s.cardTitle, marginBottom: 8 }}><TrendingUp size={16} color="#3b82f6" />筛查趋势</div>
-              <ReactECharts option={getScreeningTrendOption()} style={{ height: 280 }} />
-            </div>
-            <div style={s.chartCard}>
-              <div style={{ ...s.cardTitle, marginBottom: 8 }}><Activity size={16} color="#ef4444" />阳性率</div>
-              <ReactECharts option={getPositiveRateOption()} style={{ height: 280 }} />
-            </div>
-            <div style={s.chartCard}>
-              <div style={{ ...s.cardTitle, marginBottom: 8 }}><CheckCircle size={16} color="#22c55e" />随访完成率</div>
-              <ReactECharts option={getFollowupCompletionOption()} style={{ height: 280 }} />
-            </div>
-          </div>
-          <div style={s.chartCard}>
-            <div style={{ ...s.cardTitle, marginBottom: 8 }}><PieChartIcon size={16} color="#8b5cf6" />筛查类型分布</div>
-            <ReactECharts option={getTypeDistributionOption()} style={{ height: 300 }} />
-          </div>
-        </div>
-      )}
-
-      {/* 结果录入弹窗 */}
-      {showResultModal && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 24, width: 480, boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <h3 style={{ margin: '0 0 20px', fontSize: 18, color: '#1a3a5c' }}>筛查结果录入</h3>
-            <div style={s.formGroup}>
-              <label style={s.formLabel}>筛查结果</label>
-              <div style={s.radioGroup}>
-                {['阳性', '阴性', '可疑', '待确认'].map(r => (
-                  <label key={r} style={{ ...s.radioItem, ...s.btn, ...(resultForm.result === r ? { background: getResultColor(r), color: '#fff' } : { background: '#f8fafc', color: '#475569' }) }}>
-                    <input type="radio" name="result" value={r} checked={resultForm.result === r} onChange={(e) => setResultForm({ ...resultForm, result: e.target.value })} style={{ display: 'none' }} />
-                    {r}
-                  </label>
+            {/* 右: 历史评估记录 */}
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 12 }}>历史评估 ({assessments.length}条)</div>
+              <div style={s.scrollBox}>
+                {assessments.length === 0 ? (
+                  <div style={s.emptyState}>
+                    <ClipboardList size={44} style={s.emptyStateIcon} />
+                    <div style={s.emptyStateText}>暂无评估记录</div>
+                    <div style={s.emptyStateHint}>完成高危评估后将显示历史记录</div>
+                  </div>
+                ) : assessments.map(a => (
+                  <div key={a.id} style={{ padding: '10px 12px', borderBottom: '1px solid #f1f5f9', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: '#334155' }}>{a.name} <span style={{ fontSize: 11, color: '#94a3b8' }}>({a.age}岁)</span></div>
+                      <div style={{ fontSize: 11, color: '#64748b', marginTop: 2 }}>{a.date} · {a.doctor}</div>
+                    </div>
+                    <span style={{ ...s.tag, background: riskBgColors[a.risk], color: riskColors[a.risk] }}>{a.risk} ({a.totalScore}分)</span>
+                  </div>
                 ))}
               </div>
             </div>
-            <div style={s.formGroup}>
-              <label style={s.formLabel}>备注说明</label>
-              <textarea style={{ ...s.formInput, height: 80, resize: 'vertical' }} placeholder="请输入备注说明..." value={resultForm.notes} onChange={(e) => setResultForm({ ...resultForm, notes: e.target.value })} />
-            </div>
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 20 }}>
-              <button style={{ ...s.btn, ...s.btnOutline }} onClick={() => setShowResultModal(false)}>取消</button>
-              <button style={{ ...s.btn, ...s.btnPrimary }} onClick={() => { setShowResultModal(false); alert('结果已保存'); }}>确认提交</button>
-            </div>
           </div>
         </div>
       )}
 
-      {/* 风险评估问卷弹窗 */}
-      {showQuestionnaire && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#fff', borderRadius: 16, padding: 24, width: 560, maxHeight: '80vh', overflowY: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.3)' }}>
-            <h3 style={{ margin: '0 0 20px', fontSize: 18, color: '#1a3a5c' }}>癌症风险评估问卷</h3>
-            <p style={{ fontSize: 13, color: '#64748b', marginBottom: 20 }}>请如实填写以下信息，以便系统进行风险评估</p>
-            {QUESTIONNAIRE_QUESTIONS.map(q => (
-              <div key={q.id} style={s.formGroup}>
-                <label style={s.formLabel}>{q.question}</label>
-                {q.type === 'input' ? (
-                  <input style={s.formInput} type="text" placeholder={q.placeholder} value={questionnaireAnswers[q.id] || ''} onChange={(e) => setQuestionnaireAnswers({ ...questionnaireAnswers, [q.id]: e.target.value })} />
-                ) : (
-                  <div style={s.radioGroup}>
-                    {q.options?.map(opt => (
-                      <label key={opt} style={{ ...s.radioItem, ...s.btn, ...(questionnaireAnswers[q.id] === opt ? { background: '#3b82f6', color: '#fff' } : { background: '#f8fafc', color: '#475569' }) }}>
-                        <input type="radio" name={q.id} value={opt} checked={questionnaireAnswers[q.id] === opt} onChange={(e) => setQuestionnaireAnswers({ ...questionnaireAnswers, [q.id]: e.target.value })} style={{ display: 'none' }} />
-                        {opt}
-                      </label>
-                    ))}
-                  </div>
-                )}
+      {/* ========== 功能区3: 早癌检出追踪 ========== */}
+      {tab === 3 && (
+        <div style={s.section}>
+          <div style={s.sectionTitle}><Microscope size={16} color='#dc2626' />早癌检出追踪</div>
+          {detections.length === 0 ? (
+            <div style={s.emptyState}>
+              <Inbox size={48} style={s.emptyStateIcon} />
+              <div style={s.emptyStateText}>暂无早癌检出记录</div>
+              <div style={s.emptyStateHint}>完成筛查任务后发现早癌将自动显示在此</div>
+            </div>
+          ) : (
+          <div style={{ overflowX: 'auto' }}>
+            <div style={s.detectionGrid}>
+              <div style={s.detectionHeader}>
+                <div style={{ display: 'grid', gridTemplateColumns: '100px 80px 80px 120px 80px 80px 80px 80px', gap: 8 }}>
+                  <div>日期</div><div>姓名</div><div>年龄</div><div>病变类型</div><div>部位</div><div>分化</div><div>治疗</div><div>随访</div>
+                </div>
               </div>
-            ))}
-            <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 20 }}>
-              <button style={{ ...s.btn, ...s.btnOutline }} onClick={() => setShowQuestionnaire(false)}>取消</button>
-              <button style={{ ...s.btn, ...s.btnPrimary }} onClick={() => { setShowQuestionnaire(false); alert('风险评估完成，请查看评估结果'); }}>提交评估</button>
+              {detections.map(d => (
+                <div key={d.id} style={s.detectionRow}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '100px 80px 80px 120px 80px 80px 80px 80px', gap: 8, alignItems: 'center' }}>
+                    <div style={{ fontSize: 12 }}>{d.date}</div>
+                    <div style={{ fontSize: 12, fontWeight: 600 }}>{d.name}</div>
+                    <div style={{ fontSize: 12 }}>{d.age || '-'}</div>
+                    <div style={{ fontSize: 12, color: '#dc2626', fontWeight: 600 }}>{d.lesionType}</div>
+                    <div style={{ fontSize: 12 }}>{d.location}</div>
+                    <div style={{ fontSize: 12 }}>{d.diffLevel}</div>
+                    <div><span style={{ ...s.tag, background: treatmentColors[d.treatment]?.bg, color: treatmentColors[d.treatment]?.text }}>{d.treatment}</span></div>
+                    <div><span style={{ ...s.tag, background: followUpColors[d.followUp]?.bg, color: followUpColors[d.followUp]?.text }}>{d.followUp}</span></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          )}
+        </div>
+      )}
+
+      {/* ========== 功能区4: 筛查数据地图 ========== */}
+      {tab === 4 && (
+        <div style={s.section}>
+          <div style={s.sectionTitle}><MapPin size={16} color='#7c3aed' />筛查数据地图</div>
+          <div style={s.mapGrid}>
+            {/* 省份列表 */}
+            <div style={s.mapSvg}>
+              <div style={{ fontSize: 13, fontWeight: 600, color: '#334155', marginBottom: 12 }}>各省份覆盖情况</div>
+              <div style={{ overflowY: 'auto', maxHeight: 400 }}>
+                <table style={s.provinceTable}>
+                  <thead>
+                    <tr>
+                      <th style={s.provinceTh}>省份</th>
+                      <th style={s.provinceTh}>覆盖状态</th>
+                      <th style={s.provinceTh}>机构数</th>
+                      <th style={s.provinceTh}>累计筛查</th>
+                      <th style={s.provinceTh}>检出率</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {provinces.map(p => (
+                      <tr key={p.name}>
+                        <td style={s.provinceTd}>{p.name}</td>
+                        <td style={s.provinceTd}>
+                          <span style={{ ...s.tag, background: coveredColors[p.covered] + '22', color: coveredColors[p.covered] }}>{p.covered}</span>
+                        </td>
+                        <td style={s.provinceTd}>{p.instCount}家</td>
+                        <td style={s.provinceTd}>{p.screenCount.toLocaleString()}人</td>
+                        <td style={s.provinceTd}>{p.rate > 0 ? `${p.rate}%` : '-'}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div style={{ marginTop: 12, display: 'flex', gap: 16, fontSize: 12, color: '#64748b' }}>
+                <span>机构总数: <strong>354家</strong></span>
+                <span>累计筛查: <strong>28,756人</strong></span>
+                <span>整体检出率: <strong>3.27%</strong></span>
+              </div>
             </div>
           </div>
         </div>
@@ -581,3 +616,5 @@ export default function CancerScreenPage() {
     </div>
   )
 }
+
+export default CancerScreenPage

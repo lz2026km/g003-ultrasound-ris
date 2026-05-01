@@ -1,877 +1,718 @@
 // @ts-nocheck
-// ============================================================
-// G003 超声RIS系统 - 随访管理页面 v2.0.0
-// 随访计划 / 任务列表 / 记录录入 / 依从性追踪 / 统计图表
-// ============================================================
-import { useState, useEffect } from 'react'
-import { useNavigate as useNavigateRouter } from 'react-router-dom'
+import { useState } from 'react';
 import {
-  UserCheck, Clock, Bell, Search, Filter, Plus, ChevronRight,
-  Phone, MessageSquare, Mail, Calendar, AlertCircle, CheckCircle,
-  XCircle, TrendingUp, TrendingDown, Eye, Edit, Trash2,
-  Download, Upload, RefreshCw, MoreHorizontal, User,
-  ClipboardList, FileText, Activity, AlertTriangle,
-  X, Save, Check, ChevronDown, Tab
-} from 'lucide-react'
-import {
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  Legend, ResponsiveContainer, RadarChart, Radar,
-  PolarGrid, PolarAngleAxis, PolarRadiusAxis
-} from 'recharts'
+  Phone, Calendar, Clock, User, FileText, Bell, BarChart3,
+  CheckCircle, XCircle, AlertCircle, Search, Plus, Send,
+  ChevronDown, Activity, TrendingUp, TrendingDown, Minus,
+  PhoneCall, Mail, MessageSquare, X, Filter, UserCheck,
+  ClipboardList, PhoneIncoming, CalendarDays
+} from 'lucide-react';
+import { initialFollowUps } from '../data/initialData';
+import type { FollowUp, FollowUpStatus, FollowUpType, FollowUpMethod, FollowUpConclusion, FollowUpReminder } from '../types';
 
-// ---------- 样式 ----------
-const s: Record<string, React.CSSProperties> = {
-  root: { padding: 0 },
-  header: { marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  title: { fontSize: 20, fontWeight: 700, color: '#1a3a5c', margin: 0 },
-  subtitle: { fontSize: 13, color: '#64748b', marginTop: 4 },
-  headerRight: { display: 'flex', gap: 8, marginTop: 8 },
-  // 操作按钮
-  btnPrimary: {
-    padding: '8px 16px', borderRadius: 8, border: 'none',
-    background: '#3b82f6', color: '#fff', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-  },
-  btnSecondary: {
-    padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0',
-    background: '#fff', cursor: 'pointer', fontSize: 13, display: 'flex',
-    alignItems: 'center', gap: 6, color: '#475569',
-  },
-  btnDanger: {
-    padding: '8px 16px', borderRadius: 8, border: 'none',
-    background: '#ef4444', color: '#fff', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-  },
-  btnSuccess: {
-    padding: '8px 16px', borderRadius: 8, border: 'none',
-    background: '#22c55e', color: '#fff', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-  },
-  // 统计卡片行
-  statRow: {
-    display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 24,
-  },
-  statCard: {
-    background: '#fff', borderRadius: 12, padding: '18px 20px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex',
-    alignItems: 'center', gap: 14,
-  },
-  statIconWrap: {
-    width: 50, height: 50, borderRadius: 12, display: 'flex',
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
-  statInfo: { flex: 1, minWidth: 0 },
-  statValue: { fontSize: 26, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.2 },
-  statLabel: { fontSize: 12, color: '#64748b', marginTop: 4 },
-  statTrend: { fontSize: 11, marginTop: 4, display: 'flex', alignItems: 'center', gap: 2 },
-  // 警报横幅
-  alertBanner: {
-    background: 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)',
-    border: '1px solid #fecaca', borderRadius: 10, padding: '12px 16px',
-    marginBottom: 20, display: 'flex', alignItems: 'center', gap: 12,
-  },
-  // 筛选栏
-  filterBar: {
-    background: '#fff', borderRadius: 12, padding: '14px 18px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16,
-    display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap',
-  },
-  searchInput: {
-    flex: 1, minWidth: 200, padding: '8px 12px', borderRadius: 8,
-    border: '1px solid #e2e8f0', fontSize: 13, outline: 'none',
-  },
-  selectInput: {
-    padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0',
-    fontSize: 13, background: '#fff', cursor: 'pointer', minWidth: 120,
-  },
-  // Tab切换
-  tabBar: {
-    display: 'flex', gap: 4, background: '#f1f5f9', borderRadius: 10, padding: 4, marginBottom: 16,
-  },
-  tab: {
-    flex: 1, padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-    fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-    transition: 'all 0.2s',
-  },
-  tabActive: {
-    background: '#fff', color: '#1a3a5c', fontWeight: 600,
-    boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-  },
-  // 表格卡片
-  tableCard: {
-    background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-    overflow: 'hidden',
-  },
+// 15条模拟数据
+const followUps: FollowUp[] = initialFollowUps;
+
+const styles: Record<string, React.CSSProperties> = {
+  root: { padding: 24, background: '#f0f4f8', minHeight: '100vh' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 },
+  title: { fontSize: 20, fontWeight: 700, color: '#1a3a5c', display: 'flex', alignItems: 'center', gap: 8 },
+  tabBar: { display: 'flex', gap: 4, background: '#fff', padding: 4, borderRadius: 8, marginBottom: 20, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' },
+  tab: { padding: '8px 16px', borderRadius: 6, cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#64748b', border: 'none', background: 'none', transition: 'all 0.15s' },
+  tabActive: { background: '#1a3a5c', color: '#fff' },
+  statRow: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24 },
+  statCard: { background: '#fff', borderRadius: 10, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' },
+  statLabel: { fontSize: 12, color: '#64748b', marginBottom: 4 },
+  statValue: { fontSize: 24, fontWeight: 700, color: '#1a3a5c' },
+  statSub: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
+  searchRow: { display: 'flex', gap: 12, marginBottom: 16 },
+  searchBox: { flex: 1, display: 'flex', alignItems: 'center', gap: 8, background: '#fff', borderRadius: 8, padding: '8px 12px', border: '1px solid #e2e8f0' },
+  searchInput: { border: 'none', outline: 'none', flex: 1, fontSize: 13 },
+  filterBtn: { display: 'flex', alignItems: 'center', gap: 6, padding: '8px 12px', background: '#fff', borderRadius: 8, border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: 13, color: '#64748b' },
+  tableWrap: { background: '#fff', borderRadius: 10, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', overflow: 'hidden' },
   table: { width: '100%', borderCollapse: 'collapse' },
-  th: {
-    padding: '12px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600,
-    color: '#64748b', background: '#f8fafc', borderBottom: '1px solid #e2e8f0',
-  },
-  td: {
-    padding: '14px 16px', fontSize: 13, color: '#1a3a5c',
-    borderBottom: '1px solid #f1f5f9',
-  },
-  // 状态标签
-  statusBadge: {
-    fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 10,
-    display: 'inline-block',
-  },
-  // 分页
-  pagination: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '14px 18px', borderTop: '1px solid #f1f5f9',
-  },
-  pageInfo: { fontSize: 13, color: '#64748b' },
-  pageButtons: { display: 'flex', gap: 4 },
-  pageBtn: {
-    padding: '6px 12px', borderRadius: 6, border: '1px solid #e2e8f0',
-    background: '#fff', cursor: 'pointer', fontSize: 13,
-  },
-  pageBtnActive: {
-    padding: '6px 12px', borderRadius: 6, border: 'none',
-    background: '#3b82f6', color: '#fff', cursor: 'pointer', fontSize: 13,
-  },
-  // 模态框
-  modal: {
-    position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-    background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center',
-    justifyContent: 'center', zIndex: 1000,
-  },
-  modalContent: {
-    background: '#fff', borderRadius: 16, width: 600, maxHeight: '85vh',
-    overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
-  },
-  modalHeader: {
-    padding: '20px 24px 16px', borderBottom: '1px solid #f1f5f9',
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  },
-  modalTitle: { fontSize: 16, fontWeight: 700, color: '#1a3a5c', margin: 0 },
-  modalBody: { padding: '20px 24px' },
-  modalFooter: {
-    padding: '16px 24px', borderTop: '1px solid #f1f5f9',
-    display: 'flex', justifyContent: 'flex-end', gap: 10,
-  },
-  // 表单项
-  formGroup: { marginBottom: 18 },
-  formLabel: { fontSize: 13, fontWeight: 600, color: '#1a3a5c', marginBottom: 6, display: 'block' },
-  formInput: {
-    width: '100%', padding: '10px 12px', borderRadius: 8,
-    border: '1px solid #e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box',
-  },
-  formSelect: {
-    width: '100%', padding: '10px 12px', borderRadius: 8,
-    border: '1px solid #e2e8f0', fontSize: 13, background: '#fff', cursor: 'pointer',
-  },
-  formTextarea: {
-    width: '100%', padding: '10px 12px', borderRadius: 8,
-    border: '1px solid #e2e8f0', fontSize: 13, outline: 'none', resize: 'vertical', minHeight: 80,
-  },
-  // 图表区域
-  chartRow: {
-    display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 20,
-  },
-  chartCard: {
-    background: '#fff', borderRadius: 12, padding: 20,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-  },
-  chartTitle: {
-    fontSize: 14, fontWeight: 600, color: '#1a3a5c', marginBottom: 16,
-    display: 'flex', alignItems: 'center', gap: 8,
-  },
-  // 依从性进度条
-  complianceBar: {
-    height: 8, borderRadius: 4, background: '#e2e8f0', overflow: 'hidden',
-  },
-  complianceFill: { height: '100%', borderRadius: 4, transition: 'width 0.3s' },
-  // 患者卡片
-  patientCard: {
-    background: '#fff', borderRadius: 12, padding: '14px 16px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', cursor: 'pointer',
-    transition: 'all 0.2s', border: '2px solid transparent',
-  },
-}
+  th: { textAlign: 'left', padding: '12px 16px', fontSize: 12, color: '#64748b', fontWeight: 600, background: '#f8fafc', borderBottom: '1px solid #e2e8f0' },
+  td: { padding: '12px 16px', fontSize: 13, color: '#334155', borderBottom: '1px solid #f1f5f9' },
+  statusBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
+  statusCompleted: { background: '#dcfce7', color: '#16a34a' },
+  statusPending: { background: '#fef3c7', color: '#d97706' },
+  statusOverdue: { background: '#fee2e2', color: '#dc2626' },
+  statusLost: { background: '#f1f5f9', color: '#64748b' },
+  oncologyBadge: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 6px', borderRadius: 4, fontSize: 10, fontWeight: 600, background: '#fce7f3', color: '#be185d' },
+  actionBtn: { padding: '4px 10px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500 },
+  btnPrimary: { background: '#1a3a5c', color: '#fff' },
+  btnSuccess: { background: '#16a34a', color: '#fff' },
+  btnWarning: { background: '#d97706', color: '#fff' },
+  modal: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
+  modalContent: { background: '#fff', borderRadius: 12, width: 680, maxHeight: '85vh', overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.15)' },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px 20px', borderBottom: '1px solid #e2e8f0' },
+  modalTitle: { fontSize: 16, fontWeight: 700, color: '#1a3a5c' },
+  modalBody: { padding: 20 },
+  modalFooter: { display: 'flex', justifyContent: 'flex-end', gap: 8, padding: '12px 20px', borderTop: '1px solid #e2e8f0' },
+  formRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 },
+  formGroup: { marginBottom: 12 },
+  formLabel: { display: 'block', fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 4 },
+  formInput: { width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 13, outline: 'none', boxSizing: 'border-box' },
+  formSelect: { width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 13, outline: 'none', background: '#fff' },
+  formTextarea: { width: '100%', padding: '8px 10px', borderRadius: 6, border: '1px solid #e2e8f0', fontSize: 13, outline: 'none', resize: 'vertical', minHeight: 60 },
+  reminderCard: { background: '#fff', borderRadius: 10, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.06)', marginBottom: 12 },
+  reminderHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 },
+  reminderPatient: { fontSize: 14, fontWeight: 600, color: '#1a3a5c' },
+  reminderDate: { fontSize: 12, color: '#64748b' },
+  reminderRow: { display: 'flex', gap: 8, marginTop: 8 },
+  reminderChip: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 12, fontSize: 11, background: '#f1f5f9', color: '#475569' },
+  sectionTitle: { fontSize: 14, fontWeight: 700, color: '#1a3a5c', marginBottom: 12, marginTop: 16 },
+  chartGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginTop: 16 },
+  chartCard: { background: '#fff', borderRadius: 10, padding: 16, boxShadow: '0 1px 3px rgba(0,0,0,0.06)' },
+  chartTitle: { fontSize: 13, fontWeight: 600, color: '#475569', marginBottom: 12 },
+  barRow: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 },
+  barLabel: { fontSize: 12, color: '#64748b', width: 60 },
+  barBg: { flex: 1, height: 8, background: '#f1f5f9', borderRadius: 4 },
+  barFill: { height: 8, borderRadius: 4, transition: 'width 0.3s' },
+  noData: { textAlign: 'center', padding: '48px 0', color: '#94a3b8', fontSize: 14, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 },
+  noDataIcon: { opacity: 0.4 },
+  noDataText: { fontSize: 14, color: '#64748b' },
+  noDataHint: { fontSize: 12, color: '#94a3b8', marginTop: 4 },
+};
 
-// ---------- 颜色映射 ----------
-const COLORS = {
-  blue: { bg: '#eff6ff', color: '#3b82f6' },
-  green: { bg: '#f0fdf4', color: '#22c55e' },
-  orange: { bg: '#fff7ed', color: '#f97316' },
-  red: { bg: '#fef2f2', color: '#ef4444' },
-  purple: { bg: '#f5f3ff', color: '#8b5cf6' },
-  teal: { bg: '#f0fdfa', color: '#14b8a6' },
-  yellow: { bg: '#fefce8', color: '#eab308' },
-}
+// 图标颜色映射
+const statusColors: Record<FollowUpStatus, string> = {
+  '已随访': '#16a34a', '待随访': '#d97706', '逾期未访': '#dc2626', '已失访': '#64748b'
+};
 
-// ---------- Mock 数据：15+ 患者 ----------
-const PATIENTS = [
-  { id: 'P10001', name: '张三', gender: '男', age: 45, phone: '138****1234', examType: '腹部彩超', diagnosis: '脂肪肝', department: '消化内科' },
-  { id: 'P10002', name: '李四', gender: '女', age: 52, phone: '139****5678', examType: '心脏彩超', diagnosis: '心律失常', department: '心内科' },
-  { id: 'P10003', name: '王五', gender: '男', age: 38, phone: '136****9012', examType: '甲状腺', diagnosis: '甲状腺结节', department: '内分泌科' },
-  { id: 'P10004', name: '赵六', gender: '女', age: 61, phone: '137****3456', examType: '乳腺彩超', diagnosis: '乳腺囊肿', department: '乳腺外科' },
-  { id: 'P10005', name: '钱七', gender: '男', age: 55, phone: '135****7890', examType: '血管彩超', diagnosis: '下肢静脉曲张', department: '血管外科' },
-  { id: 'P10006', name: '孙八', gender: '女', age: 47, phone: '133****2345', examType: '腹部彩超', diagnosis: '胆囊结石', department: '肝胆外科' },
-  { id: 'P10007', name: '周九', gender: '男', age: 63, phone: '132****6789', examType: '心脏彩超', diagnosis: '心力衰竭', department: '心内科' },
-  { id: 'P10008', name: '吴十', gender: '女', age: 34, phone: '131****0123', examType: '妇科彩超', diagnosis: '子宫肌瘤', department: '妇科' },
-  { id: 'P10009', name: '郑十一', gender: '男', age: 71, phone: '130****4567', examType: '前列腺', diagnosis: '前列腺增生', department: '泌尿外科' },
-  { id: 'P10010', name: '陈十二', gender: '女', age: 29, phone: '139****8901', examType: 'NT检查', diagnosis: '早孕', department: '产科' },
-  { id: 'P10011', name: '林十三', gender: '男', age: 58, phone: '138****2345', examType: '血管彩超', diagnosis: '颈动脉斑块', department: '神经内科' },
-  { id: 'P10012', name: '黄十四', gender: '女', age: 42, phone: '137****6789', examType: '甲状腺', diagnosis: '桥本甲状腺炎', department: '内分泌科' },
-  { id: 'P10013', name: '杨十五', gender: '男', age: 67, phone: '136****0123', examType: '心脏彩超', diagnosis: '主动脉瓣狭窄', department: '心外科' },
-  { id: 'P10014', name: '徐十六', gender: '女', age: 50, phone: '135****4567', examType: '腹部彩超', diagnosis: '肝血管瘤', department: '消化内科' },
-  { id: 'P10015', name: '许十七', gender: '男', age: 44, phone: '133****8901', examType: '肌骨彩超', diagnosis: '肩周炎', department: '运动医学科' },
-  { id: 'P10016', name: '何十八', gender: '女', age: 36, phone: '132****2345', examType: '妇科彩超', diagnosis: '卵巢囊肿', department: '妇科' },
-]
+const getStatusStyle = (status: FollowUpStatus) => {
+  switch (status) {
+    case '已随访': return styles.statusCompleted;
+    case '待随访': return styles.statusPending;
+    case '逾期未访': return styles.statusOverdue;
+    case '已失访': return styles.statusLost;
+  }
+};
 
-// ---------- 随访状态 ----------
-const STATUS_OPTIONS = [
-  { value: 'pending', label: '待随访', color: '#f97316', bg: '#fff7ed' },
-  { value: 'in_progress', label: '进行中', color: '#3b82f6', bg: '#eff6ff' },
-  { value: 'completed', label: '已完成', color: '#22c55e', bg: '#f0fdf4' },
-  { value: 'overdue', label: '超时未访', color: '#ef4444', bg: '#fef2f2' },
-]
+// 获取随访方式图标
+const getMethodIcon = (method?: FollowUpMethod) => {
+  switch (method) {
+    case '电话随访': return <PhoneCall size={12} />;
+    case '门诊随访': return <User size={12} />;
+    case '在线随访': return <MessageSquare size={12} />;
+    case '住院复查': return <Activity size={12} />;
+    default: return null;
+  }
+};
 
-// ---------- 随访任务数据 ----------
-const FOLLOWUP_TASKS = [
-  { id: 'F001', patient: PATIENTS[0], planDate: '2026-04-20', nextDate: '2026-05-20', status: 'completed', doctor: '李医生', result: '恢复良好，脂肪肝程度减轻', compliance: 95 },
-  { id: 'F002', patient: PATIENTS[1], planDate: '2026-04-22', nextDate: '2026-05-22', status: 'in_progress', doctor: '王医生', result: '随访中，心率控制稳定', compliance: 88 },
-  { id: 'F003', patient: PATIENTS[2], planDate: '2026-04-25', nextDate: '2026-05-25', status: 'pending', doctor: '赵医生', result: '', compliance: 0 },
-  { id: 'F004', patient: PATIENTS[3], planDate: '2026-04-18', nextDate: '2026-04-28', status: 'overdue', doctor: '孙医生', result: '失访，已联系3次未果', compliance: 0 },
-  { id: 'F005', patient: PATIENTS[4], planDate: '2026-04-28', nextDate: '2026-05-28', status: 'pending', doctor: '刘医生', result: '', compliance: 0 },
-  { id: 'F006', patient: PATIENTS[5], planDate: '2026-04-15', nextDate: '2026-05-15', status: 'in_progress', doctor: '周医生', result: '服药规律，症状改善', compliance: 92 },
-  { id: 'F007', patient: PATIENTS[6], planDate: '2026-04-10', nextDate: '2026-04-25', status: 'overdue', doctor: '吴医生', result: '用药调整中', compliance: 45 },
-  { id: 'F008', patient: PATIENTS[7], planDate: '2026-05-01', nextDate: '2026-06-01', status: 'pending', doctor: '郑医生', result: '', compliance: 0 },
-  { id: 'F009', patient: PATIENTS[8], planDate: '2026-04-05', nextDate: '2026-05-05', status: 'completed', doctor: '陈医生', result: '指标正常，维持现状', compliance: 100 },
-  { id: 'F010', patient: PATIENTS[9], planDate: '2026-04-20', nextDate: '2026-05-20', status: 'in_progress', doctor: '林医生', result: '产检正常，胎儿发育良好', compliance: 90 },
-  { id: 'F011', patient: PATIENTS[10], planDate: '2026-03-28', nextDate: '2026-04-28', status: 'overdue', doctor: '黄医生', result: '斑块稳定，继续观察', compliance: 60 },
-  { id: 'F012', patient: PATIENTS[11], planDate: '2026-05-02', nextDate: '2026-06-02', status: 'pending', doctor: '杨医生', result: '', compliance: 0 },
-  { id: 'F013', patient: PATIENTS[12], planDate: '2026-04-12', nextDate: '2026-05-12', status: 'in_progress', doctor: '徐医生', result: '偶有胸闷，药物调整', compliance: 75 },
-  { id: 'F014', patient: PATIENTS[13], planDate: '2026-04-08', nextDate: '2026-05-08', status: 'completed', doctor: '许医生', result: '血管瘤无明显变化', compliance: 98 },
-  { id: 'F015', patient: PATIENTS[14], planDate: '2026-04-30', nextDate: '2026-05-30', status: 'pending', doctor: '何医生', result: '', compliance: 0 },
-  { id: 'F016', patient: PATIENTS[15], planDate: '2026-04-22', nextDate: '2026-05-22', status: 'in_progress', doctor: '冯医生', result: '囊肿缩小，定期复查', compliance: 85 },
-]
-
-// ---------- 统计数据 ----------
-const MONTHLY_TREND = [
-  { month: '1月', 完成数: 45, 新增数: 52, 失访数: 3 },
-  { month: '2月', 完成数: 38, 新增数: 42, 失访数: 5 },
-  { month: '3月', 完成数: 56, 新增数: 60, 失访数: 2 },
-  { month: '4月', 完成数: 62, 新增数: 58, 失访数: 4 },
-  { month: '5月', 完成数: 70, 新增数: 75, 失访数: 3 },
-  { month: '6月', 完成数: 68, 新增数: 72, 失访数: 6 },
-]
-
-const STATUS_DISTRIBUTION = [
-  { name: '待随访', value: 12, color: '#f97316' },
-  { name: '进行中', value: 28, color: '#3b82f6' },
-  { name: '已完成', value: 156, color: '#22c55e' },
-  { name: '超时未访', value: 5, color: '#ef4444' },
-]
-
-const DEPARTMENT_STATS = [
-  { department: '心内科', count: 35, rate: 92 },
-  { department: '消化内科', count: 28, rate: 88 },
-  { department: '内分泌科', count: 24, rate: 95 },
-  { department: '妇科', count: 20, rate: 85 },
-  { department: '血管外科', count: 18, rate: 78 },
-  { department: '乳腺外科', count: 15, rate: 82 },
-]
-
-const COMPLIANCE_DATA = [
-  { name: '完全依从', value: 120, color: '#22c55e' },
-  { name: '部分依从', value: 45, color: '#f97316' },
-  { name: '不依从', value: 15, color: '#ef4444' },
-]
-
-const tooltipStyle = {
-  contentStyle: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 },
-  labelStyle: { color: '#1a3a5c', fontWeight: 600 },
-}
-
-// ---------- 工具函数 ----------
-const getStatusStyle = (status: string) => {
-  const option = STATUS_OPTIONS.find(s => s.value === status)
-  return option ? { background: option.bg, color: option.color } : {}
-}
-
-const getStatusLabel = (status: string) => {
-  return STATUS_OPTIONS.find(s => s.value === status)?.label || status
-}
-
-const getComplianceColor = (rate: number) => {
-  if (rate >= 80) return '#22c55e'
-  if (rate >= 50) return '#f97316'
-  return '#ef4444'
-}
-
-// ---------- 组件 ----------
 export default function FollowUpPage() {
-  const navigate = useNavigateRouter()
-  const [activeTab, setActiveTab] = useState('pending')
-  const [searchTerm, setSearchTerm] = useState('')
-  const [showPlanModal, setShowPlanModal] = useState(false)
-  const [showRecordModal, setShowRecordModal] = useState(false)
-  const [selectedTask, setSelectedTask] = useState<any>(null)
+  const [activeTab, setActiveTab] = useState<string>('list');
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState<string>('全部');
+  const [filterType, setFilterType] = useState<string>('全部');
+  const [showModal, setShowModal] = useState(false);
+  const [showReminderModal, setShowReminderModal] = useState(false);
+  const [editingItem, setEditingItem] = useState<FollowUp | null>(null);
+  const [reminderSentList, setReminderSentList] = useState<string[]>([]);
 
-  // 表单状态
-  const [planForm, setPlanForm] = useState({
-    patientId: '', examType: '', followupCycle: '30', followupTimes: '3',
-    method: 'phone', department: '', doctor: '', notes: ''
-  })
-  const [recordForm, setRecordForm] = useState({
-    result: '', symptoms: '', medication: '', nextDate: '', compliance: '100', notes: ''
-  })
+  // 统计数据
+  const totalCount = followUps.length;
+  const completedCount = followUps.filter(f => f.status === '已随访').length;
+  const pendingCount = followUps.filter(f => f.status === '待随访').length;
+  const overdueCount = followUps.filter(f => f.status === '逾期未访').length;
+  const lostCount = followUps.filter(f => f.status === '已失访').length;
+  const completionRate = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
-  const filteredTasks = FOLLOWUP_TASKS.filter(task => {
-    const matchTab = activeTab === 'all' || task.status === activeTab
-    const matchSearch = task.patient.name.includes(searchTerm) ||
-      task.patient.id.includes(searchTerm) ||
-      task.doctor.includes(searchTerm)
-    return matchTab && matchSearch
-  })
+  // 肿瘤患者统计
+  const oncologyPatients = followUps.filter(f => f.isOncologyPatient);
+  const oncologySurvival = oncologyPatients.filter(f => f.survivalStatus === '生存').length;
+  const oncologyLost = oncologyPatients.filter(f => f.survivalStatus === '失访').length;
+  const oncologyDeath = oncologyPatients.filter(f => f.survivalStatus === '死亡').length;
+  const survivalRate = oncologyPatients.length > 0 ? Math.round((oncologySurvival / oncologyPatients.length) * 100) : 0;
 
-  const overdueTasks = FOLLOWUP_TASKS.filter(t => t.status === 'overdue')
+  // 失访原因分析
+  const lostReasons = [
+    { reason: '电话停机/无法联系', count: 1 },
+    { reason: '患者主动放弃', count: 0 },
+    { reason: '行动不便/长期卧床', count: 1 },
+    { reason: '其他', count: 0 },
+  ];
 
-  const openRecordModal = (task: any) => {
-    setSelectedTask(task)
-    setRecordForm({
-      result: task.result || '',
-      symptoms: '',
-      medication: '',
-      nextDate: task.nextDate,
-      compliance: String(task.compliance),
-      notes: ''
-    })
-    setShowRecordModal(true)
-  }
+  // 过滤数据
+  const filteredData = followUps.filter(item => {
+    const matchSearch = item.patientName.includes(search) || item.patientId.includes(search) || item.phone.includes(search);
+    const matchStatus = filterStatus === '全部' || item.status === filterStatus;
+    const matchType = filterType === '全部' || item.followUpType === filterType;
+    return matchSearch && matchStatus && matchType;
+  });
 
-  const handleSavePlan = () => {
-    setShowPlanModal(false)
-    setPlanForm({ patientId: '', examType: '', followupCycle: '30', followupTimes: '3', method: 'phone', department: '', doctor: '', notes: '' })
-  }
+  // 复查提醒列表（今日/本周/本月到期）
+  const today = '2026-04-29';
+  const thisWeekStart = '2026-04-27';
+  const thisWeekEnd = '2026-05-03';
+  const thisMonth = '2026-04';
 
-  const handleSaveRecord = () => {
-    setShowRecordModal(false)
-  }
+  const remindersToday = followUps.filter(f => f.status === '待随访' && f.scheduledDate === today);
+  const remindersThisWeek = followUps.filter(f => f.status === '待随访' && f.scheduledDate >= thisWeekStart && f.scheduledDate <= thisWeekEnd);
+  const remindersThisMonth = followUps.filter(f => f.status === '待随访' && f.scheduledDate.startsWith(thisMonth));
+
+  // 发送提醒
+  const handleSendReminder = (item: FollowUp) => {
+    setReminderSentList(prev => [...prev, item.id]);
+    alert(`已发送短信提醒给 ${item.patientName}，手机号: ${item.phone}`);
+  };
+
+  // 打开新增/编辑弹窗
+  const openModal = (item?: FollowUp) => {
+    setEditingItem(item || {
+      id: `FU${String(followUps.length + 1).padStart(3, '0')}`,
+      patientId: '', patientName: '', gender: '男', age: 0, phone: '',
+      followUpType: '术后随访', followUpCycle: '90天', status: '待随访',
+      scheduledDate: '', isOncologyPatient: false, doctorId: 'U001', doctorName: '张建国',
+    });
+    setShowModal(true);
+  };
+
+  // 渲染统计卡片
+  const renderStatCard = (label: string, value: number, sub?: string, color?: string) => (
+    <div style={styles.statCard}>
+      <div style={styles.statLabel}>{label}</div>
+      <div style={{ ...styles.statValue, color: color || '#1a3a5c' }}>{value}</div>
+      {sub && <div style={styles.statSub}>{sub}</div>}
+    </div>
+  );
+
+  // 渲染列表标签页
+  const renderTab = (key: string, label: string) => (
+    <button
+      key={key}
+      style={{ ...styles.tab, ...(activeTab === key ? styles.tabActive : {}) }}
+      onClick={() => setActiveTab(key)}
+    >
+      {label}
+    </button>
+  );
 
   return (
-    <div style={s.root}>
-      {/* 标题区 */}
-      <div style={s.header}>
-        <div>
-          <h1 style={s.title}>随访管理</h1>
-          <p style={s.subtitle}>患者随访跟踪 · 随访计划制定 · 依从性管理 · 数据统计</p>
+    <div style={styles.root}>
+      {/* 标题 */}
+      <div style={styles.header}>
+        <div style={styles.title}>
+          <Activity size={22} color="#4ade80" />
+          随访管理
         </div>
-        <div style={s.headerRight}>
-          <button style={s.btnSecondary} onClick={() => setShowPlanModal(true)}>
-            <Plus size={14} color="#64748b" /> 新建随访计划
-          </button>
-          <button style={s.btnSecondary}>
-            <Download size={14} color="#64748b" /> 导出数据
-          </button>
-          <button style={s.btnSecondary}>
-            <RefreshCw size={14} color="#64748b" /> 刷新
-          </button>
-        </div>
-      </div>
-
-      {/* 超时警报 */}
-      {overdueTasks.length > 0 && (
-        <div style={s.alertBanner}>
-          <AlertTriangle size={20} color="#ef4444" />
-          <div style={{ flex: 1 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: '#ef4444' }}>
-              您有 {overdueTasks.length} 条超时未随访记录
-            </span>
-            <span style={{ fontSize: 12, color: '#64748b', marginLeft: 8 }}>
-              请尽快处理，以免影响患者康复追踪
-            </span>
-          </div>
-          <button style={{ ...s.btnDanger, padding: '6px 12px', fontSize: 12 }}>立即处理</button>
-        </div>
-      )}
-
-      {/* 统计卡片 */}
-      <div style={s.statRow}>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#fff7ed' }}>
-            <Clock size={22} color="#f97316" />
-          </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>12</div>
-            <div style={s.statLabel}>待随访</div>
-            <div style={{ ...s.statTrend, color: '#f97316' }}>
-              <TrendingUp size={12} /> 较上月+3
-            </div>
-          </div>
-        </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#eff6ff' }}>
-            <Activity size={22} color="#3b82f6" />
-          </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>28</div>
-            <div style={s.statLabel}>进行中</div>
-            <div style={{ ...s.statTrend, color: '#3b82f6' }}>
-              <TrendingUp size={12} /> 本月新增45
-            </div>
-          </div>
-        </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#f0fdf4' }}>
-            <CheckCircle size={22} color="#22c55e" />
-          </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>156</div>
-            <div style={s.statLabel}>已完成</div>
-            <div style={{ ...s.statTrend, color: '#22c55e' }}>
-              <TrendingUp size={12} /> 本月+62
-            </div>
-          </div>
-        </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#fef2f2' }}>
-            <AlertCircle size={22} color="#ef4444" />
-          </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>5</div>
-            <div style={s.statLabel}>超时未访</div>
-            <div style={{ ...s.statTrend, color: '#ef4444' }}>
-              <TrendingDown size={12} /> 需紧急处理
-            </div>
-          </div>
-        </div>
-        <div style={s.statCard}>
-          <div style={{ ...s.statIconWrap, background: '#f5f3ff' }}>
-            <UserCheck size={22} color="#8b5cf6" />
-          </div>
-          <div style={s.statInfo}>
-            <div style={s.statValue}>86%</div>
-            <div style={s.statLabel}>总依从率</div>
-            <div style={{ ...s.statTrend, color: '#22c55e' }}>
-              <TrendingUp size={12} /> 较上月+5%
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 图表区域 */}
-      <div style={s.chartRow}>
-        {/* 随访趋势 */}
-        <div style={s.chartCard}>
-          <div style={s.chartTitle}>
-            <TrendingUp size={16} color="#64748b" /> 月度随访趋势
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <AreaChart data={MONTHLY_TREND}>
-              <defs>
-                <linearGradient id="colorComplete2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#22c55e" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#22c55e" stopOpacity={0} />
-                </linearGradient>
-                <linearGradient id="colorNew2" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-              <XAxis dataKey="month" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
-              <Tooltip {...tooltipStyle} />
-              <Legend wrapperStyle={{ fontSize: 11 }} />
-              <Area type="monotone" dataKey="完成数" stroke="#22c55e" fill="url(#colorComplete2)" strokeWidth={2} />
-              <Area type="monotone" dataKey="新增数" stroke="#3b82f6" fill="url(#colorNew2)" strokeWidth={2} />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* 状态分布 */}
-        <div style={s.chartCard}>
-          <div style={s.chartTitle}>
-            <PieChart size={16} color="#64748b" /> 随访状态分布
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie
-                data={STATUS_DISTRIBUTION}
-                cx="50%"
-                cy="50%"
-                innerRadius={45}
-                outerRadius={75}
-                paddingAngle={3}
-                dataKey="value"
-                nameKey="name"
-                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
-              >
-                {STATUS_DISTRIBUTION.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={STATUS_DISTRIBUTION[index].color} />
-                ))}
-              </Pie>
-              <Tooltip {...tooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* 依从性分布 */}
-        <div style={s.chartCard}>
-          <div style={s.chartTitle}>
-            <UserCheck size={16} color="#64748b" /> 患者依从性
-          </div>
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie
-                data={COMPLIANCE_DATA}
-                cx="50%"
-                cy="50%"
-                innerRadius={40}
-                outerRadius={70}
-                paddingAngle={3}
-                dataKey="value"
-                nameKey="name"
-                label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
-                labelLine={false}
-              >
-                {COMPLIANCE_DATA.map((_, index) => (
-                  <Cell key={`cell-${index}`} fill={COMPLIANCE_DATA[index].color} />
-                ))}
-              </Pie>
-              <Tooltip {...tooltipStyle} />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-
-      {/* 科室依从性柱状图 */}
-      <div style={{ background: '#fff', borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 20 }}>
-        <div style={s.chartTitle}>
-          <BarChart size={16} color="#64748b" /> 各科室随访完成率
-        </div>
-        <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={DEPARTMENT_STATS} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
-            <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 11, fill: '#94a3b8' }} />
-            <YAxis dataKey="department" type="category" tick={{ fontSize: 11, fill: '#64748b' }} width={70} />
-            <Tooltip {...tooltipStyle} formatter={(value: number) => [`${value}%`, '完成率']} />
-            <Bar dataKey="rate" fill="#3b82f6" radius={[0, 4, 4, 0]} barSize={20} />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-
-      {/* Tab切换 */}
-      <div style={s.tabBar}>
-        {[
-          { key: 'pending', label: '待随访', count: 12, color: '#f97316' },
-          { key: 'in_progress', label: '进行中', count: 28, color: '#3b82f6' },
-          { key: 'completed', label: '已完成', count: 156, color: '#22c55e' },
-          { key: 'overdue', label: '超时未访', count: 5, color: '#ef4444' },
-          { key: 'all', label: '全部', count: 201, color: '#64748b' },
-        ].map(tab => (
-          <button
-            key={tab.key}
-            style={{
-              ...s.tab,
-              ...(activeTab === tab.key ? s.tabActive : { background: 'transparent', color: '#64748b' }),
-            }}
-            onClick={() => setActiveTab(tab.key)}
-          >
-            {tab.label}
-            <span style={{
-              background: activeTab === tab.key ? '#e2e8f0' : '#f1f5f9',
-              color: activeTab === tab.key ? '#1a3a5c' : '#64748b',
-              padding: '1px 6px', borderRadius: 8, fontSize: 11, fontWeight: 600,
-            }}>
-              {tab.count}
-            </span>
-          </button>
-        ))}
-      </div>
-
-      {/* 筛选栏 */}
-      <div style={s.filterBar}>
-        <div style={{ position: 'relative', flex: 1, minWidth: 220 }}>
-          <Search size={14} style={{ position: 'absolute', left: 12, top: 10, color: '#94a3b8' }} />
-          <input
-            type="text"
-            placeholder="搜索患者姓名、ID或医生..."
-            style={{ ...s.searchInput, paddingLeft: 36 }}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-        <select style={s.selectInput}>
-          <option value="">全部检查类型</option>
-          <option value="腹部彩超">腹部彩超</option>
-          <option value="心脏彩超">心脏彩超</option>
-          <option value="甲状腺">甲状腺</option>
-          <option value="乳腺彩超">乳腺彩超</option>
-          <option value="血管彩超">血管彩超</option>
-          <option value="妇科彩超">妇科彩超</option>
-        </select>
-        <select style={s.selectInput}>
-          <option value="">全部科室</option>
-          <option value="心内科">心内科</option>
-          <option value="消化内科">消化内科</option>
-          <option value="内分泌科">内分泌科</option>
-          <option value="妇科">妇科</option>
-        </select>
-        <button style={s.btnSecondary}>
-          <Filter size={14} color="#64748b" /> 高级筛选
+        <button style={{ ...styles.actionBtn, ...styles.btnPrimary, display: 'flex', alignItems: 'center', gap: 6, minHeight: 44 }} onClick={() => openModal()}>
+          <Plus size={16} /> 新建随访记录
         </button>
       </div>
 
-      {/* 任务列表 */}
-      <div style={s.tableCard}>
-        <table style={s.table}>
-          <thead>
-            <tr>
-              <th style={s.th}>编号</th>
-              <th style={s.th}>患者信息</th>
-              <th style={s.th}>检查类型</th>
-              <th style={s.th}>计划日期</th>
-              <th style={s.th}>下次随访</th>
-              <th style={s.th}>负责医生</th>
-              <th style={s.th}>状态</th>
-              <th style={s.th}>依从性</th>
-              <th style={s.th}>结果/备注</th>
-              <th style={s.th}>操作</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredTasks.map((task) => (
-              <tr key={task.id} style={{ background: task.status === 'overdue' ? '#fef2f2' : 'transparent' }}>
-                <td style={s.td}>{task.id}</td>
-                <td style={s.td}>
-                  <div style={{ fontWeight: 600, color: '#1a3a5c' }}>{task.patient.name}</div>
-                  <div style={{ fontSize: 11, color: '#94a3b8' }}>{task.patient.id}</div>
-                </td>
-                <td style={s.td}>{task.patient.examType}</td>
-                <td style={s.td}>{task.planDate}</td>
-                <td style={s.td}>
-                  <span style={{ color: task.status === 'overdue' ? '#ef4444' : '#1a3a5c', fontWeight: task.status === 'overdue' ? 600 : 400 }}>
-                    {task.nextDate}
-                  </span>
-                </td>
-                <td style={s.td}>{task.doctor}</td>
-                <td style={s.td}>
-                  <span style={{ ...s.statusBadge, ...getStatusStyle(task.status) }}>
-                    {getStatusLabel(task.status)}
-                  </span>
-                </td>
-                <td style={s.td}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div style={s.complianceBar}>
-                      <div style={{
-                        ...s.complianceFill,
-                        width: `${task.compliance}%`,
-                        background: getComplianceColor(task.compliance),
-                      }} />
-                    </div>
-                    <span style={{ fontSize: 12, color: getComplianceColor(task.compliance), fontWeight: 600 }}>
-                      {task.compliance}%
-                    </span>
-                  </div>
-                </td>
-                <td style={s.td}>
-                  <div style={{ fontSize: 12, color: task.result ? '#1a3a5c' : '#94a3b8', maxWidth: 150, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {task.result || '-'}
-                  </div>
-                </td>
-                <td style={s.td}>
-                  <div style={{ display: 'flex', gap: 6 }}>
-                    {task.status !== 'completed' && (
-                      <button
-                        style={{ padding: '4px 8px', border: 'none', background: '#eff6ff', borderRadius: 6, cursor: 'pointer', fontSize: 11, color: '#3b82f6', fontWeight: 500 }}
-                        onClick={() => openRecordModal(task)}
-                      >
-                        录入
-                      </button>
-                    )}
-                    <button style={{ padding: 4, border: 'none', background: 'none', cursor: 'pointer' }}>
-                      <Eye size={14} color="#64748b" />
-                    </button>
-                    <button style={{ padding: 4, border: 'none', background: 'none', cursor: 'pointer' }}>
-                      <Phone size={14} color="#22c55e" />
-                    </button>
-                    <button style={{ padding: 4, border: 'none', background: 'none', cursor: 'pointer' }}>
-                      <MessageSquare size={14} color="#3b82f6" />
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {/* 分页 */}
-        <div style={s.pagination}>
-          <div style={s.pageInfo}>共 {filteredTasks.length} 条记录</div>
-          <div style={s.pageButtons}>
-            <button style={s.pageBtn}>上一页</button>
-            <button style={s.pageBtnActive}>1</button>
-            <button style={s.pageBtn}>2</button>
-            <button style={s.pageBtn}>3</button>
-            <button style={s.pageBtn}>下一页</button>
-          </div>
-        </div>
+      {/* 标签页 */}
+      <div style={styles.tabBar}>
+        {renderTab('list', '随访列表')}
+        {renderTab('reminder', '复查提醒')}
+        {renderTab('stats', '统计分析')}
+        {renderTab('oncology', '肿瘤专项')}
       </div>
 
-      {/* 新建随访计划模态框 */}
-      {showPlanModal && (
-        <div style={s.modal} onClick={() => setShowPlanModal(false)}>
-          <div style={s.modalContent} onClick={e => e.stopPropagation()}>
-            <div style={s.modalHeader}>
-              <h2 style={s.modalTitle}>新建随访计划</h2>
-              <button style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 4 }} onClick={() => setShowPlanModal(false)}>
-                <X size={18} color="#64748b" />
-              </button>
-            </div>
-            <div style={s.modalBody}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>患者</label>
-                  <select style={s.formSelect} value={planForm.patientId} onChange={e => setPlanForm({ ...planForm, patientId: e.target.value })}>
-                    <option value="">选择患者</option>
-                    {PATIENTS.map(p => <option key={p.id} value={p.id}>{p.name} ({p.id})</option>)}
-                  </select>
-                </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>检查类型</label>
-                  <select style={s.formSelect} value={planForm.examType} onChange={e => setPlanForm({ ...planForm, examType: e.target.value })}>
-                    <option value="">选择类型</option>
-                    <option value="腹部彩超">腹部彩超</option>
-                    <option value="心脏彩超">心脏彩超</option>
-                    <option value="甲状腺">甲状腺</option>
-                    <option value="乳腺彩超">乳腺彩超</option>
-                    <option value="血管彩超">血管彩超</option>
-                    <option value="妇科彩超">妇科彩超</option>
-                  </select>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>随访周期（天）</label>
-                  <input style={s.formInput} type="number" value={planForm.followupCycle} onChange={e => setPlanForm({ ...planForm, followupCycle: e.target.value })} />
-                </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>随访次数</label>
-                  <input style={s.formInput} type="number" value={planForm.followupTimes} onChange={e => setPlanForm({ ...planForm, followupTimes: e.target.value })} />
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>随访方式</label>
-                  <select style={s.formSelect} value={planForm.method} onChange={e => setPlanForm({ ...planForm, method: e.target.value })}>
-                    <option value="phone">电话随访</option>
-                    <option value="message">短信随访</option>
-                    <option value="visit">门诊随访</option>
-                    <option value="remote">远程随访</option>
-                  </select>
-                </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>科室</label>
-                  <select style={s.formSelect} value={planForm.department} onChange={e => setPlanForm({ ...planForm, department: e.target.value })}>
-                    <option value="">选择科室</option>
-                    <option value="心内科">心内科</option>
-                    <option value="消化内科">消化内科</option>
-                    <option value="内分泌科">内分泌科</option>
-                    <option value="妇科">妇科</option>
-                    <option value="血管外科">血管外科</option>
-                  </select>
-                </div>
-              </div>
-              <div style={s.formGroup}>
-                <label style={s.formLabel}>负责医生</label>
-                <input style={s.formInput} type="text" value={planForm.doctor} onChange={e => setPlanForm({ ...planForm, doctor: e.target.value })} placeholder="输入医生姓名" />
-              </div>
-              <div style={s.formGroup}>
-                <label style={s.formLabel}>备注</label>
-                <textarea style={s.formTextarea} value={planForm.notes} onChange={e => setPlanForm({ ...planForm, notes: e.target.value })} placeholder="输入随访计划备注..." />
-              </div>
-            </div>
-            <div style={s.modalFooter}>
-              <button style={s.btnSecondary} onClick={() => setShowPlanModal(false)}>取消</button>
-              <button style={s.btnPrimary} onClick={handleSavePlan}>
-                <Check size={14} /> 创建计划
-              </button>
-            </div>
+      {/* ========== 随访列表 ========== */}
+      {activeTab === 'list' && (
+        <>
+          {/* 统计卡片 */}
+          <div style={styles.statRow}>
+            {renderStatCard('总随访数', totalCount)}
+            {renderStatCard('已完成', completedCount, `完成率 ${completionRate}%`, '#16a34a')}
+            {renderStatCard('待随访', pendingCount, '计划中', '#d97706')}
+            {renderStatCard('逾期/失访', overdueCount + lostCount, '需处理', '#dc2626')}
           </div>
-        </div>
+
+          {/* 搜索筛选 */}
+          <div style={styles.searchRow}>
+            <div style={styles.searchBox}>
+              <Search size={16} color="#94a3b8" />
+              <input
+                style={styles.searchInput}
+                placeholder="搜索患者姓名/ID/电话..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+              />
+            </div>
+            <select style={{ ...styles.formSelect, width: 140 }} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+              <option value="全部">全部状态</option>
+              <option>已随访</option>
+              <option>待随访</option>
+              <option>逾期未访</option>
+              <option>已失访</option>
+            </select>
+            <select style={{ ...styles.formSelect, width: 140 }} value={filterType} onChange={e => setFilterType(e.target.value)}>
+              <option value="全部">全部类型</option>
+              <option>术后随访</option>
+              <option>化疗后随访</option>
+              <option>复查提醒</option>
+              <option>不良反应追踪</option>
+            </select>
+          </div>
+
+          {/* 表格 */}
+          <div style={styles.tableWrap}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>患者</th>
+                  <th style={styles.th}>随访类型</th>
+                  <th style={styles.th}>周期</th>
+                  <th style={styles.th}>状态</th>
+                  <th style={styles.th}>计划日期</th>
+                  <th style={styles.th}>随访方式</th>
+                  <th style={styles.th}>KPS评分</th>
+                  <th style={styles.th}>结论</th>
+                  <th style={styles.th}>肿瘤</th>
+                  <th style={styles.th}>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredData.length === 0 ? (
+                  <tr><td colSpan={10} style={styles.noData}>
+                    <Activity size={48} style={styles.noDataIcon} />
+                    <div style={styles.noDataText}>暂无随访记录</div>
+                    <div style={styles.noDataHint}>点击右上角「新增随访」按钮添加记录</div>
+                  </td></tr>
+                ) : filteredData.map(item => (
+                  <tr key={item.id}>
+                    <td>
+                      <div style={{ fontWeight: 600, color: '#1a3a5c' }}>{item.patientName}</div>
+                      <div style={{ fontSize: 11, color: '#94a3b8' }}>{item.patientId} · {item.gender} · {item.age}岁</div>
+                    </td>
+                    <td style={styles.td}>{item.followUpType}</td>
+                    <td style={styles.td}>{item.followUpCycle}</td>
+                    <td>
+                      <span style={{ ...styles.statusBadge, ...getStatusStyle(item.status) }}>
+                        {item.status === '已随访' && <CheckCircle size={10} />}
+                        {item.status === '待随访' && <Clock size={10} />}
+                        {item.status === '逾期未访' && <AlertCircle size={10} />}
+                        {item.status === '已失访' && <XCircle size={10} />}
+                        {item.status}
+                      </span>
+                    </td>
+                    <td style={styles.td}>{item.scheduledDate}</td>
+                    <td>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: 4, color: '#64748b', fontSize: 12 }}>
+                        {getMethodIcon(item.followUpMethod)}
+                        {item.followUpMethod || '-'}
+                      </span>
+                    </td>
+                    <td style={styles.td}>{item.karnofskyScore ? `${item.karnofskyScore}分` : '-'}</td>
+                    <td style={styles.td}>{item.conclusion || '-'}</td>
+                    <td>
+                      {item.isOncologyPatient ? (
+                        <div>
+                          <span style={styles.oncologyBadge}>肿瘤</span>
+                          {item.tnmStage && <div style={{ fontSize: 10, color: '#be185d', marginTop: 2 }}>{item.tnmStage}</div>}
+                        </div>
+                      ) : '-'}
+                    </td>
+                    <td>
+                      <button
+                        style={{ ...styles.actionBtn, ...styles.btnPrimary, marginRight: 4, minHeight: 36, display: 'flex', alignItems: 'center', gap: 4 }}
+                        onClick={() => openModal(item)}
+                      >
+                        {item.status === '已随访' ? '查看详情' : '编辑记录'}
+                      </button>
+                      {(item.status === '待随访' || item.status === '逾期未访') && !reminderSentList.includes(item.id) && (
+                        <button
+                          style={{ ...styles.actionBtn, ...styles.btnSuccess, minHeight: 36, display: 'flex', alignItems: 'center', gap: 4 }}
+                          onClick={() => handleSendReminder(item)}
+                        >
+                          <Send size={12} /> 发送提醒
+                        </button>
+                      )}
+                      {reminderSentList.includes(item.id) && (
+                        <span style={{ fontSize: 11, color: '#16a34a' }}>已提醒</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
 
-      {/* 随访记录录入模态框 */}
-      {showRecordModal && selectedTask && (
-        <div style={s.modal} onClick={() => setShowRecordModal(false)}>
-          <div style={s.modalContent} onClick={e => e.stopPropagation()}>
-            <div style={s.modalHeader}>
-              <h2 style={s.modalTitle}>随访记录录入</h2>
-              <button style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 4 }} onClick={() => setShowRecordModal(false)}>
-                <X size={18} color="#64748b" />
-              </button>
-            </div>
-            <div style={s.modalBody}>
-              {/* 患者信息 */}
-              <div style={{ background: '#f8fafc', borderRadius: 10, padding: '12px 16px', marginBottom: 18 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{ width: 44, height: 44, borderRadius: '50%', background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <User size={20} color="#1d4ed8" />
-                  </div>
-                  <div>
-                    <div style={{ fontSize: 15, fontWeight: 600, color: '#1a3a5c' }}>{selectedTask.patient.name}</div>
-                    <div style={{ fontSize: 12, color: '#64748b' }}>{selectedTask.patient.id} · {selectedTask.patient.examType} · {selectedTask.patient.department}</div>
-                  </div>
-                  <div style={{ marginLeft: 'auto' }}>
-                    <span style={{ ...s.statusBadge, ...getStatusStyle(selectedTask.status) }}>
-                      {getStatusLabel(selectedTask.status)}
-                    </span>
-                  </div>
-                </div>
-              </div>
+      {/* ========== 复查提醒 ========== */}
+      {activeTab === 'reminder' && (
+        <>
+          <div style={styles.statRow}>
+            {renderStatCard('今日到期', remindersToday.length)}
+            {renderStatCard('本周到期', remindersThisWeek.length)}
+            {renderStatCard('本月到期', remindersThisMonth.length)}
+            {renderStatCard('待随访总数', pendingCount)}
+          </div>
 
-              <div style={s.formGroup}>
-                <label style={s.formLabel}>随访结果</label>
-                <textarea style={s.formTextarea} value={recordForm.result} onChange={e => setRecordForm({ ...recordForm, result: e.target.value })} placeholder="描述本次随访结果..." />
+          {/* 今日到期 */}
+          <div style={styles.sectionTitle}>今日到期（{remindersToday.length}人）</div>
+          {remindersToday.length === 0 ? (
+            <div style={{ ...styles.reminderCard, textAlign: 'center', color: '#94a3b8', padding: '32px 0' }}>
+              <CalendarDays size={40} style={{ opacity: 0.4, marginBottom: 8 }} />
+              <div style={{ fontSize: 14, color: '#64748b' }}>今日无到期随访</div>
+              <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 4 }}>所有随访计划已安排妥当</div>
+            </div>
+          ) : remindersToday.map(item => (
+            <div key={item.id} style={styles.reminderCard}>
+              <div style={styles.reminderHeader}>
+                <div>
+                  <div style={styles.reminderPatient}>{item.patientName}</div>
+                  <div style={styles.reminderDate}>{item.followUpType} · {item.followUpCycle}</div>
+                </div>
+                <div style={{ display: 'flex', gap: 6 }}>
+                  <span style={styles.oncologyBadge}>肿瘤</span>
+                  <span style={{ ...styles.statusBadge, ...styles.statusPending }}><Clock size={10} /> 待随访</span>
+                </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>症状描述</label>
-                  <input style={s.formInput} type="text" value={recordForm.symptoms} onChange={e => setRecordForm({ ...recordForm, symptoms: e.target.value })} placeholder="患者当前症状" />
+              <div style={{ fontSize: 12, color: '#64748b' }}>手机: {item.phone} · 计划: {item.scheduledDate}</div>
+              <div style={styles.reminderRow}>
+                <button
+                  style={{ ...styles.actionBtn, ...styles.btnSuccess, minHeight: 44, display: 'flex', alignItems: 'center', gap: 6 }}
+                  onClick={() => handleSendReminder(item)}
+                >
+                  <MessageSquare size={16} /> 发送短信提醒
+                </button>
+                <button style={{ ...styles.actionBtn, ...styles.btnWarning, minHeight: 44, display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <PhoneCall size={16} /> 电话联系
+                </button>
+                <button style={{ ...styles.actionBtn, ...styles.btnPrimary, minHeight: 44, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => openModal(item)}>
+                  <FileText size={16} /> 登记随访结果
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {/* 本周到期待处理 */}
+          <div style={styles.sectionTitle}>本周到期（{remindersThisWeek.filter(i => !remindersToday.includes(i)).length}人）</div>
+          {remindersThisWeek.filter(i => !remindersToday.includes(i)).map(item => (
+            <div key={item.id} style={styles.reminderCard}>
+              <div style={styles.reminderHeader}>
+                <div>
+                  <div style={styles.reminderPatient}>{item.patientName}</div>
+                  <div style={styles.reminderDate}>{item.followUpType} · {item.scheduledDate}</div>
                 </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>用药情况</label>
-                  <input style={s.formInput} type="text" value={recordForm.medication} onChange={e => setRecordForm({ ...recordForm, medication: e.target.value })} placeholder="药物名称及剂量" />
+                <button
+                  style={{ ...styles.actionBtn, ...styles.btnSuccess, display: 'flex', alignItems: 'center', gap: 4 }}
+                  onClick={() => handleSendReminder(item)}
+                >
+                  <MessageSquare size={12} /> 提醒
+                </button>
+              </div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>手机: {item.phone}</div>
+            </div>
+          ))}
+        </>
+      )}
+
+      {/* ========== 统计分析 ========== */}
+      {activeTab === 'stats' && (
+        <>
+          <div style={styles.statRow}>
+            {renderStatCard('随访完成率', completionRate, '%', completionRate >= 80 ? '#16a34a' : '#dc2626')}
+            {renderStatCard('总随访数', totalCount)}
+            {renderStatCard('失访数', lostCount, '失访率 ' + Math.round((lostCount / totalCount) * 100) + '%')}
+            {renderStatCard('肿瘤生存率', survivalRate, '%（肿瘤患者）', '#16a34a')}
+          </div>
+
+          <div style={styles.chartGrid}>
+            {/* 随访状态分布 */}
+            <div style={styles.chartCard}>
+              <div style={styles.chartTitle}>随访状态分布</div>
+              {[
+                { label: '已随访', value: completedCount, color: '#16a34a' },
+                { label: '待随访', value: pendingCount, color: '#d97706' },
+                { label: '逾期未访', value: overdueCount, color: '#dc2626' },
+                { label: '已失访', value: lostCount, color: '#64748b' },
+              ].map(item => (
+                <div key={item.label} style={styles.barRow}>
+                  <div style={styles.barLabel}>{item.label}</div>
+                  <div style={styles.barBg}>
+                    <div style={{ ...styles.barFill, width: totalCount > 0 ? `${(item.value / totalCount) * 100}%` : '0%', background: item.color }} />
+                  </div>
+                  <div style={{ fontSize: 12, color: '#475569', width: 40, textAlign: 'right' }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 失访原因分析 */}
+            <div style={styles.chartCard}>
+              <div style={styles.chartTitle}>失访原因分析</div>
+              {lostReasons.map(item => (
+                <div key={item.reason} style={styles.barRow}>
+                  <div style={{ ...styles.barLabel, width: 140, fontSize: 11 }}>{item.reason}</div>
+                  <div style={styles.barBg}>
+                    <div style={{ ...styles.barFill, width: '20%', background: '#94a3b8' }} />
+                  </div>
+                  <div style={{ fontSize: 12, color: '#475569', width: 30, textAlign: 'right' }}>{item.count}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 随访类型分布 */}
+            <div style={styles.chartCard}>
+              <div style={styles.chartTitle}>随访类型分布</div>
+              {[
+                { label: '术后随访', value: followUps.filter(f => f.followUpType === '术后随访').length, color: '#1a3a5c' },
+                { label: '化疗后随访', value: followUps.filter(f => f.followUpType === '化疗后随访').length, color: '#3b82f6' },
+                { label: '复查提醒', value: followUps.filter(f => f.followUpType === '复查提醒').length, color: '#16a34a' },
+                { label: '不良反应追踪', value: followUps.filter(f => f.followUpType === '不良反应追踪').length, color: '#d97706' },
+              ].map(item => (
+                <div key={item.label} style={styles.barRow}>
+                  <div style={styles.barLabel}>{item.label}</div>
+                  <div style={styles.barBg}>
+                    <div style={{ ...styles.barFill, width: totalCount > 0 ? `${(item.value / totalCount) * 100}%` : '0%', background: item.color }} />
+                  </div>
+                  <div style={{ fontSize: 12, color: '#475569', width: 40, textAlign: 'right' }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* 随访方式分布 */}
+            <div style={styles.chartCard}>
+              <div style={styles.chartTitle}>随访方式分布</div>
+              {[
+                { label: '电话随访', value: followUps.filter(f => f.followUpMethod === '电话随访').length, color: '#8b5cf6' },
+                { label: '门诊随访', value: followUps.filter(f => f.followUpMethod === '门诊随访').length, color: '#06b6d4' },
+                { label: '在线随访', value: followUps.filter(f => f.followUpMethod === '在线随访').length, color: '#f97316' },
+                { label: '住院复查', value: followUps.filter(f => f.followUpMethod === '住院复查').length, color: '#ec4899' },
+              ].map(item => (
+                <div key={item.label} style={styles.barRow}>
+                  <div style={styles.barLabel}>{item.label}</div>
+                  <div style={styles.barBg}>
+                    <div style={{ ...styles.barFill, width: totalCount > 0 ? `${(item.value / totalCount) * 100}%` : '0%', background: item.color }} />
+                  </div>
+                  <div style={{ fontSize: 12, color: '#475569', width: 40, textAlign: 'right' }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ========== 肿瘤专项 ========== */}
+      {activeTab === 'oncology' && (
+        <>
+          <div style={styles.statRow}>
+            {renderStatCard('肿瘤患者数', oncologyPatients.length)}
+            {renderStatCard('生存', oncologySurvival, `生存率 ${survivalRate}%`, '#16a34a')}
+            {renderStatCard('死亡', oncologyDeath, '已故')}
+            {renderStatCard('失访', oncologyLost)}
+          </div>
+
+          <div style={styles.tableWrap}>
+            <table style={styles.table}>
+              <thead>
+                <tr>
+                  <th style={styles.th}>患者</th>
+                  <th style={styles.th}>TNM分期</th>
+                  <th style={styles.th}>生存状态</th>
+                  <th style={styles.th}>复发/转移监测</th>
+                  <th style={styles.th}>KPS评分</th>
+                  <th style={styles.th}>最近随访</th>
+                  <th style={styles.th}>结论</th>
+                  <th style={styles.th}>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                {oncologyPatients.length === 0 ? (
+                  <tr><td colSpan={8} style={styles.noData}>
+                    <UserCheck size={48} style={styles.noDataIcon} />
+                    <div style={styles.noDataText}>暂无肿瘤患者随访记录</div>
+                    <div style={styles.noDataHint}>在随访列表中标记肿瘤患者后可在此处查看</div>
+                  </td></tr>
+                ) : oncologyPatients.map(item => (
+                  <tr key={item.id}>
+                    <td>
+                      <div style={{ fontWeight: 600, color: '#1a3a5c' }}>{item.patientName}</div>
+                      <div style={{ fontSize: 11, color: '#94a3b8' }}>{item.gender} · {item.age}岁 · {item.phone}</div>
+                    </td>
+                    <td>
+                      <span style={{ ...styles.oncologyBadge, fontSize: 12 }}>{item.tnmStage || '-'}</span>
+                    </td>
+                    <td>
+                      <span style={{
+                        ...styles.statusBadge,
+                        background: item.survivalStatus === '生存' ? '#dcfce7' : item.survivalStatus === '死亡' ? '#fee2e2' : '#f1f5f9',
+                        color: item.survivalStatus === '生存' ? '#16a34a' : item.survivalStatus === '死亡' ? '#dc2626' : '#64748b',
+                      }}>
+                        {item.survivalStatus === '生存' && <TrendingUp size={10} />}
+                        {item.survivalStatus === '死亡' && <TrendingDown size={10} />}
+                        {item.survivalStatus === '失访' && <Minus size={10} />}
+                        {item.survivalStatus}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: 12, color: '#64748b' }}>{item.recurrenceMonitor || '-'}</td>
+                    <td style={styles.td}>{item.karnofskyScore ? `${item.karnofskyScore}分` : '-'}</td>
+                    <td style={styles.td}>{item.followUpDate || item.scheduledDate}</td>
+                    <td style={styles.td}>{item.conclusion || '-'}</td>
+                    <td>
+                      <button style={{ ...styles.actionBtn, ...styles.btnPrimary, minHeight: 36, display: 'flex', alignItems: 'center', gap: 4 }} onClick={() => { setActiveTab('list'); openModal(item); }}>
+                        查看详情
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+
+      {/* ========== 随访记录弹窗 ========== */}
+      {showModal && editingItem && (
+        <div style={styles.modal} onClick={() => setShowModal(false)}>
+          <div style={styles.modalContent} onClick={e => e.stopPropagation()}>
+            <div style={styles.modalHeader}>
+              <div style={styles.modalTitle}>
+                {editingItem.status === '已随访' ? '随访记录详情' : '编辑随访计划'}
+              </div>
+              <X size={20} color="#64748b" style={{ cursor: 'pointer' }} onClick={() => setShowModal(false)} />
+            </div>
+            <div style={styles.modalBody}>
+              {/* 患者信息 */}
+              <div style={styles.sectionTitle}>患者信息</div>
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>患者姓名 *</label>
+                  <input style={styles.formInput} value={editingItem.patientName} onChange={e => setEditingItem({ ...editingItem, patientName: e.target.value })} />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>患者ID</label>
+                  <input style={styles.formInput} value={editingItem.patientId} onChange={e => setEditingItem({ ...editingItem, patientId: e.target.value })} />
                 </div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>下次随访日期</label>
-                  <input style={s.formInput} type="date" value={recordForm.nextDate} onChange={e => setRecordForm({ ...recordForm, nextDate: e.target.value })} />
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>性别</label>
+                  <select style={styles.formSelect} value={editingItem.gender} onChange={e => setEditingItem({ ...editingItem, gender: e.target.value as any })}>
+                    <option>男</option><option>女</option>
+                  </select>
                 </div>
-                <div style={s.formGroup}>
-                  <label style={s.formLabel}>依从性评分</label>
-                  <select style={s.formSelect} value={recordForm.compliance} onChange={e => setRecordForm({ ...recordForm, compliance: e.target.value })}>
-                    <option value="100">完全依从 (100%)</option>
-                    <option value="80">良好依从 (80%)</option>
-                    <option value="60">部分依从 (60%)</option>
-                    <option value="40">不依从 (40%)</option>
-                    <option value="0">完全不依从 (0%)</option>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>年龄</label>
+                  <input style={styles.formInput} type="number" value={editingItem.age} onChange={e => setEditingItem({ ...editingItem, age: Number(e.target.value) })} />
+                </div>
+              </div>
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>联系电话</label>
+                  <input style={styles.formInput} value={editingItem.phone} onChange={e => setEditingItem({ ...editingItem, phone: e.target.value })} />
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>随访类型 *</label>
+                  <select style={styles.formSelect} value={editingItem.followUpType} onChange={e => setEditingItem({ ...editingItem, followUpType: e.target.value as any })}>
+                    <option>术后随访</option><option>化疗后随访</option><option>复查提醒</option><option>不良反应追踪</option>
                   </select>
                 </div>
               </div>
-              <div style={s.formGroup}>
-                <label style={s.formLabel}>备注</label>
-                <textarea style={s.formTextarea} value={recordForm.notes} onChange={e => setRecordForm({ ...recordForm, notes: e.target.value })} placeholder="其他备注信息..." />
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>随访周期</label>
+                  <select style={styles.formSelect} value={editingItem.followUpCycle} onChange={e => setEditingItem({ ...editingItem, followUpCycle: e.target.value as any })}>
+                    <option>7天</option><option>30天</option><option>90天</option><option>180天</option><option>1年</option>
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>计划日期</label>
+                  <input style={styles.formInput} type="date" value={editingItem.scheduledDate} onChange={e => setEditingItem({ ...editingItem, scheduledDate: e.target.value })} />
+                </div>
+              </div>
+              <div style={styles.formRow}>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>随访状态</label>
+                  <select style={styles.formSelect} value={editingItem.status} onChange={e => setEditingItem({ ...editingItem, status: e.target.value as any })}>
+                    <option>已随访</option><option>待随访</option><option>逾期未访</option><option>已失访</option>
+                  </select>
+                </div>
+                <div style={styles.formGroup}>
+                  <label style={styles.formLabel}>肿瘤患者</label>
+                  <select style={styles.formSelect} value={editingItem.isOncologyPatient ? '是' : '否'} onChange={e => setEditingItem({ ...editingItem, isOncologyPatient: e.target.value === '是' })}>
+                    <option>否</option><option>是</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* 肿瘤专项 */}
+              {editingItem.isOncologyPatient && (
+                <>
+                  <div style={styles.sectionTitle}>肿瘤专项信息</div>
+                  <div style={styles.formRow}>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>TNM分期</label>
+                      <input style={styles.formInput} placeholder="如 T2N0M0" value={editingItem.tnmStage || ''} onChange={e => setEditingItem({ ...editingItem, tnmStage: e.target.value })} />
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>生存状态</label>
+                      <select style={styles.formSelect} value={editingItem.survivalStatus || '生存'} onChange={e => setEditingItem({ ...editingItem, survivalStatus: e.target.value as any })}>
+                        <option>生存</option><option>死亡</option><option>失访</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>复发/转移监测</label>
+                    <input style={styles.formInput} value={editingItem.recurrenceMonitor || ''} onChange={e => setEditingItem({ ...editingItem, recurrenceMonitor: e.target.value })} />
+                  </div>
+                </>
+              )}
+
+              {/* 随访内容（已随访时显示） */}
+              {editingItem.status === '已随访' && (
+                <>
+                  <div style={styles.sectionTitle}>随访记录</div>
+                  <div style={styles.formRow}>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>随访日期</label>
+                      <input style={styles.formInput} type="date" value={editingItem.followUpDate || ''} onChange={e => setEditingItem({ ...editingItem, followUpDate: e.target.value })} />
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>随访方式</label>
+                      <select style={styles.formSelect} value={editingItem.followUpMethod || '电话随访'} onChange={e => setEditingItem({ ...editingItem, followUpMethod: e.target.value as any })}>
+                        <option>电话随访</option><option>门诊随访</option><option>在线随访</option><option>住院复查</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>症状询问</label>
+                    <textarea style={styles.formTextarea} value={editingItem.symptoms || ''} onChange={e => setEditingItem({ ...editingItem, symptoms: e.target.value })} placeholder="询问患者主要症状变化..." />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>体征记录</label>
+                    <input style={styles.formInput} value={editingItem.vitalSigns || ''} onChange={e => setEditingItem({ ...editingItem, vitalSigns: e.target.value })} placeholder="血压、心率等" />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>检查结果</label>
+                    <input style={styles.formInput} value={editingItem.examResults || ''} onChange={e => setEditingItem({ ...editingItem, examResults: e.target.value })} />
+                  </div>
+                  <div style={styles.formGroup}>
+                    <label style={styles.formLabel}>用药情况</label>
+                    <input style={styles.formInput} value={editingItem.medication || ''} onChange={e => setEditingItem({ ...editingItem, medication: e.target.value })} />
+                  </div>
+                  <div style={styles.formRow}>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>Karnofsky评分 (0-100)</label>
+                      <input style={styles.formInput} type="number" min="0" max="100" value={editingItem.karnofskyScore || ''} onChange={e => setEditingItem({ ...editingItem, karnofskyScore: Number(e.target.value) })} />
+                    </div>
+                    <div style={styles.formGroup}>
+                      <label style={styles.formLabel}>随访结论</label>
+                      <select style={styles.formSelect} value={editingItem.conclusion || '稳定'} onChange={e => setEditingItem({ ...editingItem, conclusion: e.target.value as any })}>
+                        <option>治愈</option><option>好转</option><option>稳定</option><option>恶化</option><option>失访</option><option>死亡</option>
+                      </select>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* 备注 */}
+              <div style={styles.formGroup}>
+                <label style={styles.formLabel}>备注</label>
+                <textarea style={styles.formTextarea} value={editingItem.notes || ''} onChange={e => setEditingItem({ ...editingItem, notes: e.target.value })} />
               </div>
             </div>
-            <div style={s.modalFooter}>
-              <button style={s.btnSecondary} onClick={() => setShowRecordModal(false)}>取消</button>
-              <button style={s.btnSuccess} onClick={handleSaveRecord}>
-                <Check size={14} /> 保存记录
-              </button>
+            <div style={styles.modalFooter}>
+              <button style={{ ...styles.actionBtn, background: '#e2e8f0', color: '#475569', minHeight: 44, padding: '0 20px', fontSize: 14 }} onClick={() => setShowModal(false)}>取消</button>
+              <button style={{ ...styles.actionBtn, ...styles.btnPrimary, minHeight: 44, padding: '0 24px', fontSize: 14 }} onClick={() => { setShowModal(false); alert('保存成功'); }}><CheckCircle size={16} /> 保存记录</button>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

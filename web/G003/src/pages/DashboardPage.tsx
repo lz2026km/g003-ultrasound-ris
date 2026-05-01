@@ -1,601 +1,703 @@
 // @ts-nocheck
 // ============================================================
-// G003 超声RIS系统 - 科室运营大屏 v0.2.0
-// 超声科运营指挥中心 · 实时数据 · 大屏展示
+// G004 内镜管理系统 - 科室BI看板
+// 今日实时概览 / 趋势分析 / 工作量排名 / 预警
 // ============================================================
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState } from 'react'
 import {
-  Activity, Users, Stethoscope, Clock, AlertTriangle,
-  CheckCircle, RefreshCw, Maximize2, TrendingUp,
-  Monitor, Wifi, WifiOff, Wrench, Scissors, CalendarClock,
-  Bell, AlertCircle, Plus, FileText
+  Activity, CalendarClock, FileText, Scissors, Clock,
+  TrendingUp, AlertTriangle, CheckCircle, Microscope,
+  BarChart3, PieChart as PieChartIcon, Users, Package,
+  ArrowUp, ArrowDown, Minus, RefreshCw, Download, Search, Filter, Inbox
 } from 'lucide-react'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
-  Legend, ResponsiveContainer
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
-import ReactECharts from 'echarts-for-react'
-
-// ---------- 颜色常量 ----------
-const C = {
-  bg: '#0f172a',
-  card: '#1e293b',
-  cardBorder: '#334155',
-  text: '#f1f5f9',
-  textMuted: '#94a3b8',
-  blue: '#3b82f6',
-  green: '#22c55e',
-  yellow: '#eab308',
-  red: '#ef4444',
-  purple: '#8b5cf6',
-  teal: '#14b8a6',
-  orange: '#f97316',
-}
-
-// ---------- 模拟数据生成 ----------
-const ROOMS = ['检查室1', '检查室2', '检查室3', '检查室4', '检查室5', '检查室6']
-const ROOM_STATES = ['空闲', '检查中', '等待中']
-const ROOM_COLORS = { '空闲': C.green, '检查中': C.yellow, '等待中': C.red }
-
-const generateRoomData = () =>
-  ROOMS.map((name) => ({
-    name,
-    state: ROOM_STATES[Math.floor(Math.random() * 3)],
-  }))
-
-const DEVICES = [
-  { name: '彩超仪 A', status: '在线' },
-  { name: '彩超仪 B', status: '在线' },
-  { name: '便携超声 A', status: '在线' },
-  { name: '床旁超声 B', status: '维护中' },
-  { name: '介入超声', status: '离线' },
-]
-
-const CRITICAL_ALERTS = [
-  { id: 1, patient: '王建国', exam: '腹部超声', item: '肝功能异常', time: '10:32', level: '危急' },
-  { id: 2, patient: '李红梅', exam: '心血管超声', item: '肌钙蛋白升高', time: '09:15', level: '危急' },
-  { id: 3, patient: '张伟', exam: '妇产科超声', item: '胎心率异常', time: '08:45', level: '危急' },
-  { id: 4, patient: '赵丽华', exam: '浅表器官', item: '结节伴钙化', time: '11:20', level: '危急' },
-]
-
-const SURGERIES = [
-  { id: 1, patient: '孙中山', type: '超声引导下穿刺活检', doctor: '李明辉', time: '09:00', status: '进行中' },
-  { id: 2, patient: '周婷', type: '超声引导下引流术', doctor: '王晓燕', time: '10:30', status: '待开始' },
-  { id: 3, patient: '吴磊', type: '超声造影检查', doctor: '张伟', time: '14:00', status: '已预约' },
-]
-
-const generateRealtimeData = () => {
-  const now = new Date()
-  const h = now.getHours().toString().padStart(2, '0')
-  const m = now.getMinutes().toString().padStart(2, '0')
-  return {
-    time: `${h}:${m}`,
-    value: Math.floor(Math.random() * 30 + 20),
-  }
-}
 
 // ---------- 样式 ----------
 const s: Record<string, React.CSSProperties> = {
-  root: { background: C.bg, minHeight: '100vh', color: C.text, padding: '20px 24px' },
+  root: { padding: 0 },
   header: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    marginBottom: 24, paddingBottom: 16, borderBottom: `1px solid ${C.cardBorder}`,
+    marginBottom: 24,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  title: { fontSize: 28, fontWeight: 800, color: C.text, margin: 0, letterSpacing: 2 },
-  subtitle: { fontSize: 13, color: C.textMuted, marginTop: 4 },
-  headerBtns: { display: 'flex', gap: 8 },
-  // 通用卡片
-  card: {
-    background: C.card, borderRadius: 12, padding: 20,
-    border: `1px solid ${C.cardBorder}`,
+  title: {
+    fontSize: 20, fontWeight: 700, color: '#1a3a5c', margin: 0,
   },
-  cardTitle: {
-    fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 16,
-    display: 'flex', alignItems: 'center', gap: 8,
+  subtitle: {
+    fontSize: 13, color: '#64748b', marginTop: 4,
   },
-  cardIcon: { color: C.textMuted },
-  // 顶部统计行
-  topStats: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 20 },
-  topStatCard: {
-    background: C.card, borderRadius: 12, padding: '20px 24px',
-    border: `1px solid ${C.cardBorder}`, display: 'flex',
-    alignItems: 'center', gap: 16,
+  refreshBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '6px 14px',
+    borderRadius: 8,
+    border: '1px solid #e2e8f0',
+    background: '#fff',
+    cursor: 'pointer',
+    fontSize: 12,
+    color: '#64748b',
   },
-  topStatIcon: {
-    width: 52, height: 52, borderRadius: 12,
-    display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+  // Big stat cards
+  bigStatRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: 16,
+    marginBottom: 24,
   },
-  topStatValue: { fontSize: 32, fontWeight: 800, color: C.text, lineHeight: 1.1 },
-  topStatLabel: { fontSize: 12, color: C.textMuted, marginTop: 4 },
-  // 主内容区 3列
-  mainGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 },
-  // 检查室网格
-  roomGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 },
-  roomCard: { borderRadius: 10, padding: '16px', display: 'flex', flexDirection: 'column', gap: 8 },
-  roomName: { fontSize: 14, fontWeight: 600, color: C.text },
-  roomState: { fontSize: 20, fontWeight: 800, color: C.text },
-  roomDot: { width: 10, height: 10, borderRadius: '50%' },
-  // 危急值列表
-  criticalList: { display: 'flex', flexDirection: 'column', gap: 8 },
-  criticalItem: {
-    background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-    borderRadius: 8, padding: '12px 16px', display: 'flex',
-    justifyContent: 'space-between', alignItems: 'center',
+  bigStatCard: {
+    background: '#fff',
+    borderRadius: 12,
+    padding: '24px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  criticalLeft: { display: 'flex', flexDirection: 'column', gap: 2 },
-  criticalPatient: { fontSize: 13, fontWeight: 600, color: C.text },
-  criticalExam: { fontSize: 11, color: C.textMuted },
-  criticalRight: { textAlign: 'right' as const },
-  criticalItem2: { fontSize: 12, fontWeight: 600, color: C.red },
-  criticalTime: { fontSize: 11, color: C.textMuted, marginTop: 2 },
-  // 手术列表
-  surgeryItem: {
-    background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)',
-    borderRadius: 8, padding: '12px 16px', marginBottom: 8,
+  bigStatValue: {
+    fontSize: 36,
+    fontWeight: 800,
+    color: '#1a3a5c',
+    lineHeight: 1.1,
   },
-  surgeryTop: { display: 'flex', justifyContent: 'space-between', marginBottom: 4 },
-  surgeryPatient: { fontSize: 13, fontWeight: 600, color: C.text },
-  surgeryType: { fontSize: 11, color: C.blue },
-  surgeryBottom: { display: 'flex', justifyContent: 'space-between', fontSize: 11, color: C.textMuted },
-  // 底部分区
-  bottomGrid: { display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: 16 },
-  // 按钮
-  btn: {
-    padding: '8px 16px', borderRadius: 8, border: 'none', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
+  bigStatLabel: {
+    fontSize: 13,
+    color: '#64748b',
+    marginTop: 6,
   },
-  btnOutline: {
-    background: 'transparent', border: `1px solid ${C.cardBorder}`, color: C.textMuted,
+  bigStatTrend: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    fontSize: 12,
+    marginTop: 8,
+    fontWeight: 600,
   },
-  btnPrimary: {
-    background: C.blue, color: '#fff',
+  bigStatIcon: {
+    position: 'absolute',
+    right: 20,
+    top: 20,
+    opacity: 0.15,
   },
-  // 全屏
-  fullscreen: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, overflow: 'auto' },
+  // Chart grid
+  chartGrid: {
+    display: 'grid',
+    gridTemplateColumns: '2fr 1fr',
+    gap: 16,
+    marginBottom: 24,
+  },
+  chartGrid2: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 16,
+    marginBottom: 24,
+  },
+  chartGrid3: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr 1fr',
+    gap: 16,
+    marginBottom: 24,
+  },
+  chartCard: {
+    background: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+  },
+  chartTitle: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#1a3a5c',
+    marginBottom: 16,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+  },
+  chartIcon: { color: '#64748b' },
+  // Warning list
+  warningList: {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+  },
+  warningItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+    padding: '10px 0',
+    borderBottom: '1px solid #f1f5f9',
+  },
+  warningDot: {
+    width: 8,
+    height: 8,
+    borderRadius: '50%',
+    flexShrink: 0,
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 13,
+    color: '#475569',
+  },
+  warningCount: {
+    fontSize: 12,
+    fontWeight: 600,
+    color: '#ef4444',
+    background: '#fef2f2',
+    padding: '2px 8px',
+    borderRadius: 20,
+  },
+  // Timeline
+  timeline: {
+    position: 'relative',
+    paddingLeft: 20,
+  },
+  timelineItem: {
+    position: 'relative',
+    paddingBottom: 14,
+    paddingLeft: 18,
+    borderLeft: '2px solid #e2e8f0',
+  },
+  timelineDot: {
+    position: 'absolute',
+    left: -5,
+    top: 3,
+    width: 10,
+    height: 10,
+    borderRadius: '50%',
+  },
+  timelineTime: {
+    fontSize: 11,
+    color: '#94a3b8',
+    marginBottom: 2,
+  },
+  timelineText: {
+    fontSize: 13,
+    color: '#475569',
+  },
+  // Progress bar
+  progressBar: {
+    height: 8,
+    borderRadius: 4,
+    background: '#e2e8f0',
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 4,
+    transition: 'width 0.3s',
+  },
+  // Rank list
+  rankItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '8px 0',
+    borderBottom: '1px solid #f8fafc',
+  },
+  rankNum: {
+    width: 20,
+    height: 20,
+    borderRadius: '50%',
+    background: '#f1f5f9',
+    color: '#64748b',
+    fontSize: 11,
+    fontWeight: 700,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  rankNumGold: { background: '#fef3c7', color: '#d97706' },
+  rankNumSilver: { background: '#f1f5f9', color: '#64748b' },
+  rankNumBronze: { background: '#fed7aa', color: '#ea580c' },
+  rankName: { flex: 1, fontSize: 13, color: '#475569' },
+  rankValue: { fontSize: 13, fontWeight: 600, color: '#1a3a5c' },
+  // Usage bar
+  usageBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 10,
+    padding: '6px 0',
+  },
+  usageLabel: { fontSize: 12, color: '#475569', width: 80 },
+  usageBarBg: {
+    flex: 1,
+    height: 8,
+    borderRadius: 4,
+    background: '#f1f5f9',
+    overflow: 'hidden',
+  },
+  usageBarFill: { height: '100%', borderRadius: 4 },
+  usagePct: { fontSize: 12, fontWeight: 600, color: '#1a3a5c', width: 36, textAlign: 'right' },
+  // Colors
+  blue: { color: '#3b82f6', bg: '#eff6ff' },
+  green: { color: '#22c55e', bg: '#f0fdf4' },
+  orange: { color: '#f97316', bg: '#fff7ed' },
+  red: { color: '#ef4444', bg: '#fef2f2' },
+  purple: { color: '#8b5cf6', bg: '#f5f3ff' },
+  teal: { color: '#14b8a6', bg: '#f0fdfa' },
+  // 空状态
+  emptyState: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '40px 24px',
+    background: '#fff',
+    borderRadius: 12,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    textAlign: 'center',
+  },
+  emptyStateIcon: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    background: '#f1f5f9',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  emptyStateTitle: {
+    fontSize: 14,
+    fontWeight: 600,
+    color: '#1a3a5c',
+    marginBottom: 4,
+  },
+  emptyStateDesc: {
+    fontSize: 12,
+    color: '#94a3b8',
+    marginBottom: 14,
+  },
+  emptyStateAction: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '8px 16px',
+    borderRadius: 6,
+    border: 'none',
+    background: '#3b82f6',
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: 500,
+    cursor: 'pointer',
+    minHeight: 40,
+  },
+  // 搜索筛选
+  filterRow: {
+    display: 'flex',
+    gap: 12,
+    alignItems: 'center',
+    background: '#f8fafc',
+    padding: '12px 16px',
+    borderRadius: 10,
+    marginBottom: 20,
+    flexWrap: 'wrap' as const,
+  },
+  searchInput: {
+    flex: 1,
+    minWidth: 160,
+    padding: '8px 12px',
+    borderRadius: 6,
+    border: '1px solid #e2e8f0',
+    fontSize: 13,
+    color: '#1a3a5c',
+    background: '#fff',
+    outline: 'none',
+    minHeight: 44,
+  },
+  filterBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '8px 14px',
+    borderRadius: 6,
+    border: '1px solid #e2e8f0',
+    background: '#fff',
+    cursor: 'pointer',
+    fontSize: 13,
+    color: '#64748b',
+    minHeight: 44,
+  },
+  actionBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '8px 16px',
+    borderRadius: 6,
+    border: 'none',
+    cursor: 'pointer',
+    fontSize: 13,
+    fontWeight: 500,
+    minHeight: 44,
+  },
 }
 
-// ---------- 组件 ----------
-const SectionTitle = ({ icon: Icon, title }: { icon: any; title: string }) => (
-  <div style={s.cardTitle}>
-    <Icon size={16} style={s.cardIcon} />
-    {title}
-  </div>
-)
+const PIE_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#8b5cf6', '#14b8a6']
+
+// Mock data
+const TODAY_STATS = {
+  exams: 47,
+  examsTrend: '+12%',
+  appointments: 23,
+  appointmentsTrend: '+5%',
+  surgeries: 5,
+  surgeriesTrend: '-2%',
+  pendingReports: 8,
+  pendingReportsTrend: '+3',
+}
+
+const TREND_DATA = [
+  { date: '04-24', 检查: 38, 报告: 35 },
+  { date: '04-25', 检查: 42, 报告: 40 },
+  { date: '04-26', 检查: 35, 报告: 38 },
+  { date: '04-27', 检查: 45, 报告: 42 },
+  { date: '04-28', 检查: 50, 报告: 48 },
+  { date: '04-29', 检查: 43, 报告: 45 },
+  { date: '04-30', 检查: 47, 报告: 41 },
+]
+
+const EXAM_TYPE_DATA = [
+  { name: '胃镜', value: 45 },
+  { name: '肠镜', value: 28 },
+  { name: '超声内镜', value: 12 },
+  { name: 'ERCP', value: 8 },
+  { name: '其他', value: 7 },
+]
+
+const DOCTOR_RANK_DATA = [
+  { doctor: '张建国', count: 56 },
+  { doctor: '陈晓东', count: 48 },
+  { doctor: '孙伟明', count: 42 },
+  { doctor: '李明辉', count: 37 },
+  { doctor: '王海涛', count: 31 },
+  { doctor: '刘志刚', count: 28 },
+]
+
+const ENDOSCOPE_USAGE = [
+  { name: 'EG-2990I', usage: 92 },
+  { name: 'EG-2995I', usage: 85 },
+  { name: 'CF-H290I', usage: 78 },
+  { name: 'CF-H260I', usage: 65 },
+  { name: 'PCF-H290TL', usage: 58 },
+]
+
+const WARNING_ITEMS = [
+  { name: '一次性活检钳', stock: 12, min: 50 },
+  { name: '圈套器', stock: 8, min: 30 },
+  { name: '注射针', stock: 5, min: 20 },
+  { name: '止血夹', stock: 15, min: 40 },
+  { name: '高频电刀头', stock: 3, min: 15 },
+]
+
+const TODAY_TODOS = [
+  { time: '08:00', text: '交班会议', done: true, color: s.green },
+  { time: '08:30', text: '胃镜检查 #1023 患者王五', done: true, color: s.green },
+  { time: '09:15', text: '肠镜检查 #1024 患者赵六', done: true, color: s.green },
+  { time: '10:00', text: '超声内镜 #1025 患者刘七', done: false, color: s.orange },
+  { time: '10:45', text: '胃镜检查 #1026 患者陈八', done: false, color: s.blue },
+  { time: '11:30', text: 'ERCP手术 #1027 患者周九', done: false, color: s.purple },
+  { time: '14:00', text: '胃镜检查 #1028 患者吴十', done: false, color: s.blue },
+  { time: '15:00', text: '书写昨日报告', done: false, color: s.teal },
+  { time: '16:30', text: '洗消室交接班', done: false, color: s.teal },
+]
+
+const trendTooltip = {
+  contentStyle: {
+    background: '#fff', border: '1px solid #e2e8f0',
+    borderRadius: 8, fontSize: 12,
+  },
+  labelStyle: { color: '#1a3a5c', fontWeight: 600 },
+}
 
 export default function DashboardPage() {
-  const [isFullscreen, setIsFullscreen] = useState(false)
-  const [lastUpdate, setLastUpdate] = useState(new Date())
-  const [onDuty, setOnDuty] = useState({ doctors: 8, nurses: 12 })
-  const [examProgress, setExamProgress] = useState({ completed: 42, inProgress: 8, pending: 12 })
-  const [rooms, setRooms] = useState(generateRoomData())
-  const [realtimeChart, setRealtimeChart] = useState(() => {
-    const arr = []
-    for (let i = 23; i >= 0; i--) {
-      const t = new Date(Date.now() - i * 60000)
-      arr.push({
-        time: `${t.getHours().toString().padStart(2, '0')}:${t.getMinutes().toString().padStart(2, '0')}`,
-        value: Math.floor(Math.random() * 30 + 20),
-      })
-    }
-    return arr
-  })
-  const [hourlyData] = useState([
-    { hour: '08:00', count: 12 }, { hour: '09:00', count: 22 },
-    { hour: '10:00', count: 28 }, { hour: '11:00', count: 24 },
-    { hour: '12:00', count: 10 }, { hour: '13:00', count: 18 },
-    { hour: '14:00', count: 26 }, { hour: '15:00', count: 30 },
-    { hour: '16:00', count: 22 }, { hour: '17:00', count: 16 },
-  ])
-  const [doctorAttendance] = useState([
-    { name: '出勤', value: 8 }, { name: '休息', value: 2 },
-  ])
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const [searchText, setSearchText] = useState('')
 
-  const refresh = useCallback(() => {
-    setLastUpdate(new Date())
-    setOnDuty({ doctors: Math.floor(Math.random() * 4) + 7, nurses: Math.floor(Math.random() * 4) + 11 })
-    setExamProgress({
-      completed: Math.floor(Math.random() * 10) + 38,
-      inProgress: Math.floor(Math.random() * 6) + 4,
-      pending: Math.floor(Math.random() * 8) + 8,
-    })
-    setRooms(generateRoomData())
-  }, [])
-
-  useEffect(() => {
-    timerRef.current = setInterval(() => {
-      setRealtimeChart((prev) => {
-        const next = [...prev.slice(1)]
-        next.push(generateRealtimeData())
-        return next
-      })
-    }, 5000)
-    return () => { if (timerRef.current) clearInterval(timerRef.current) }
-  }, [])
-
-  const toggleFullscreen = () => setIsFullscreen((v) => !v)
-
-  // ECharts 环形进度图
-  const ringOption = {
-    series: [{
-      type: 'gauge',
-      startAngle: 90,
-      endAngle: -270,
-      radius: '90%',
-      pointer: { show: false },
-      progress: {
-        show: true,
-        overlap: false,
-        roundCap: true,
-        clip: false,
-        itemStyle: {
-          color: {
-            type: 'linear',
-            x: 0, y: 0, x2: 1, y2: 0,
-            colorStops: [
-              { offset: 0, color: C.green },
-              { offset: 0.5, color: C.yellow },
-              { offset: 1, color: C.red },
-            ],
-          },
-        },
-      },
-      axisLine: { lineStyle: { width: 14, color: [[1, C.cardBorder]] } },
-      splitLine: { show: false },
-      axisTick: { show: false },
-      axisLabel: { show: false },
-      data: [{ value: Math.round((examProgress.completed / (examProgress.completed + examProgress.inProgress + examProgress.pending)) * 100), name: '完成率' }],
-      title: { show: false },
-      detail: {
-        fontSize: 28, color: C.text, fontWeight: 800,
-        offsetCenter: [0, 0],
-        formatter: '{value}%',
-      },
-    }],
+  const handleRefresh = () => {
+    setRefreshKey(k => k + 1)
   }
-
-  // ECharts 仪表盘（设备状态）
-  const gaugeOption = (val: number, color: string) => ({
-    series: [{
-      type: 'gauge',
-      startAngle: 200,
-      endAngle: -20,
-      min: 0, max: 100,
-      radius: '100%',
-      pointer: { show: false },
-      progress: { show: false },
-      axisLine: {
-        lineStyle: { width: 6, color: [[1, color]] },
-      },
-      axisTick: { show: false },
-      splitLine: { show: false },
-      axisLabel: { show: false },
-      data: [{ value: val }],
-      detail: {
-        fontSize: 14, color: C.text, fontWeight: 700,
-        offsetCenter: [0, 0],
-        formatter: '{value}%',
-      },
-      title: { show: false },
-    }],
-  })
-
-  // 24小时实时折线图
-  const realtimeOption = {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'axis', backgroundColor: C.card,
-      borderColor: C.cardBorder, textStyle: { color: C.text, fontSize: 12 },
-    },
-    grid: { top: 20, right: 20, bottom: 30, left: 50 },
-    xAxis: {
-      type: 'category', data: realtimeChart.map((d) => d.time),
-      axisLine: { lineStyle: { color: C.cardBorder } },
-      axisLabel: { color: C.textMuted, fontSize: 10, interval: 3 },
-      axisTick: { show: false },
-    },
-    yAxis: {
-      type: 'value', min: 0, max: 60,
-      axisLine: { show: false },
-      splitLine: { lineStyle: { color: C.cardBorder, type: 'dashed' } },
-      axisLabel: { color: C.textMuted, fontSize: 10 },
-    },
-    series: [{
-      type: 'line',
-      data: realtimeChart.map((d) => d.value),
-      smooth: true,
-      lineStyle: { color: C.blue, width: 2 },
-      areaStyle: {
-        color: {
-          type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-          colorStops: [
-            { offset: 0, color: 'rgba(59,130,246,0.4)' },
-            { offset: 1, color: 'rgba(59,130,246,0)' },
-          ],
-        },
-      },
-      symbol: 'none',
-    }],
-  }
-
-  // 当日各时段柱状图
-  const barOption = {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'axis', backgroundColor: C.card,
-      borderColor: C.cardBorder, textStyle: { color: C.text, fontSize: 12 },
-    },
-    grid: { top: 10, right: 10, bottom: 30, left: 40 },
-    xAxis: {
-      type: 'category', data: hourlyData.map((d) => d.hour),
-      axisLine: { lineStyle: { color: C.cardBorder } },
-      axisLabel: { color: C.textMuted, fontSize: 10 },
-      axisTick: { show: false },
-    },
-    yAxis: {
-      type: 'value',
-      axisLine: { show: false },
-      splitLine: { lineStyle: { color: C.cardBorder, type: 'dashed' } },
-      axisLabel: { color: C.textMuted, fontSize: 10 },
-    },
-    series: [{
-      type: 'bar',
-      data: hourlyData.map((d) => d.count),
-      itemStyle: {
-        color: {
-          type: 'linear', x: 0, y: 0, x2: 0, y2: 1,
-          colorStops: [
-            { offset: 0, color: C.blue },
-            { offset: 1, color: 'rgba(59,130,246,0.3)' },
-          ],
-        },
-        borderRadius: [4, 4, 0, 0],
-      },
-    }],
-  }
-
-  // 医生出勤率环形图
-  const attendanceOption = {
-    backgroundColor: 'transparent',
-    tooltip: {
-      trigger: 'item', backgroundColor: C.card,
-      borderColor: C.cardBorder, textStyle: { color: C.text, fontSize: 12 },
-    },
-    series: [{
-      type: 'pie',
-      radius: ['50%', '75%'],
-      avoidLabelOverlap: false,
-      label: { show: false },
-      data: [
-        { value: doctorAttendance[0].value, name: '出勤', itemStyle: { color: C.green } },
-        { value: doctorAttendance[1].value, name: '休息', itemStyle: { color: C.cardBorder } },
-      ],
-    }],
-  }
-
-  const rootStyle = isFullscreen ? s.fullscreen : s.root
-  const updateStr = `${lastUpdate.getHours().toString().padStart(2, '0')}:${lastUpdate.getMinutes().toString().padStart(2, '0')}:${lastUpdate.getSeconds().toString().padStart(2, '0')}`
 
   return (
-    <div style={rootStyle}>
-      {/* 顶部标题栏 */}
+    <div style={s.root}>
+      {/* Header */}
       <div style={s.header}>
         <div>
-          <h1 style={s.title}>超声科运营指挥中心</h1>
+          <h1 style={s.title}>科室数据看板</h1>
           <p style={s.subtitle}>
-            实时监控 · 数据驱动 · 智慧管理
-            <span style={{ marginLeft: 16, display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-              <span style={{ width: 8, height: 8, borderRadius: '50%', background: C.green }} />
-              <span style={{ color: C.green, fontSize: 12 }}>系统正常 · 更新 {updateStr}</span>
-            </span>
+            {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })} · 实时数据
           </p>
         </div>
-        <div style={s.headerBtns}>
-          <button style={{ ...s.btn, ...s.btnOutline }} onClick={refresh}>
-            <RefreshCw size={14} /> 刷新数据
-          </button>
-          <button style={{ ...s.btn, ...s.btnPrimary }} onClick={toggleFullscreen}>
-            <Maximize2 size={14} /> {isFullscreen ? '退出全屏' : '全屏模式'}
-          </button>
+        <button style={s.refreshBtn} onClick={handleRefresh}>
+          <RefreshCw size={13} /> 刷新数据
+        </button>
+        <button style={{ ...s.refreshBtn, background: '#3b82f6', color: '#fff', border: 'none' }}>
+          <Download size={13} /> 导出报表
+        </button>
+      </div>
+
+      {/* 搜索筛选栏 */}
+      <div style={s.filterRow}>
+        <Search size={14} color="#64748b" />
+        <input
+          style={s.searchInput}
+          placeholder="搜索科室数据..."
+          value={searchText}
+          onChange={e => setSearchText(e.target.value)}
+        />
+        <select style={{ ...s.filterBtn, borderRadius: 6 }}>
+          <option>全部时间</option>
+          <option>今日</option>
+          <option>近7天</option>
+          <option>近30天</option>
+        </select>
+        <select style={{ ...s.filterBtn, borderRadius: 6 }}>
+          <option>全部科室</option>
+          <option>消化内科</option>
+          <option>内镜中心</option>
+        </select>
+      </div>
+
+      {/* 今日概览大字卡片 */}
+      <div style={s.bigStatRow}>
+        <BigStatCard
+          icon={Activity}
+          value={TODAY_STATS.exams}
+          label="今日检查"
+          trend={TODAY_STATS.examsTrend}
+          trendDir="up"
+          color={s.blue.color}
+          bg={s.blue.bg}
+        />
+        <BigStatCard
+          icon={CalendarClock}
+          value={TODAY_STATS.appointments}
+          label="今日预约"
+          trend={TODAY_STATS.appointmentsTrend}
+          trendDir="up"
+          color={s.green.color}
+          bg={s.green.bg}
+        />
+        <BigStatCard
+          icon={Scissors}
+          value={TODAY_STATS.surgeries}
+          label="今日手术"
+          trend={TODAY_STATS.surgeriesTrend}
+          trendDir="down"
+          color={s.purple.color}
+          bg={s.purple.bg}
+        />
+        <BigStatCard
+          icon={FileText}
+          value={TODAY_STATS.pendingReports}
+          label="待写报告"
+          trend={TODAY_STATS.pendingReportsTrend}
+          trendDir="warn"
+          color={s.orange.color}
+          bg={s.orange.bg}
+        />
+      </div>
+
+      {/* 7天趋势 + 检查类型 */}
+      <div style={s.chartGrid}>
+        <div style={s.chartCard}>
+          <div style={s.chartTitle}>
+            <TrendingUp size={16} style={s.chartIcon} />
+            近7日检查量趋势
+          </div>
+          <ResponsiveContainer width="100%" height={260}>
+            <LineChart data={TREND_DATA} {...trendTooltip}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+              <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+              <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} />
+              <Tooltip {...trendTooltip} />
+              <Legend wrapperStyle={{ fontSize: 12 }} />
+              <Line type="monotone" dataKey="检查" stroke="#3b82f6" strokeWidth={2.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="报告" stroke="#22c55e" strokeWidth={2.5} dot={{ r: 4 }} activeDot={{ r: 6 }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div style={s.chartCard}>
+          <div style={s.chartTitle}>
+            <PieChartIcon size={16} style={s.chartIcon} />
+            检查类型占比
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <PieChart>
+              <Pie
+                data={EXAM_TYPE_DATA}
+                cx="50%"
+                cy="45%"
+                innerRadius={55}
+                outerRadius={85}
+                paddingAngle={3}
+                dataKey="value"
+              >
+                {EXAM_TYPE_DATA.map((_, idx) => (
+                  <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value: number) => `${value} 例`} contentStyle={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 }} />
+              <Legend layout="vertical" align="right" verticalAlign="middle" wrapperStyle={{ fontSize: 11 }} />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* 顶部统计卡片 */}
-      <div style={s.topStats}>
-        <div style={s.topStatCard}>
-          <div style={{ ...s.topStatIcon, background: 'rgba(59,130,246,0.15)' }}>
-            <Stethoscope size={24} color={C.blue} />
+      {/* 医生工作量 + 内镜使用率 */}
+      <div style={s.chartGrid2}>
+        <div style={s.chartCard}>
+          <div style={s.chartTitle}>
+            <BarChart3 size={16} style={s.chartIcon} />
+            医生工作量排行（本周）
           </div>
-          <div>
-            <div style={s.topStatValue}>{onDuty.doctors}</div>
-            <div style={s.topStatLabel}>在岗医生</div>
-          </div>
-        </div>
-        <div style={s.topStatCard}>
-          <div style={{ ...s.topStatIcon, background: 'rgba(20,184,166,0.15)' }}>
-            <Users size={24} color={C.teal} />
-          </div>
-          <div>
-            <div style={s.topStatValue}>{onDuty.nurses}</div>
-            <div style={s.topStatLabel}>在岗护士</div>
-          </div>
-        </div>
-        <div style={s.topStatCard}>
-          <div style={{ ...s.topStatIcon, background: 'rgba(34,197,94,0.15)' }}>
-            <CheckCircle size={24} color={C.green} />
-          </div>
-          <div>
-            <div style={s.topStatValue}>{examProgress.completed}</div>
-            <div style={s.topStatLabel}>今日已完成</div>
-          </div>
-        </div>
-        <div style={s.topStatCard}>
-          <div style={{ ...s.topStatIcon, background: 'rgba(239,68,68,0.15)' }}>
-            <AlertCircle size={24} color={C.red} />
-          </div>
-          <div>
-            <div style={s.topStatValue}>{CRITICAL_ALERTS.length}</div>
-            <div style={s.topStatLabel}>危急值预警</div>
-          </div>
-        </div>
-      </div>
-
-      {/* 主内容区 */}
-      <div style={s.mainGrid}>
-        {/* 左：今日实时检查进度 环形图 */}
-        <div style={s.card}>
-          <SectionTitle icon={Activity} title="今日实时检查进度" />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
-            <ReactECharts option={ringOption} style={{ height: 180, width: 180 }} />
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-              {[
-                { label: '已完成', value: examProgress.completed, color: C.green },
-                { label: '进行中', value: examProgress.inProgress, color: C.yellow },
-                { label: '待检查', value: examProgress.pending, color: C.red },
-              ].map((item) => (
-                <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: item.color }} />
-                  <span style={{ fontSize: 13, color: C.textMuted, width: 50 }}>{item.label}</span>
-                  <span style={{ fontSize: 18, fontWeight: 700, color: C.text }}>{item.value}</span>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart data={DOCTOR_RANK_DATA} layout="vertical" barCategoryGap="30%">
+              <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+              <YAxis type="category" dataKey="doctor" tick={{ fontSize: 12, fill: '#64748b' }} width={60} />
+              <Tooltip {...trendTooltip} />
+              <Bar dataKey="count" fill="#3b82f6" radius={[0, 4, 4, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* 中：各检查室实时状态 */}
-        <div style={s.card}>
-          <SectionTitle icon={Monitor} title="各检查室实时状态" />
-          <div style={s.roomGrid}>
-            {rooms.map((room) => (
-              <div key={room.name} style={{
-                ...s.roomCard,
-                background: `rgba(${ROOM_COLORS[room.state] === C.green ? '34,197,94' : ROOM_COLORS[room.state] === C.yellow ? '234,179,8' : '239,68,68'},0.1)`,
-                border: `1px solid ${ROOM_COLORS[room.state]}33`,
-              }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={s.roomName}>{room.name}</span>
-                  <span style={{ ...s.roomDot, background: ROOM_COLORS[room.state] }} />
-                </div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: ROOM_COLORS[room.state] }}>
-                  {room.state}
-                </div>
-                <div style={{ fontSize: 11, color: C.textMuted }}>
-                  {room.state === '空闲' ? '可接诊' : room.state === '检查中' ? '检查进行中' : '等待患者'}
-                </div>
-              </div>
-            ))}
+        <div style={s.chartCard}>
+          <div style={s.chartTitle}>
+            <Microscope size={16} style={s.chartIcon} />
+            内镜设备使用率
           </div>
-        </div>
-
-        {/* 右：设备运行状态 */}
-        <div style={s.card}>
-          <SectionTitle icon={Wifi} title="设备运行状态" />
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-            {DEVICES.map((device) => {
-              const statusColor = device.status === '在线' ? C.green : device.status === '维护中' ? C.yellow : C.red
-              const usageVal = device.status === '在线' ? Math.floor(Math.random() * 40) + 60 : device.status === '维护中' ? 0 : 0
+          <div style={{ padding: '8px 0' }}>
+            {ENDOSCOPE_USAGE.map((item, idx) => {
+              const barColor = item.usage >= 80 ? '#22c55e' : item.usage >= 60 ? '#3b82f6' : '#f97316'
               return (
-                <div key={device.name} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <div style={{
-                    width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
-                    background: statusColor,
-                    boxShadow: `0 0 6px ${statusColor}`,
-                  }} />
-                  <div style={{ flex: 1 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
-                      <span style={{ fontSize: 13, color: C.text }}>{device.name}</span>
-                      <span style={{ fontSize: 12, color: statusColor, fontWeight: 600 }}>{device.status}</span>
-                    </div>
-                    <div style={{ background: C.cardBorder, borderRadius: 4, height: 6, overflow: 'hidden' }}>
-                      <div style={{
-                        width: `${usageVal}%`, height: '100%',
-                        background: `linear-gradient(90deg, ${statusColor}88, ${statusColor})`,
-                        borderRadius: 4,
-                        transition: 'width 0.5s',
-                      }} />
-                    </div>
+                <div key={item.name} style={s.usageBar}>
+                  <span style={s.usageLabel}>{item.name}</span>
+                  <div style={s.usageBarBg}>
+                    <div style={{ ...s.usageBarFill, width: `${item.usage}%`, background: barColor }} />
                   </div>
+                  <span style={{ ...s.usagePct, color: barColor }}>{item.usage}%</span>
                 </div>
               )
             })}
           </div>
-        </div>
-      </div>
-
-      {/* 底部分区 */}
-      <div style={s.bottomGrid}>
-        {/* 左：24小时实时曲线 + 当日各时段柱状图 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={s.card}>
-            <SectionTitle icon={TrendingUp} title="24小时检查量实时曲线（每5秒刷新）" />
-            <ReactECharts option={realtimeOption} style={{ height: 200 }} />
-          </div>
-          <div style={s.card}>
-            <SectionTitle icon={Clock} title="当日各时段检查量" />
-            <ReactECharts option={barOption} style={{ height: 180 }} />
-          </div>
-        </div>
-
-        {/* 中：今日危急值预警 */}
-        <div style={s.card}>
-          <SectionTitle icon={Bell} title="今日危急值预警" />
-          <div style={s.criticalList}>
-            {CRITICAL_ALERTS.map((alert) => (
-              <div key={alert.id} style={s.criticalItem}>
-                <div style={s.criticalLeft}>
-                  <span style={s.criticalPatient}>{alert.patient}</span>
-                  <span style={s.criticalExam}>{alert.exam} · {alert.item}</span>
-                </div>
-                <div style={s.criticalRight}>
-                  <div style={s.criticalItem2}>{alert.level}</div>
-                  <div style={s.criticalTime}>{alert.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* 右：手术/介入超声 + 医生出勤率 */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-          <div style={s.card}>
-            <SectionTitle icon={Scissors} title="今日手术/介入超声" />
-            {SURGERIES.map((surgery) => (
-              <div key={surgery.id} style={s.surgeryItem}>
-                <div style={s.surgeryTop}>
-                  <span style={s.surgeryPatient}>{surgery.patient}</span>
-                  <span style={{
-                    fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 8,
-                    background: surgery.status === '进行中' ? 'rgba(239,68,68,0.2)' :
-                      surgery.status === '待开始' ? 'rgba(234,179,8,0.2)' : 'rgba(59,130,246,0.2)',
-                    color: surgery.status === '进行中' ? C.red :
-                      surgery.status === '待开始' ? C.yellow : C.blue,
-                  }}>
-                    {surgery.status}
-                  </span>
-                </div>
-                <div style={s.surgeryType}>{surgery.type}</div>
-                <div style={s.surgeryBottom}>
-                  <span>👨‍⚕️ {surgery.doctor}</span>
-                  <span>⏰ {surgery.time}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-          <div style={s.card}>
-            <SectionTitle icon={Users} title="医生出勤率" />
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <ReactECharts option={attendanceOption} style={{ height: 120, width: 120 }} />
-              <div>
-                <div style={{ fontSize: 24, fontWeight: 800, color: C.green }}>{doctorAttendance[0].value}人</div>
-                <div style={{ fontSize: 12, color: C.textMuted }}>已出勤 / 共{doctorAttendance[0].value + doctorAttendance[1].value}人</div>
-                <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4 }}>出勤率 {Math.round(doctorAttendance[0].value / (doctorAttendance[0].value + doctorAttendance[1].value) * 100)}%</div>
-              </div>
+          <div style={{ marginTop: 12, display: 'flex', gap: 16, justifyContent: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b' }}>
+              <span style={{ width: 10, height: 10, borderRadius: 2, background: '#22c55e', display: 'inline-block' }} /> ≥80%
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b' }}>
+              <span style={{ width: 10, height: 10, borderRadius: 2, background: '#3b82f6', display: 'inline-block' }} /> 60-79%
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, fontSize: 11, color: '#64748b' }}>
+              <span style={{ width: 10, height: 10, borderRadius: 2, background: '#f97316', display: 'inline-block' }} /> &lt;60%
             </div>
           </div>
         </div>
       </div>
+
+      {/* 耗材预警 + 今日待办 */}
+      <div style={s.chartGrid2}>
+        <div style={s.chartCard}>
+          <div style={s.chartTitle}>
+            <AlertTriangle size={16} style={{ color: '#ef4444' }} />
+            耗材库存预警
+            <span style={{ marginLeft: 4, background: '#fef2f2', color: '#ef4444', borderRadius: 20, padding: '1px 8px', fontSize: 11, fontWeight: 600 }}>
+              {WARNING_ITEMS.length} 项
+            </span>
+          </div>
+          <ul style={s.warningList}>
+            {WARNING_ITEMS.map(item => (
+              <li key={item.name} style={s.warningItem}>
+                <span style={{ ...s.warningDot, background: '#ef4444' }} />
+                <span style={s.warningText}>{item.name}</span>
+                <span style={{ fontSize: 11, color: '#ef4444', marginRight: 8 }}>库存{item.stock}</span>
+                <span style={s.warningCount}>低于阈值{item.min}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div style={s.chartCard}>
+          <div style={s.chartTitle}>
+            <Clock size={16} style={s.chartIcon} />
+            今日待办
+          </div>
+          <div style={s.timeline}>
+            {TODAY_TODOS.map((todo, idx) => (
+              <div key={idx} style={s.timelineItem}>
+                <div style={{
+                  ...s.timelineDot,
+                  background: todo.done ? '#22c55e' : '#e2e8f0',
+                  boxShadow: todo.done ? '0 0 0 2px #22c55e' : 'none',
+                }} />
+                <div style={s.timelineTime}>{todo.time}</div>
+                <div style={{
+                  ...s.timelineText,
+                  textDecoration: todo.done ? 'line-through' : 'none',
+                  color: todo.done ? '#94a3b8' : '#475569',
+                }}>
+                  {todo.text}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 今日检查进度 */}
+      <div style={s.chartCard}>
+        <div style={s.chartTitle}>
+          <Activity size={16} style={s.chartIcon} />
+          今日检查完成进度
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginTop: 4 }}>
+          <ProgressItem label="胃镜" done={18} total={25} color="#3b82f6" />
+          <ProgressItem label="肠镜" done={12} total={15} color="#22c55e" />
+          <ProgressItem label="超声内镜" done={4} total={5} color="#8b5cf6" />
+          <ProgressItem label="ERCP" done={2} total={3} color="#f97316" />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// BigStatCard sub-component
+function BigStatCard({ icon: Icon, value, label, trend, trendDir, color, bg }: any) {
+  const trendColor = trendDir === 'up' ? '#22c55e' : trendDir === 'down' ? '#ef4444' : '#f97316'
+  const TrendIcon = trendDir === 'up' ? ArrowUp : trendDir === 'down' ? ArrowDown : AlertTriangle
+  return (
+    <div style={s.bigStatCard}>
+      <div style={{ ...s.bigStatValue, color }}>{value}</div>
+      <div style={s.bigStatLabel}>{label}</div>
+      <div style={{ ...s.bigStatTrend, color: trendColor }}>
+        <TrendIcon size={13} />
+        {trend}
+      </div>
+      <div style={s.bigStatIcon}>
+        <Icon size={56} color={color} />
+      </div>
+    </div>
+  )
+}
+
+// ProgressItem sub-component
+function ProgressItem({ label, done, total, color }: { label: string; done: number; total: number; color: string }) {
+  const pct = Math.round((done / total) * 100)
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+        <span style={{ fontSize: 13, color: '#475569', fontWeight: 500 }}>{label}</span>
+        <span style={{ fontSize: 13, color: '#1a3a5c', fontWeight: 600 }}>{done}/{total}</span>
+      </div>
+      <div style={s.progressBar}>
+        <div style={{ ...s.progressFill, width: `${pct}%`, background: color }} />
+      </div>
+      <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4, textAlign: 'right' }}>{pct}% 完成</div>
     </div>
   )
 }

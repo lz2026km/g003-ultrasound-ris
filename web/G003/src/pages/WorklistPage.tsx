@@ -1,640 +1,492 @@
-// @ts-nocheck
-// G003 超声RIS - 工作列表页面 v0.3.0
-// 三面板布局：左侧检查列表/中间患者详情/右侧检查信息
-import { useState, useCallback } from 'react'
+// ============================================================
+// G004 内镜管理系统 - 今日检查工作台
+// 卡片列表 + 状态流程
+// ============================================================
+import type { LucideIcon } from 'lucide-react';
+import { useState, useMemo } from 'react'
 import {
-  Search, Filter, Clock, User, Monitor, CheckCircle, AlertCircle,
-  ChevronRight, Printer, Archive, RefreshCw, Stethoscope, Activity,
-  Baby, Scan, Radio, Heart, Layers, Play, FileText, CheckSquare,
-  Square, X, Info, Calendar, DollarSign, Phone, CreditCard
+  Calendar, Clock, User, Stethoscope, CheckCircle,
+  Circle, AlertCircle, ChevronRight, Filter, RefreshCw
 } from 'lucide-react'
-import { mockAppointments, mockPatients, ultrasoundDevices } from '../data/initialData'
+import { initialAppointments, initialEndoscopyExams } from '../data/initialData'
+import type { Appointment, AppointmentStatus } from '../types'
 
-// ============ 模拟数据（从mockAppointments实时获取）============
-const examTypes = ['全部', '腹部超声', '心血管超声', '妇产科超声', '浅表器官超声', '外周血管超声', '介入超声']
-
-const workflowSteps = [
-  { key: 'scheduled', label: '预约' },
-  { key: 'registered', label: '登记' },
-  { key: 'examining', label: '检查中' },
-  { key: 'reporting', label: '报告' },
-  { key: 'archived', label: '归档' },
-]
-
-// 基于预约数据构建今日工作列表
-const todayStr = '2025-05-07'
-const mockWorklist = [
-  { id: 'W001', patientId: 'US2025040001', patientName: '陈志国', examType: '心血管超声', examSubtype: '心脏', priority: 'STAT', status: 'Pending', appointmentTime: '08:30', doctor: '张建华', device: 'Philips EPIQ 7C', age: 58, gender: '男', phone: '135****8302', workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false }, fee: 280, note: '复查心脏功能' },
-  { id: 'W002', patientId: 'US2025040004', patientName: '张丽华', examType: '妇产科超声', examSubtype: '中孕', priority: 'Urgent', status: 'In Progress', appointmentTime: '09:00', doctor: '王晓燕', device: 'GE Voluson E10', age: 29, gender: '女', phone: '138****5621', workflow: { scheduled: true, registered: true, examining: true, reporting: false, archived: false }, fee: 320, note: '孕16周产检' },
-  { id: 'W003', patientId: 'US2025040007', patientName: '周明', examType: '浅表器官超声', examSubtype: '甲状腺', priority: 'Normal', status: 'Pending', appointmentTime: '09:30', doctor: '张伟', device: 'Canon Aplio i900', age: 41, gender: '男', phone: '186****8902', workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false }, fee: 120, note: 'TI-RADS 4a类结节复查' },
-  { id: 'W004', patientId: 'US2025040008', patientName: '吴小燕', examType: '浅表器官超声', examSubtype: '乳腺', priority: 'Normal', status: 'Completed', appointmentTime: '10:00', doctor: '张伟', device: 'Canon Aplio i900', age: 35, gender: '女', phone: '135****6134', workflow: { scheduled: true, registered: true, examining: true, reporting: true, archived: false }, fee: 150, note: '乳腺增生随诊' },
-  { id: 'W005', patientId: 'US2025040010', patientName: '郑玉珍', examType: '腹部超声', examSubtype: '胆道', priority: 'Low', status: 'Archived', appointmentTime: '10:30', doctor: '刘强', device: 'Hitachi ARIETTA 850', age: 54, gender: '女', phone: '139****6782', workflow: { scheduled: true, registered: true, examining: true, reporting: true, archived: true }, fee: 180, note: '充满型胆囊结石，术前评估' },
-  { id: 'W006', patientId: 'US2025040011', patientName: '马超', examType: '泌尿系超声', examSubtype: '肾脏', priority: 'Normal', status: 'Pending', appointmentTime: '11:00', doctor: '刘强', device: 'Hitachi ARIETTA 850', age: 38, gender: '男', phone: '136****9012', workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false }, fee: 150, note: '右肾结石复查' },
-  { id: 'W007', patientId: 'US2025040012', patientName: '杨雪梅', examType: '妇产科超声', examSubtype: '妇科', priority: 'Normal', status: 'Pending', appointmentTime: '11:30', doctor: '王晓燕', device: 'GE Voluson E10', age: 27, gender: '女', phone: '158****5678', workflow: { scheduled: true, registered: false, examining: false, reporting: false, archived: false }, fee: 220, note: '右侧卵巢囊肿复查' },
-  { id: 'W008', patientId: 'US2025040015', patientName: '黄晓东', examType: '浅表器官超声', examSubtype: '淋巴结', priority: 'Normal', status: 'In Progress', appointmentTime: '14:00', doctor: '张伟', device: 'Canon Aplio i900', age: 33, gender: '男', phone: '186****7345', workflow: { scheduled: true, registered: true, examining: true, reporting: false, archived: false }, fee: 120, note: '右颈部淋巴结肿大查因' },
-  { id: 'W009', patientId: 'US2025040016', patientName: '林海燕', examType: '妇产科超声', examSubtype: '子宫', priority: 'Normal', status: 'Pending', appointmentTime: '14:30', doctor: '王晓燕', device: 'GE Voluson E10', age: 44, gender: '女', phone: '137****2356', workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false }, fee: 200, note: '子宫多发肌瘤复查' },
-  { id: 'W010', patientId: 'US2025040019', patientName: '韩志鹏', examType: '肌肉骨骼超声', examSubtype: '踝关节', priority: 'Normal', status: 'Pending', appointmentTime: '15:00', doctor: '张伟', device: 'Canon Aplio i900', age: 31, gender: '男', phone: '136****9087', workflow: { scheduled: true, registered: false, examining: false, reporting: false, archived: false }, fee: 150, note: '右踝韧带损伤复查' },
-]
-
-// ============ 样式 ============
+// ---------- 样式 ----------
 const s: Record<string, React.CSSProperties> = {
-  root: { padding: 0, height: 'calc(100vh - 120px)', display: 'flex', flexDirection: 'column' as const },
-  header: { marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: 700, color: '#1a3a5c', margin: 0 },
-  version: { fontSize: 11, color: '#94a3b8', marginLeft: 8, fontWeight: 400 },
-  headerActions: { display: 'flex', gap: 8 },
-  // 三面板容器
-  threePanel: { display: 'flex', gap: 16, flex: 1, minHeight: 0, overflow: 'hidden' },
-  // 左侧面板 - 检查列表
-  leftPanel: {
-    width: 420, flexShrink: 0, display: 'flex', flexDirection: 'column' as const,
-    background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-    border: '1px solid #e2e8f0', overflow: 'hidden'
+  root: { padding: 0 },
+  header: {
+    marginBottom: 24,
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
-  leftPanelHeader: {
-    padding: '14px 16px', borderBottom: '1px solid #e2e8f0',
-    display: 'flex', flexDirection: 'column' as const, gap: 10, flexShrink: 0
+  title: {
+    fontSize: 20, fontWeight: 700, color: '#1a3a5c', margin: 0,
   },
-  leftPanelBody: { flex: 1, overflow: 'auto', padding: 8 },
-  // 中间面板 - 患者详情
-  middlePanel: {
-    flex: 1, display: 'flex', flexDirection: 'column' as const,
-    background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-    border: '1px solid #e2e8f0', overflow: 'hidden'
+  subtitle: {
+    fontSize: 13, color: '#64748b', marginTop: 4,
   },
-  middlePanelHeader: { padding: '14px 16px', borderBottom: '1px solid #e2e8f0' },
-  middlePanelBody: { flex: 1, overflow: 'auto', padding: 16 },
-  // 右侧面板 - 检查信息
-  rightPanel: {
-    width: 340, flexShrink: 0, display: 'flex', flexDirection: 'column' as const,
-    background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-    border: '1px solid #e2e8f0', overflow: 'hidden'
+  headerRight: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
   },
-  rightPanelHeader: { padding: '14px 16px', borderBottom: '1px solid #e2e8f0' },
-  rightPanelBody: { flex: 1, overflow: 'auto', padding: 16 },
+  refreshBtn: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 6,
+    padding: '8px 14px',
+    background: '#fff',
+    border: '1px solid #e2e8f0',
+    borderRadius: 8,
+    fontSize: 13,
+    color: '#64748b',
+    cursor: 'pointer',
+  },
+  // 状态流程条
+  statusFlow: {
+    display: 'flex',
+    alignItems: 'center',
+    background: '#fff',
+    borderRadius: 12,
+    padding: '16px 24px',
+    marginBottom: 24,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    gap: 0,
+  },
+  flowStep: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    flex: 1,
+    position: 'relative',
+  },
+  flowDot: {
+    width: 32, height: 32, borderRadius: '50%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 13, fontWeight: 600, zIndex: 1,
+  },
+  flowLabel: {
+    fontSize: 11, color: '#64748b', marginTop: 6, textAlign: 'center',
+  },
+  flowCount: {
+    fontSize: 16, fontWeight: 700, marginTop: 2,
+  },
+  flowLine: {
+    position: 'absolute',
+    top: 16,
+    left: '50%',
+    width: '100%',
+    height: 2,
+    zIndex: 0,
+  },
+  // 统计摘要
+  summaryRow: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: 16,
+    marginBottom: 24,
+  },
+  summaryCard: {
+    background: '#fff',
+    borderRadius: 10,
+    padding: '14px 18px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 12,
+  },
+  summaryIcon: {
+    width: 38, height: 38, borderRadius: 8,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  summaryInfo: { flex: 1 },
+  summaryValue: {
+    fontSize: 20, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.2,
+  },
+  summaryLabel: {
+    fontSize: 11, color: '#64748b', marginTop: 2,
+  },
   // 筛选栏
-  filterRow: {
-    display: 'flex', gap: 8, alignItems: 'center', background: '#f8fafc',
-    padding: '10px 12px', borderRadius: 8, flexWrap: 'wrap' as const,
+  filterBar: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 16,
   },
-  searchInput: {
-    flex: 1, minWidth: 140, padding: '6px 10px', borderRadius: 6,
-    border: '1px solid #e2e8f0', fontSize: 13, color: '#1a3a5c',
-    background: '#fff', outline: 'none', minHeight: 34,
+  filterLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
+    fontSize: 13,
+    color: '#64748b',
+    marginRight: 4,
   },
-  filterBtn: {
-    display: 'flex', alignItems: 'center', gap: 4, padding: '6px 10px',
-    borderRadius: 6, border: '1px solid #e2e8f0', background: '#fff',
-    cursor: 'pointer', fontSize: 12, color: '#64748b', minHeight: 34,
+  filterTab: {
+    padding: '6px 14px',
+    borderRadius: 20,
+    fontSize: 13,
+    cursor: 'pointer',
+    border: '1px solid transparent',
+    transition: 'all 0.2s',
   },
-  filterBtnActive: {
-    background: '#3b82f6', color: '#fff', border: '1px solid #3b82f6',
+  // 卡片列表
+  cardList: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: 12,
   },
-  filterChip: {
-    padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500,
-    cursor: 'pointer', border: '1px solid #e2e8f0', background: '#fff',
+  card: {
+    background: '#fff',
+    borderRadius: 12,
+    padding: '18px 20px',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 16,
+    cursor: 'pointer',
+    transition: 'box-shadow 0.2s',
   },
-  filterChipActive: {
-    background: '#1a3a5c', color: '#fff', border: '1px solid #1a3a5c',
+  cardAvatar: {
+    width: 48, height: 48, borderRadius: '50%',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 18, fontWeight: 700, color: '#fff',
+    flexShrink: 0,
   },
-  // 检查项列表
-  examItem: {
-    padding: '10px 12px', borderRadius: 8, cursor: 'pointer',
-    border: '1px solid transparent', marginBottom: 4, transition: 'all 0.15s',
+  cardInfo: { flex: 1, minWidth: 0 },
+  cardName: {
+    fontSize: 15, fontWeight: 600, color: '#1a3a5c', marginBottom: 4,
   },
-  examItemSelected: {
-    background: '#eff6ff', border: '1px solid #3b82f6',
+  cardMeta: {
+    display: 'flex',
+    flexWrap: 'wrap',
+    gap: '4px 12px',
+    fontSize: 12, color: '#64748b',
   },
-  examItemTop: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 },
-  priorityDot: { width: 8, height: 8, borderRadius: '50%', flexShrink: 0 },
-  examItemName: { fontSize: 14, fontWeight: 600, color: '#1a3a5c', flex: 1 },
-  examItemMeta: { fontSize: 12, color: '#64748b', display: 'flex', gap: 12, flexWrap: 'wrap' as const },
-  // 工作流步骤条
-  workflowBar: { display: 'flex', alignItems: 'center', gap: 0, marginTop: 8 },
-  workflowStep: { display: 'flex', alignItems: 'center' },
-  workflowStepIcon: {
-    width: 22, height: 22, borderRadius: '50%', display: 'flex',
-    alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 600,
+  cardMetaItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
   },
-  workflowStepLabel: { fontSize: 10, color: '#64748b', marginTop: 2, textAlign: 'center' as const },
-  workflowLine: { flex: 1, height: 2, marginTop: -10 },
-  // 患者详情卡片
-  patientCard: { marginBottom: 16 },
-  patientName: { fontSize: 22, fontWeight: 700, color: '#1a3a5c', marginBottom: 4 },
-  patientId: { fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 4 },
-  patientTags: { display: 'flex', gap: 8, marginTop: 10, flexWrap: 'wrap' as const },
-  tag: {
-    display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px',
-    borderRadius: 20, fontSize: 12, fontWeight: 500,
+  cardRight: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 8,
+    flexShrink: 0,
   },
-  infoGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 },
-  infoItem: { display: 'flex', flexDirection: 'column' as const, gap: 2 },
-  infoLabel: { fontSize: 11, color: '#94a3b8', textTransform: 'uppercase' as const },
-  infoValue: { fontSize: 14, color: '#1a3a5c', fontWeight: 500 },
-  // 检查信息
-  examTypeSection: { marginBottom: 20 },
-  sectionTitle: { fontSize: 13, fontWeight: 600, color: '#1a3a5c', marginBottom: 10, textTransform: 'uppercase' as const },
-  workflowDisplay: { display: 'flex', flexDirection: 'column' as const, gap: 6 },
-  workflowRow: { display: 'flex', alignItems: 'center', gap: 8 },
-  workflowDot: { width: 10, height: 10, borderRadius: '50%', flexShrink: 0 },
-  workflowText: { fontSize: 13, color: '#1a3a5c' },
-  actionBtn: {
-    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
-    borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 13,
-    fontWeight: 500, minHeight: 38,
+  statusBadge: {
+    padding: '4px 10px',
+    borderRadius: 12,
+    fontSize: 12,
+    fontWeight: 500,
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
   },
-  actionBtnOutline: {
-    display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 14px',
-    borderRadius: 6, border: '1px solid #e2e8f0', background: '#fff',
-    cursor: 'pointer', fontSize: 13, fontWeight: 500, minHeight: 38, color: '#64748b',
+  queueNum: {
+    fontSize: 12, color: '#94a3b8',
+    display: 'flex',
+    alignItems: 'center',
+    gap: 4,
   },
-  batchBar: {
-    display: 'flex', alignItems: 'center', gap: 8, padding: '10px 12px',
-    background: '#f8fafc', borderRadius: 8, marginBottom: 10,
+  cardArrow: {
+    color: '#cbd5e1',
   },
-  checkbox: { cursor: 'pointer', color: '#3b82f6' },
+  // 空状态
   emptyState: {
-    display: 'flex', flexDirection: 'column' as const, alignItems: 'center',
-    justifyContent: 'center', height: '100%', color: '#94a3b8', gap: 8,
+    textAlign: 'center',
+    padding: '48px 20px',
+    color: '#94a3b8',
+    fontSize: 14,
   },
-  statRow: { display: 'flex', gap: 8, flexWrap: 'wrap' as const },
-  statChip: {
-    padding: '4px 10px', borderRadius: 20, fontSize: 11, fontWeight: 500,
-    cursor: 'pointer', border: '1px solid #e2e8f0', background: '#fff',
-    display: 'flex', alignItems: 'center', gap: 4,
-  },
-  statChipActive: {
-    background: '#1a3a5c', color: '#fff', border: '1px solid #1a3a5c',
-  },
-  panelTitle: { fontSize: 14, fontWeight: 600, color: '#1a3a5c', margin: 0 },
-  badge: {
-    display: 'inline-flex', padding: '2px 8px', borderRadius: 20,
-    fontSize: 11, fontWeight: 500,
-  },
+  // 颜色
+  blue: { backgroundColor: '#eff6ff', color: '#3b82f6' },
+  green: { backgroundColor: '#f0fdf4', color: '#22c55e' },
+  orange: { backgroundColor: '#fff7ed', color: '#f97316' },
+  red: { backgroundColor: '#fef2f2', color: '#ef4444' },
+  gray: { backgroundColor: '#f8fafc', color: '#64748b' },
+  purple: { backgroundColor: '#f5f3ff', color: '#8b5cf6' },
 }
 
-// ============ 颜色映射 ============
-const priorityColors: Record<string, string> = {
-  'STAT': '#ef4444', 'Urgent': '#f97316', 'Normal': '#3b82f6', 'Low': '#94a3b8',
+// 状态配置
+const STATUS_CONFIG: Record<AppointmentStatus, { label: string; color: string; backgroundColor: string; icon: React.ReactNode }> = {
+  '待确认': { label: '待确认', color: '#f97316', backgroundColor: '#fff7ed', icon: <Circle size={12} /> },
+  '已确认': { label: '已确认', color: '#3b82f6', backgroundColor: '#eff6ff', icon: <Circle size={12} /> },
+  '检查中': { label: '检查中', color: '#8b5cf6', backgroundColor: '#f5f3ff', icon: <AlertCircle size={12} /> },
+  '已完成': { label: '已完成', color: '#22c55e', backgroundColor: '#f0fdf4', icon: <CheckCircle size={12} /> },
+  '已取消': { label: '已取消', color: '#94a3b8', backgroundColor: '#f8fafc', icon: <Circle size={12} /> },
+  '迟到': { label: '迟到', color: '#ef4444', backgroundColor: '#fef2f2', icon: <AlertCircle size={12} /> },
+  '待检查': { label: '待检查', color: '#a855f7', backgroundColor: '#faf5ff', icon: <Circle size={12} /> },
+  '进行中': { label: '进行中', color: '#0ea5e9', backgroundColor: '#f0f9ff', icon: <AlertCircle size={12} /> },
 }
 
-const statusColors: Record<string, { bg: string; color: string; label: string }> = {
-  'Pending': { bg: '#fff7ed', color: '#f97316', label: '待检查' },
-  'In Progress': { bg: '#eff6ff', color: '#3b82f6', label: '检查中' },
-  'Completed': { bg: '#f0fdf4', color: '#22c55e', label: '已完成' },
-  'Archived': { bg: '#f8fafc', color: '#64748b', label: '已归档' },
-}
+// 流程步骤
+const FLOW_STEPS: AppointmentStatus[] = ['待确认', '已确认', '检查中', '已完成']
 
-const examTypeIcons: Record<string, React.ReactNode> = {
-  '腹部': <Stethoscope size={14} />,
-  '心脏': <Heart size={14} />,
-  '妇产': <Baby size={14} />,
-  '浅表': <Scan size={14} />,
-  '血管': <Activity size={14} />,
-  '介入': <Radio size={14} />,
-}
+// 性别颜色
+const GENDER_COLORS = { '男': '#3b82f6', '女': '#ec4899' }
 
-// ============ 组件 ============
-function WorkflowBar({ workflow }: { workflow: Record<string, boolean> }) {
-  return (
-    <div style={s.workflowBar}>
-      {workflowSteps.map((step, i) => {
-        const done = workflow[step.key]
-        const isLast = i === workflowSteps.length - 1
-        return (
-          <div key={step.key} style={{ display: 'flex', alignItems: 'center', flex: isLast ? 0 : 1 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              <div style={{
-                ...s.workflowStepIcon,
-                background: done ? '#22c55e' : '#f1f5f9',
-                color: done ? '#fff' : '#94a3b8',
-              }}>
-                {done ? '✓' : i + 1}
-              </div>
-              <div style={s.workflowStepLabel}>{step.label}</div>
-            </div>
-            {!isLast && (
-              <div style={{
-                ...s.workflowLine,
-                background: workflow[workflowSteps[i + 1].key] ? '#22c55e' : '#e2e8f0',
-                marginLeft: 2, marginRight: 2,
-              }} />
-            )}
-          </div>
-        )
-      })}
-    </div>
-  )
-}
-
-function PatientDetailPanel({ item }: { item: typeof mockWorklist[0] | null }) {
-  if (!item) {
-    return (
-      <div style={s.emptyState}>
-        <User size={40} />
-        <span style={{ fontSize: 14 }}>选择检查项查看患者详情</span>
-      </div>
-    )
-  }
-
-  const genderColor = item.gender === '男' ? '#3b82f6' : '#ec4899'
-  const priorityColor = priorityColors[item.priority] || '#94a3b8'
-  const sc = statusColors[item.status] || statusColors['Pending']
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={s.middlePanelHeader}>
-        <div style={s.patientName}>{item.patientName}</div>
-        <div style={s.patientId}>
-          <CreditCard size={12} />
-          {item.patientId}
-        </div>
-        <div style={s.patientTags}>
-          <span style={{ ...s.tag, background: `${genderColor}15`, color: genderColor }}>
-            {item.gender}
-          </span>
-          <span style={{ ...s.tag, background: `${genderColor}15`, color: genderColor }}>
-            {item.age}岁
-          </span>
-          <span style={{ ...s.tag, background: `${priorityColor}15`, color: priorityColor }}>
-            {item.priority === 'STAT' ? '🔴 STAT' : item.priority === 'Urgent' ? '🟠 Urgent' : item.priority}
-          </span>
-          <span style={{ ...s.badge, background: sc.bg, color: sc.color }}>
-            {sc.label}
-          </span>
-        </div>
-      </div>
-      <div style={s.middlePanelBody}>
-        <div style={s.infoGrid}>
-          <div style={s.infoItem}>
-            <span style={s.infoLabel}>联系电话</span>
-            <span style={s.infoValue}>{item.phone}</span>
-          </div>
-          <div style={s.infoItem}>
-            <span style={s.infoLabel}>预约时间</span>
-            <span style={s.infoValue}>{item.appointmentTime}</span>
-          </div>
-          <div style={s.infoItem}>
-            <span style={s.infoLabel}>检查医生</span>
-            <span style={s.infoValue}>{item.doctor}</span>
-          </div>
-          <div style={s.infoItem}>
-            <span style={s.infoLabel}>检查设备</span>
-            <span style={s.infoValue}>{item.device}</span>
-          </div>
-          <div style={s.infoItem}>
-            <span style={s.infoLabel}>检查费用</span>
-            <span style={s.infoValue}>¥{item.fee}</span>
-          </div>
-          <div style={s.infoItem}>
-            <span style={s.infoLabel}>检查类型</span>
-            <span style={s.infoValue}>{item.examType} - {item.examSubtype}</span>
-          </div>
-        </div>
-
-        {item.note && (
-          <div style={{ marginTop: 16, padding: 12, background: '#f8fafc', borderRadius: 8, borderLeft: '3px solid #3b82f6' }}>
-            <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 4, textTransform: 'uppercase' }}>备注</div>
-            <div style={{ fontSize: 13, color: '#1a3a5c' }}>{item.note}</div>
-          </div>
-        )}
-
-        <div style={{ marginTop: 20 }}>
-          <div style={s.sectionTitle}>工作流程</div>
-          <WorkflowBar workflow={item.workflow} />
-        </div>
-
-        <div style={{ marginTop: 20, display: 'flex', gap: 8 }}>
-          {item.status === 'Pending' && (
-            <button style={{ ...s.actionBtn, background: '#3b82f6', color: '#fff' }}>
-              <Play size={14} /> 开始检查
-            </button>
-          )}
-          {item.status === 'In Progress' && (
-            <button style={{ ...s.actionBtn, background: '#22c55e', color: '#fff' }}>
-              <CheckCircle size={14} /> 完成检查
-            </button>
-          )}
-          <button style={{ ...s.actionBtnOutline }}>
-            <Printer size={14} /> 打印申请单
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function ExamInfoPanel({ item, onBatchAction }: {
-  item: typeof mockWorklist[0] | null
-  onBatchAction: (action: string) => void
-}) {
-  if (!item) {
-    return (
-      <div style={s.emptyState}>
-        <Info size={40} />
-        <span style={{ fontSize: 14 }}>选择检查项查看检查信息</span>
-      </div>
-    )
-  }
-
-  const typeColor = '#3b82f6'
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-      <div style={s.rightPanelHeader}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <div style={{
-            width: 36, height: 36, borderRadius: 8, background: `${typeColor}15`,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: typeColor
-          }}>
-            {examTypeIcons[item.examType] || <Stethoscope size={14} />}
-          </div>
-          <div>
-            <div style={{ fontSize: 14, fontWeight: 600, color: '#1a3a5c' }}>{item.examType}超声</div>
-            <div style={{ fontSize: 12, color: '#64748b' }}>{item.examSubtype}</div>
-          </div>
-        </div>
-      </div>
-      <div style={s.rightPanelBody}>
-        <div style={s.examTypeSection}>
-          <div style={s.sectionTitle}>检查信息</div>
-          <div style={s.workflowDisplay}>
-            {[
-              { label: '检查ID', value: item.id },
-              { label: '检查类型', value: `${item.examType} - ${item.examSubtype}` },
-              { label: '分配设备', value: item.device },
-              { label: '执行医生', value: item.doctor },
-              { label: '预约时段', value: item.appointmentTime },
-              { label: '检查费用', value: `¥${item.fee}` },
-            ].map(row => (
-              <div key={row.label} style={s.workflowRow}>
-                <span style={{ fontSize: 12, color: '#94a3b8', width: 70 }}>{row.label}</span>
-                <span style={s.workflowText}>{row.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={s.examTypeSection}>
-          <div style={s.sectionTitle}>快捷操作</div>
-          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 8 }}>
-            <button style={{ ...s.actionBtn, background: '#f8fafc', color: '#1a3a5c', justifyContent: 'flex-start' }}
-              onClick={() => onBatchAction('print')}>
-              <Printer size={14} /> 打印检查单
-            </button>
-            <button style={{ ...s.actionBtn, background: '#f8fafc', color: '#1a3a5c', justifyContent: 'flex-start' }}
-              onClick={() => onBatchAction('report')}>
-              <FileText size={14} /> 书写报告
-            </button>
-            <button style={{ ...s.actionBtn, background: '#f8fafc', color: '#1a3a5c', justifyContent: 'flex-start' }}
-              onClick={() => onBatchAction('view')}>
-              <Layers size={14} /> 查看影像
-            </button>
-            {item.status !== 'Archived' && (
-              <button style={{ ...s.actionBtn, background: '#f8fafc', color: '#1a3a5c', justifyContent: 'flex-start' }}
-                onClick={() => onBatchAction('archive')}>
-                <Archive size={14} /> 归档检查
-              </button>
-            )}
-          </div>
-        </div>
-
-        <div style={{ marginTop: 'auto', paddingTop: 16 }}>
-          <div style={{ fontSize: 11, color: '#94a3b8', textAlign: 'center' }}>
-            双击检查项进入执行页面
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
+// ============ 今日工作台组件 ============
 export default function WorklistPage() {
-  const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState('全部')
-  const [typeFilter, setTypeFilter] = useState('全部')
-  const [selectedId, setSelectedId] = useState<string | null>(null)
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
-  const [selectMode, setSelectMode] = useState(false)
+  const today = '2026-04-29'
 
-  const statusOptions = ['全部', '待检查', '检查中', '已完成', '已归档']
-  const statusMap: Record<string, string> = {
-    '全部': '', '待检查': 'Pending', '检查中': 'In Progress', '已完成': 'Completed', '已归档': 'Archived'
-  }
-
-  const filtered = mockWorklist.filter(w => {
-    const matchSearch = !search ||
-      w.patientName.includes(search) ||
-      w.patientId.includes(search) ||
-      w.examType.includes(search) ||
-      w.examSubtype.includes(search)
-    const matchStatus = !statusFilter || statusFilter === '全部' || w.status === statusMap[statusFilter]
-    const matchType = !typeFilter || typeFilter === '全部' || w.examType === typeFilter
-    return matchSearch && matchStatus && matchType
-  })
-
-  const selected = mockWorklist.find(w => w.id === selectedId) || null
-
-  const handleItemClick = useCallback((id: string) => {
-    if (selectMode) {
-      setSelectedIds(prev => {
-        const next = new Set(prev)
-        if (next.has(id)) next.delete(id)
-        else next.add(id)
-        return next
-      })
-    } else {
-      setSelectedId(id)
-    }
-  }, [selectMode])
-
-  const handleItemDoubleClick = useCallback((id: string) => {
-    const item = mockWorklist.find(w => w.id === id)
-    if (item) {
-      alert(`进入检查执行页面: ${item.examType} - ${item.examSubtype}\n患者: ${item.patientName}`)
-    }
+  // 今日预约
+  const todayAppointments = useMemo(() => {
+    return initialAppointments.filter(apt => apt.appointmentDate === today)
   }, [])
 
-  const handleBatchAction = useCallback((action: string) => {
-    if (selectedIds.size === 0) return
-    const ids = Array.from(selectedIds).join(', ')
-    if (action === 'print') {
-      alert(`批量打印: ${ids}`)
-    } else if (action === 'archive') {
-      alert(`批量归档: ${ids}`)
+  // 已完成的检查
+  const todayExams = useMemo(() => {
+    return initialEndoscopyExams.filter(exam => exam.examDate === today)
+  }, [])
+
+  // 状态统计
+  const statusCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      '待确认': 0, '已确认': 0, '检查中': 0, '已完成': 0, '已取消': 0, '迟到': 0,
     }
-    setSelectedIds(new Set())
-    setSelectMode(false)
-  }, [selectedIds])
+    todayAppointments.forEach(apt => {
+      counts[apt.status] = (counts[apt.status] || 0) + 1
+    })
+    return counts
+  }, [todayAppointments])
 
-  const toggleSelectMode = () => {
-    setSelectMode(prev => !prev)
-    if (selectMode) setSelectedIds(new Set())
-  }
+  // 筛选状态
+  const [filterStatus, setFilterStatus] = useState<string>('全部')
 
-  const stats = {
-    total: mockWorklist.length,
-    pending: mockWorklist.filter(w => w.status === 'Pending').length,
-    inProgress: mockWorklist.filter(w => w.status === 'In Progress').length,
-    completed: mockWorklist.filter(w => w.status === 'Completed').length,
-    archived: mockWorklist.filter(w => w.status === 'Archived').length,
-  }
+  const filteredAppointments = useMemo(() => {
+    if (filterStatus === '全部') return todayAppointments
+    return todayAppointments.filter(apt => apt.status === filterStatus)
+  }, [todayAppointments, filterStatus])
+
+  // 总计
+  const totalCount = todayAppointments.length
+  const completedCount = statusCounts['已完成'] || 0
+  const inProgressCount = (statusCounts['检查中'] || 0) + (statusCounts['已确认'] || 0)
 
   return (
     <div style={s.root}>
+      {/* 标题区 */}
       <div style={s.header}>
-        <h1 style={s.title}>
-          工作列表
-          <span style={s.version}>v0.2.0</span>
-        </h1>
-        <div style={s.headerActions}>
-          <button style={{ ...s.actionBtn, background: '#f8fafc', color: '#64748b' }}>
-            <RefreshCw size={14} /> 刷新
+        <div>
+          <h1 style={s.title}>今日检查工作台</h1>
+          <p style={s.subtitle}>
+            <Calendar size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
+            {new Date(today).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
+            <span style={{ marginLeft: 12, color: '#94a3b8' }}>
+              共 <strong style={{ color: '#1a3a5c' }}>{totalCount}</strong> 位患者预约
+              ，已完成 <strong style={{ color: '#22c55e' }}>{completedCount}</strong> 例
+            </span>
+          </p>
+        </div>
+        <div style={s.headerRight}>
+          <button style={{ ...s.refreshBtn, minHeight: 44, padding: '8px 16px' }}>
+            <RefreshCw size={15} />
+            刷新列表
           </button>
         </div>
       </div>
 
-      <div style={s.threePanel}>
-        {/* 左侧: 检查列表 */}
-        <div style={s.leftPanel}>
-          <div style={s.leftPanelHeader}>
-            <div style={s.filterRow}>
-              <Search size={13} color="#64748b" />
-              <input
-                style={s.searchInput}
-                placeholder="搜索患者/检查..."
-                value={search}
-                onChange={e => setSearch(e.target.value)}
-              />
-            </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              {statusOptions.map(opt => (
-                <button
-                  key={opt}
-                  style={{
-                    ...s.filterChip,
-                    ...(statusFilter === opt ? s.filterChipActive : {}),
-                  }}
-                  onClick={() => setStatusFilter(opt)}
-                >
-                  {opt}
-                  {opt === '全部' && ` (${stats.total})`}
-                  {opt === '待检查' && ` (${stats.pending})`}
-                  {opt === '检查中' && ` (${stats.inProgress})`}
-                  {opt === '已完成' && ` (${stats.completed})`}
-                  {opt === '已归档' && ` (${stats.archived})`}
-                </button>
-              ))}
-            </div>
-            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-              <button
-                style={{
-                  ...s.filterChip,
-                  ...(typeFilter === '全部' ? s.filterChipActive : {}),
-                }}
-                onClick={() => setTypeFilter('全部')}
-              >
-                全部
-              </button>
-              {examTypes.map(t => (
-                <button
-                  key={t}
-                  style={{
-                    ...s.filterChip,
-                    ...(typeFilter === t ? s.filterChipActive : {}),
-                  }}
-                  onClick={() => setTypeFilter(t)}
-                >
-                  {examTypeIcons[t]}
-                  <span style={{ marginLeft: 4 }}>{t}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {selectedIds.size > 0 && (
-            <div style={s.batchBar}>
-              <span style={{ fontSize: 12, color: '#64748b', flex: 1 }}>
-                已选 {selectedIds.size} 项
-              </span>
-              <button style={{ ...s.actionBtn, padding: '4px 10px', background: '#3b82f6', color: '#fff', fontSize: 12 }}
-                onClick={() => handleBatchAction('print')}>
-                <Printer size={12} /> 批量打印
-              </button>
-              <button style={{ ...s.actionBtn, padding: '4px 10px', background: '#64748b', color: '#fff', fontSize: 12 }}
-                onClick={() => handleBatchAction('archive')}>
-                <Archive size={12} /> 批量归档
-              </button>
-              <button style={{ ...s.actionBtn, padding: '4px 8px', background: '#f8fafc', color: '#64748b', fontSize: 12 }}
-                onClick={toggleSelectMode}>
-                <X size={12} />
-              </button>
-            </div>
-          )}
-
-          <div style={s.leftPanelBody}>
-            {filtered.length === 0 ? (
-              <div style={s.emptyState}>
-                <Search size={30} />
-                <span style={{ fontSize: 13 }}>无匹配检查</span>
-              </div>
-            ) : filtered.map(w => {
-              const sc = statusColors[w.status] || statusColors['Pending']
-              const isSelected = selectedId === w.id
-              const isChecked = selectedIds.has(w.id)
-              return (
-                <div
-                  key={w.id}
-                  style={{
-                    ...s.examItem,
-                    ...(isSelected ? s.examItemSelected : {}),
-                  }}
-                  onClick={() => handleItemClick(w.id)}
-                  onDoubleClick={() => handleItemDoubleClick(w.id)}
-                >
-                  <div style={s.examItemTop}>
-                    {selectMode && (
-                      <span style={s.checkbox}>
-                        {isChecked ? <CheckSquare size={16} /> : <Square size={16} />}
-                      </span>
-                    )}
-                    <div style={{ ...s.priorityDot, background: priorityColors[w.priority] || '#94a3b8' }} />
-                    <span style={s.examItemName}>{w.patientName}</span>
-                    <span style={{ ...s.badge, background: sc.bg, color: sc.color, fontSize: 10 }}>
-                      {sc.label}
-                    </span>
-                    <ChevronRight size={14} color="#94a3b8" />
-                  </div>
-                  <div style={s.examItemMeta}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      {examTypeIcons[w.examType]}
-                      {w.examType} - {w.examSubtype}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <Clock size={11} /> {w.appointmentTime}
-                    </span>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                      <User size={11} /> {w.doctor}
-                    </span>
-                  </div>
-                  <WorkflowBar workflow={w.workflow} />
+      {/* 状态流程条 */}
+      <div style={s.statusFlow}>
+        {FLOW_STEPS.map((step, idx) => {
+          const count = statusCounts[step] || 0
+          const cfg = STATUS_CONFIG[step]
+          const isLast = idx === FLOW_STEPS.length - 1
+          return (
+            <div key={step} style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+              <div style={s.flowStep}>
+                <div style={{
+                  ...s.flowDot,
+                  background: count > 0 ? cfg.backgroundColor : '#f1f5f9',
+                  color: count > 0 ? cfg.color : '#cbd5e1',
+                  border: `2px solid ${count > 0 ? cfg.color : '#e2e8f0'}`,
+                }}>
+                  {count}
                 </div>
-              )
-            })}
+                <div style={s.flowLabel}>{cfg.label}</div>
+              </div>
+              {!isLast && (
+                <div style={{
+                  ...s.flowLine,
+                  background: `linear-gradient(to right, ${cfg.color}33, ${FLOW_STEPS[idx + 1] ? STATUS_CONFIG[FLOW_STEPS[idx + 1]].color : cfg.color}33)`,
+                  width: '100%',
+                  left: '50%',
+                }} />
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* 统计摘要 */}
+      <div style={s.summaryRow}>
+        <SummaryCard
+          icon={Stethoscope}
+          iconBg={s.blue.backgroundColor as string}
+          iconColor={s.blue.color as string}
+          value={totalCount}
+          label="今日预约"
+        />
+        <SummaryCard
+          icon={Clock}
+          iconBg={s.orange.backgroundColor as string}
+          iconColor={s.orange.color as string}
+          value={inProgressCount}
+          label="进行中"
+        />
+        <SummaryCard
+          icon={CheckCircle}
+          iconBg={s.green.backgroundColor as string}
+          iconColor={s.green.color as string}
+          value={completedCount}
+          label="已完成"
+        />
+        <SummaryCard
+          icon={User}
+          iconBg={s.purple.backgroundColor as string}
+          iconColor={s.purple.color as string}
+          value={statusCounts['待确认'] || 0}
+          label="待确认"
+        />
+      </div>
+
+      {/* 筛选栏 */}
+      <div style={s.filterBar}>
+        <span style={s.filterLabel}><Filter size={13} /> 状态筛选：</span>
+        {['全部', '待确认', '已确认', '检查中', '已完成'].map(status => (
+          <button
+            key={status}
+            style={{
+              ...s.filterTab,
+              minHeight: 36,
+              padding: '6px 16px',
+              background: filterStatus === status ? (status === '全部' ? '#1a3a5c' : STATUS_CONFIG[status as AppointmentStatus]?.color) : '#fff',
+              color: filterStatus === status ? '#fff' : '#64748b',
+              borderColor: filterStatus === status ? 'transparent' : '#e2e8f0',
+            }}
+            onClick={() => setFilterStatus(status)}
+          >
+            {status}
+          </button>
+        ))}
+      </div>
+
+      {/* 卡片列表 */}
+      <div style={s.cardList}>
+        {filteredAppointments.length === 0 ? (
+          <div style={{ ...s.card, textAlign: 'center', padding: '60px 40px', background: '#fff', borderRadius: 12, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }}>
+            <Calendar size={48} style={{ marginBottom: 16, opacity: 0.35, color: '#64748b' }} />
+            <div style={{ fontSize: 16, fontWeight: 600, color: '#475569', marginBottom: 8 }}>
+              {filterStatus === '全部' ? '今日暂无预约记录' : `暂无${filterStatus}状态的预约`}
+            </div>
+            <div style={{ fontSize: 13, color: '#94a3b8', marginBottom: 4 }}>
+              {filterStatus === '全部' ? '请检查排班或日期是否正确' : '可切换上方状态筛选查看其他预约'}
+            </div>
+            <div style={{ fontSize: 12, color: '#cbd5e1', marginTop: 16 }}>
+              共 {todayAppointments.length} 条预约记录
+            </div>
           </div>
-        </div>
+        ) : (
+          filteredAppointments.map((apt) => (
+            <WorklistCard key={apt.id} appointment={apt} />
+          ))
+        )}
+      </div>
+    </div>
+  )
+}
 
-        {/* 中间: 患者详情 */}
-        <div style={s.middlePanel}>
-          <PatientDetailPanel item={selected} />
-        </div>
+// ---------- SummaryCard ----------
+interface SummaryCardProps {
+  icon: LucideIcon
+  iconBg: React.CSSProperties['background']
+  iconColor: string
+  value: number
+  label: string
+}
 
-        {/* 右侧: 检查信息 */}
-        <div style={s.rightPanel}>
-          <ExamInfoPanel item={selected} onBatchAction={handleBatchAction} />
+function SummaryCard({ icon: Icon, iconBg, iconColor, value, label }: SummaryCardProps) {
+  return (
+    <div style={s.summaryCard}>
+      <div style={{ ...s.summaryIcon, background: iconBg }}>
+        <Icon size={18} color={iconColor} />
+      </div>
+      <div style={s.summaryInfo}>
+        <div style={s.summaryValue}>{value}</div>
+        <div style={s.summaryLabel}>{label}</div>
+      </div>
+    </div>
+  )
+}
+
+// ---------- WorklistCard ----------
+interface WorklistCardProps {
+  appointment: Appointment
+}
+
+function WorklistCard({ appointment }: WorklistCardProps) {
+  const cfg = STATUS_CONFIG[appointment.status] || STATUS_CONFIG['待确认']
+  const genderColor = GENDER_COLORS[appointment.patientId.startsWith('P00') && parseInt(appointment.patientId.slice(3)) % 2 === 0 ? '女' : '男']
+
+  // 获取关联检查信息
+  const relatedExam = initialEndoscopyExams.find(ex => ex.appointmentId === appointment.id)
+
+  return (
+    <div style={s.card}>
+      {/* 头像 */}
+      <div style={{ ...s.cardAvatar, background: genderColor }}>
+        {appointment.patientName.slice(-2)}
+      </div>
+
+      {/* 信息 */}
+      <div style={s.cardInfo}>
+        <div style={s.cardName}>{appointment.patientName}</div>
+        <div style={s.cardMeta}>
+          <span style={s.cardMetaItem}>
+            <Stethoscope size={11} />
+            {appointment.examItemName}
+          </span>
+          <span style={s.cardMetaItem}>
+            <User size={11} />
+            {appointment.doctorName}
+          </span>
+          <span style={s.cardMetaItem}>
+            <Clock size={11} />
+            {appointment.appointmentTime}
+          </span>
+          <span style={s.cardMetaItem}>
+            <Calendar size={11} />
+            {appointment.examRoom}
+          </span>
+        </div>
+        {appointment.notes && (
+          <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 4 }}>
+            备注：{appointment.notes}
+          </div>
+        )}
+        {relatedExam && (
+          <div style={{ fontSize: 11, color: '#64748b', marginTop: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
+            <CheckCircle size={11} color={s.green.color} />
+            已完成 · {relatedExam.imageCount}张图 · 活检{relatedExam.biopsyCount}块
+          </div>
+        )}
+      </div>
+
+      {/* 右侧 */}
+      <div style={s.cardRight}>
+        <div style={{ ...s.statusBadge, background: cfg.backgroundColor, color: cfg.color }}>
+          {cfg.icon}
+          {cfg.label}
+        </div>
+        <div style={s.queueNum}>
+          <span>排队</span>
+          <strong style={{ fontSize: 14, color: '#1a3a5c' }}>#{appointment.queueNumber}</strong>
         </div>
       </div>
+
+      <ChevronRight size={18} style={s.cardArrow} />
     </div>
   )
 }

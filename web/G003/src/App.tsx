@@ -1,7 +1,6 @@
 import { useState, lazy, Suspense, createContext, useContext } from 'react'
 import { Routes, Route, Navigate, BrowserRouter, useNavigate, useLocation } from 'react-router-dom'
 
-// Navigate context
 const NavigateCtx = createContext<(path: string) => void>(() => {})
 export const useNav = () => useContext(NavigateCtx)
 
@@ -10,57 +9,56 @@ import {
   ShieldCheck, BarChart3, ClipboardCheck, BookOpen, Shield, ListChecks,
   Menu, X, Stethoscope, LogOut, Bell, Package, Scissors, ShieldAlert, AlertTriangle,
   Camera, UserCheck, AlertCircle, Video, GraduationCap, UsersRound, Database,
-  Heart, Thermometer, Droplets, Baby, Brain, Eye, Scan, Wifi, Printer,
-  ClipboardList, PackagePlus, AlertOctagon, Info, CheckSquare, Square,
-  Clock3, Tag, PackageSearch, Wrench, HardDrive, ChevronRight, BellRing,
-  Radio, Monitor, Settings, UserCog, RefreshCw, Download, Search, Filter
+  Scan, Heart, Thermometer, Droplets
 } from 'lucide-react'
 
-// 页面组件 — 代码分割
 const HomePage = lazy(() => import('./pages/HomePage'))
 const PatientPage = lazy(() => import('./pages/PatientPage'))
 const AppointmentPage = lazy(() => import('./pages/AppointmentPage'))
 const ExamPage = lazy(() => import('./pages/ExamPage'))
 const ReportPage = lazy(() => import('./pages/ReportPage'))
 const ReportWritePage = lazy(() => import('./pages/ReportWritePage'))
-const WorklistPage = lazy(() => import('./pages/WorklistPage'))
-const SchedulePage = lazy(() => import('./pages/SchedulePage'))
+import TestPage from './pages/TestPage'
+const UltrasoundPage = lazy(() => import('./pages/UltrasoundPage'))
+const DisinfectionPage = lazy(() => import('./pages/DisinfectionPage'))
 const StatisticsPage = lazy(() => import('./pages/StatisticsPage'))
-const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const QCPage = lazy(() => import('./pages/QCPage'))
 const DictionaryPage = lazy(() => import('./pages/DictionaryPage'))
 const AuditPage = lazy(() => import('./pages/AuditPage'))
-const MaterialsPage = lazy(() => import('./pages/MaterialsPage'))
-const FollowUpPage = lazy(() => import('./pages/FollowUpPage'))
-const TransfusionPage = lazy(() => import('./pages/TransfusionPage'))
-const ResearchProjectPage = lazy(() => import('./pages/ResearchProjectPage'))
-const TrainingExamPage = lazy(() => import('./pages/TrainingExamPage'))
-const AuthorityPage = lazy(() => import('./pages/AuthorityPage'))
-const ImagePage = lazy(() => import('./pages/ImagePage'))
-const TemplatePage = lazy(() => import('./pages/TemplatePage'))
-const NursingPage = lazy(() => import('./pages/NursingPage'))
+const WorklistPage = lazy(() => import('./pages/WorklistPage'))
+const SchedulePage = lazy(() => import('./pages/SchedulePage'))
 const CriticalValuePage = lazy(() => import('./pages/CriticalValuePage'))
 const CriticalAlertPage = lazy(() => import('./pages/CriticalAlertPage'))
-const ConsultationPage = lazy(() => import('./pages/ConsultationPage'))
-const InfectionPage = lazy(() => import('./pages/InfectionPage'))
-const NationalReportPage = lazy(() => import('./pages/NationalReportPage'))
-const InsuranceAuditPage = lazy(() => import('./pages/InsuranceAuditPage'))
-const DataReportCenterPage = lazy(() => import('./pages/DataReportCenterPage'))
-const EquipmentLifecyclePage = lazy(() => import('./pages/EquipmentLifecyclePage'))
-const OperationsCenterPage = lazy(() => import('./pages/OperationsCenterPage'))
-const CostAnalysisPage = lazy(() => import('./pages/CostAnalysisPage'))
-const ResearchPage = lazy(() => import('./pages/ResearchPage'))
-const TrainingPage = lazy(() => import('./pages/TrainingPage'))
-const QueueCallPage = lazy(() => import('./pages/QueueCallPage'))
+const MaterialsPage = lazy(() => import('./pages/MaterialsPage'))
+const FollowUpPage = lazy(() => import('./pages/FollowUpPage'))
+const SurgeryPage = lazy(() => import('./pages/SurgeryPage'))
+const AuthorityPage = lazy(() => import('./pages/AuthorityPage'))
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const ImagePage = lazy(() => import('./pages/ImagePage'))
 const EducationPage = lazy(() => import('./pages/EducationPage'))
+const TemplatePage = lazy(() => import('./pages/TemplatePage'))
+const NursingPage = lazy(() => import('./pages/NursingPage'))
+const PreOpPage = lazy(() => import('./pages/PreOpPage'))
+const SurgeryLivePage = lazy(() => import('./pages/SurgeryLivePage'))
 const AIQCPage = lazy(() => import('./pages/AIQCPage'))
 const CancerScreenPage = lazy(() => import('./pages/CancerScreenPage'))
 const StatsEnhancedPage = lazy(() => import('./pages/StatsEnhancedPage'))
-const DisinfectionPage = lazy(() => import('./pages/DisinfectionPage'))
-const UltrasoundModesPage = lazy(() => import('./pages/UltrasoundModesPage'))
+const DisinfectionTracePage = lazy(() => import('./pages/DisinfectionTracePage'))
+const ConsultationPage = lazy(() => import('./pages/ConsultationPage'))
+const InfectionPage = lazy(() => import('./pages/InfectionPage'))
+const SurgeryRecordPage = lazy(() => import('./pages/SurgeryRecordPage'))
+const NationalReportPage = lazy(() => import('./pages/NationalReportPage'))
+const InsuranceAuditPage = lazy(() => import('./pages/InsuranceAuditPage'))
+const ResearchPage = lazy(() => import('./pages/ResearchPage'))
+const TrainingPage = lazy(() => import('./pages/TrainingPage'))
+const QueueCallPage = lazy(() => import('./pages/QueueCallPage'))
+const DataReportCenterPage = lazy(() => import('./pages/DataReportCenterPage'))
+const EquipmentLifecyclePage = lazy(() => import('./pages/EquipmentLifecyclePage'))
+const OperationsCenterPage = lazy(() => import('./pages/OperationsCenterPage'))
 const DicomViewerPage = lazy(() => import('./pages/DicomViewerPage'))
+const CostAnalysisPage = lazy(() => import('./pages/CostAnalysisPage'))
+const ImagingModesPage = lazy(() => import('./pages/ImagingModesPage'))
 
-// 骨架屏 Loading 组件
 const SkeletonBlock = ({ width = '100%', height = 20, style = {} }: { width?: string | number, height?: number, style?: React.CSSProperties }) => (
   <div style={{
     background: 'linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%)',
@@ -98,7 +96,6 @@ const Loading = () => (
   </div>
 )
 
-// ============ 样式 ============
 const s: Record<string, React.CSSProperties> = {
   root: { display: 'flex', minHeight: '100vh', background: '#f0f4f8' },
   sidebar: {
@@ -161,7 +158,6 @@ const s: Record<string, React.CSSProperties> = {
   },
 }
 
-// ============ 导航配置 ============
 const NAV_ITEMS = [
   {
     section: '工作台',
@@ -188,14 +184,31 @@ const NAV_ITEMS = [
       { path: '/critical-value', icon: Bell, label: '危急值' },
       { path: '/critical-alert', icon: AlertTriangle, label: '危机预警' },
       { path: '/images', icon: Camera, label: '影像管理' },
-      { path: '/dicom', icon: Scan, label: 'DICOM浏览器' },
-      { path: '/ultrasound-modes', icon: Radio, label: '超声模式介绍' },
+      { path: '/dicom', icon: Camera, label: 'DICOM浏览器' },
+      { path: '/imaging-modes', icon: Camera, label: '成像模式介绍' },
       { path: '/templates', icon: FileText, label: '检查模板' },
       { path: '/nursing', icon: ClipboardCheck, label: '护理记录' },
+      { path: '/preop', icon: ClipboardCheck, label: '术前评估' },
     ],
   },
   {
-    section: '质控与安全',
+    section: '超声设备',
+    items: [
+      { path: '/ultrasound', icon: Activity, label: '超声设备' },
+      { path: '/disinfection', icon: ShieldCheck, label: '洗消追溯' },
+      { path: '/disinfection-trace', icon: ShieldCheck, label: '洗消追溯增强' },
+    ],
+  },
+  {
+    section: '手术与示教',
+    items: [
+      { path: '/surgery', icon: Scissors, label: '手术预约' },
+      { path: '/surgery-live', icon: Camera, label: '手术示教' },
+      { path: '/surgery-records', icon: Video, label: '手术录像管理' },
+    ],
+  },
+  {
+    section: '质量与安全',
     items: [
       { path: '/ai-qc', icon: BarChart3, label: 'AI质控中心' },
       { path: '/qc', icon: ClipboardCheck, label: '质量控制' },
@@ -215,11 +228,8 @@ const NAV_ITEMS = [
       { path: '/dictionary', icon: BookOpen, label: '数据字典' },
       { path: '/audit', icon: Shield, label: '审计日志' },
       { path: '/materials', icon: Package, label: '耗材管理' },
-      { path: '/equipment-lifecycle', icon: Monitor, label: '设备全生命周期' },
+      { path: '/equipment-lifecycle', icon: Microscope, label: '设备全生命周期' },
       { path: '/followup', icon: Activity, label: '随访管理' },
-      { path: '/transfusion', icon: Droplets, label: '输血输液' },
-      { path: '/research-project', icon: Database, label: '科研项目' },
-      { path: '/training-exam', icon: GraduationCap, label: '培训考试' },
       { path: '/cancer-screen', icon: AlertTriangle, label: '早癌筛查' },
       { path: '/national-report', icon: ShieldAlert, label: '国家数据上报' },
       { path: '/data-report', icon: Database, label: '数据上报中心' },
@@ -275,10 +285,9 @@ function AppShell() {
 
   return (
     <div style={s.root}>
-      {/* 侧边栏 */}
       <aside style={{ ...s.sidebar }}>
         <div style={s.logo}>
-          <Radio size={22} color="#4ade80" />
+          <Activity size={22} color="#4ade80" />
           <span>G003 · 超声RIS</span>
         </div>
         <nav style={s.nav}>
@@ -290,36 +299,31 @@ function AppShell() {
           ))}
         </nav>
         <div style={s.sidebarFooter}>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声RIS信息管理系统</div>
+          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声影像信息管理系统</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.5.0</div>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }} onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.9.0</div>
+            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
+              onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
           </div>
         </div>
       </aside>
 
-      {/* 移动端遮罩 */}
       {sidebarOpen && (
-        <div style={s.overlay} onClick={() => setSidebarOpen(false)} />
+        <div style={{ ...s.overlay, display: 'block' }} onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* 主内容 */}
       <div style={s.main}>
-        {/* 顶部栏 */}
         <header style={s.topbar}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button
-              style={s.mobileMenuBtn}
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-            >
+            <button style={s.mobileMenuBtn} onClick={() => setSidebarOpen(!sidebarOpen)}>
               {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
             </button>
             <span style={s.topbarTitle}>
-              {NAV_ITEMS.flatMap(g => g.items).find(i => i.path === currentPath)?.label ?? '超声RIS管理系统'}
+              {NAV_ITEMS.flatMap(g => g.items).find(i => i.path === currentPath)?.label ?? '超声RIS系统'}
             </span>
           </div>
           <div style={s.topbarRight}>
-            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.5.0</div>
+            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.9.0</div>
             <div style={s.topbarBadge}>
               <Bell size={20} />
               <span style={s.badge}>1</span>
@@ -330,70 +334,71 @@ function AppShell() {
                 color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 13, fontWeight: 600,
               }}>
-                李
+                张
               </div>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#1a3a5c' }}>李明辉</div>
-                <div style={{ fontSize: 11, color: '#94a3b8' }}>超声科 · 主治医师</div>
+                <div style={{ fontSize: 13, fontWeight: 600, color: '#1a3a5c' }}>张建国</div>
+                <div style={{ fontSize: 11, color: '#94a3b8' }}>超声科 · 医生</div>
               </div>
             </div>
           </div>
         </header>
 
-        {/* 路由 */}
         <div style={s.page}>
           <Suspense fallback={<Loading />}>
-            <Routes>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/worklist" element={<WorklistPage />} />
-              <Route path="/schedule" element={<SchedulePage />} />
-              <Route path="/patients" element={<PatientPage />} />
-              <Route path="/appointments" element={<AppointmentPage />} />
-              <Route path="/exams" element={<ExamPage />} />
-              <Route path="/reports" element={<ReportPage />} />
-              <Route path="/report-write" element={<ReportWritePage />} />
-              <Route path="/report-write/:reportId" element={<ReportWritePage />} />
-              <Route path="/critical-value" element={<CriticalValuePage />} />
-              <Route path="/critical-alert" element={<CriticalAlertPage />} />
-              <Route path="/statistics" element={<StatisticsPage />} />
-              <Route path="/qc" element={<QCPage />} />
-              <Route path="/dictionary" element={<DictionaryPage />} />
-              <Route path="/audit" element={<AuditPage />} />
-              <Route path="/materials" element={<MaterialsPage />} />
-              <Route path="/followup" element={<FollowUpPage />} />
-              <Route path="/authority" element={<AuthorityPage />} />
-              <Route path="/dashboard" element={<DashboardPage />} />
-              <Route path="/images" element={<ImagePage />} />
-              <Route path="/templates" element={<TemplatePage />} />
-              <Route path="/nursing" element={<NursingPage />} />
-              <Route path="/education" element={<EducationPage />} />
-              <Route path="/cancer-screen" element={<CancerScreenPage />} />
-              <Route path="/ai-qc" element={<AIQCPage />} />
-              <Route path="/stats-enhanced" element={<StatsEnhancedPage />} />
-              <Route path="/consultation" element={<ConsultationPage />} />
-              <Route path="/infection" element={<InfectionPage />} />
-              <Route path="/national-report" element={<NationalReportPage />} />
-              <Route path="/insurance-audit" element={<InsuranceAuditPage />} />
-              <Route path="/dicom" element={<DicomViewerPage />} />
-              <Route path="/cost-analysis" element={<CostAnalysisPage />} />
-              <Route path="/ultrasound-modes" element={<UltrasoundModesPage />} />
-              <Route path="/research" element={<ResearchPage />} />
-              <Route path="/training" element={<TrainingPage />} />
-              <Route path="/queue-call" element={<QueueCallPage />} />
-              <Route path="/data-report" element={<DataReportCenterPage />} />
-              <Route path="/equipment-lifecycle" element={<EquipmentLifecyclePage />} />
-              <Route path="/operations" element={<OperationsCenterPage />} />
-              <Route path="/disinfection" element={<DisinfectionPage />} />
-              <Route path="/transfusion" element={<TransfusionPage />} />
-              <Route path="/research-project" element={<ResearchProjectPage />} />
-              <Route path="/training-exam" element={<TrainingExamPage />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Routes>
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/worklist" element={<WorklistPage />} />
+            <Route path="/schedule" element={<SchedulePage />} />
+            <Route path="/patients" element={<PatientPage />} />
+            <Route path="/appointments" element={<AppointmentPage />} />
+            <Route path="/exams" element={<ExamPage />} />
+            <Route path="/reports" element={<ReportPage />} />
+            <Route path="/report-write" element={<ReportWritePage />} />
+            <Route path="/report-write/:reportId" element={<ReportWritePage />} />
+            <Route path="/critical-value" element={<CriticalValuePage />} />
+            <Route path="/critical-alert" element={<CriticalAlertPage />} />
+            <Route path="/ultrasound" element={<UltrasoundPage />} />
+            <Route path="/disinfection" element={<DisinfectionPage />} />
+            <Route path="/statistics" element={<StatisticsPage />} />
+            <Route path="/qc" element={<QCPage />} />
+            <Route path="/dictionary" element={<DictionaryPage />} />
+            <Route path="/audit" element={<AuditPage />} />
+            <Route path="/materials" element={<MaterialsPage />} />
+            <Route path="/followup" element={<FollowUpPage />} />
+            <Route path="/surgery" element={<SurgeryPage />} />
+            <Route path="/authority" element={<AuthorityPage />} />
+            <Route path="/dashboard" element={<DashboardPage />} />
+            <Route path="/images" element={<ImagePage />} />
+            <Route path="/templates" element={<TemplatePage />} />
+            <Route path="/nursing" element={<NursingPage />} />
+            <Route path="/preop" element={<PreOpPage />} />
+            <Route path="/education" element={<EducationPage />} />
+            <Route path="/cancer-screen" element={<CancerScreenPage />} />
+            <Route path="/ai-qc" element={<AIQCPage />} />
+            <Route path="/stats-enhanced" element={<StatsEnhancedPage />} />
+            <Route path="/surgery-live" element={<SurgeryLivePage />} />
+            <Route path="/disinfection-trace" element={<DisinfectionTracePage />} />
+            <Route path="/consultation" element={<ConsultationPage />} />
+            <Route path="/infection" element={<InfectionPage />} />
+            <Route path="/surgery-records" element={<SurgeryRecordPage />} />
+            <Route path="/national-report" element={<NationalReportPage />} />
+            <Route path="/insurance-audit" element={<InsuranceAuditPage />} />
+            <Route path="/dicom" element={<DicomViewerPage />} />
+            <Route path="/cost-analysis" element={<CostAnalysisPage />} />
+            <Route path="/imaging-modes" element={<ImagingModesPage />} />
+            <Route path="/research" element={<ResearchPage />} />
+            <Route path="/training" element={<TrainingPage />} />
+            <Route path="/queue-call" element={<QueueCallPage />} />
+            <Route path="/data-report" element={<DataReportCenterPage />} />
+            <Route path="/equipment-lifecycle" element={<EquipmentLifecyclePage />} />
+            <Route path="/operations" element={<OperationsCenterPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
           </Suspense>
         </div>
       </div>
 
-      {/* 版本历史弹窗 */}
       {showVersionModal && (
         <div style={{
           position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000,
@@ -413,26 +418,18 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.3.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.9.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
-                  大幅扩充模拟数据：50名患者档案、80条检查记录、20+份超声报告、30条预约记录。数据完全符合超声科室规范，涵盖心血管/腹部/妇产/浅表/血管/介入/肌肉骨骼等多种超声检查类型，附真实超声描述性报告和诊断建议。彻底清除内镜数据残留，所有数据ID格式统一为US202504XXXX。
+                  全面对标超声RIS行业竞品（蓝网科技/东软/联影/开立/岱嘉），整合所有产品优秀功能；新增感染管理、会诊管理、统计分析、数据上报中心等核心模块；修复预约管理/感染管理/会诊管理/统计分析/数据上报等页面交互bug；基于G004内镜系统页面风格重构为超声科专用界面；配套扩充超声科演示数据（患者/检查/预约/设备/耗材等）
                 </div>
               </div>
               <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
                 <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                  v0.5.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（历史版本）</span>
+                  v0.1.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（初始版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                  核心流程升级：患者检查全流程闭环、DICOM增强、AI质控、统计图表ECharts、科室运营大屏
-                </div>
-              </div>
-              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
-                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                  v0.1.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（历史版本）</span>
-                </div>
-                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                  智慧超声RIS信息管理系统 v0.1.0 首发版本，基于G004内镜系统架构全面重构。集成患者管理、预约登记、检查执行、报告书写、叫号分诊、图像采集、数据统计等核心模块。对标蓝网科技、东软医疗US-RIS、联影医疗、开立医疗、岱嘉超声RIS等全网竞品，汇聚所有产品优点于一体。
+                  基础框架搭建，基于G004内镜系统复制重构，移植46个页面模块，适配超声科业务流程
                 </div>
               </div>
             </div>

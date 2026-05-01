@@ -1,807 +1,1264 @@
-// @ts-nocheck
 // ============================================================
-// G003 超声RIS系统 - AI质控中心 v0.2.0
-// AI图像质量评估 / 报告完整性检查 / 异常检测 / 质控统计
+// G004 内镜管理系统 - AI智能质控中心页面（完整增强版）
+// 图像质量自动评分 · 22张图片标准检测 · 质控指标仪表盘 · 质控统计报表
 // ============================================================
-import { useState, useEffect } from 'react'
+import React, { useState, useMemo, useCallback } from 'react'
 import {
-  Search, Filter, Download, CheckCircle, AlertCircle,
-  Brain, FileText, BarChart3, TrendingUp, Clock, Settings,
-  User, Eye, MessageSquare, ThumbsUp, ThumbsDown, RefreshCw,
-  ChevronRight, Sparkles, ShieldCheck, Activity, Image,
-  Clipboard, Bell, X, Plus, ChevronDown, Save, RotateCcw,
-  Warning, Info, Check, AlertTriangle, Layers
+  Shield, AlertTriangle, CheckCircle, Award, Activity, Calendar,
+  Filter, Download, ChevronRight, Clock, Image, FileText, TrendingUp,
+  User, BarChart3, PieChart, Play, Pause, RotateCw, Settings,
+  Brain, Camera, Zap, Eye, Edit3, Trash2, Plus, Search, Bell,
+  Wifi, WifiOff, RefreshCw, X, Check, Info, AlertOctagon,
+  Target, Radio, Layers, Cpu, HardDrive, Gauge, Upload,
+  VideoOff, FileSearch, BrainCircuit, TrendingDown, CheckSquare,
+  CameraOff, Contrast, Layers2,
+  BarChart, ArrowUp, ArrowDown, EyeOff, FileCheck, ClipboardList
 } from 'lucide-react'
-import ReactECharts from 'echarts-for-react'
+// ========== 常量与类型 ==========
+type TabKey = 'realtime' | 'history' | 'scoring' | 'models' | 'dashboard' | 'reports'
 
-// ---------- 颜色常量 ----------
-const C = {
-  blue: '#3b82f6',
-  green: '#22c55e',
-  orange: '#f97316',
-  red: '#ef4444',
-  purple: '#8b5cf6',
-  teal: '#14b8a6',
-  yellow: '#eab308',
-  bg: '#f8fafc',
-  card: '#ffffff',
-  border: '#e2e8f0',
-  text: '#1a3a5c',
-  textMuted: '#64748b',
-  textLight: '#94a3b8',
+interface ImageQCResult {
+  id: string
+  name: string
+  clarity: number    // 清晰度 0-100
+  brightness: number  // 亮度 0-100
+  coverage: number   // 覆盖度 0-100
+  overall: number    // 综合评分 0-100
+  issues: string[]   // 问题列表
 }
 
-// ---------- 样式 ----------
-const s: Record<string, React.CSSProperties> = {
-  root: { padding: 0, minHeight: '100vh', background: C.bg },
-  header: { marginBottom: 24 },
-  title: { fontSize: 20, fontWeight: 700, color: C.text, margin: 0 },
-  subtitle: { fontSize: 13, color: C.textMuted, marginTop: 4 },
-  headerRight: { display: 'flex', gap: 8 },
-  // 主布局：左侧 + 右侧
-  mainLayout: { display: 'grid', gridTemplateColumns: '340px 1fr', gap: 20 },
-  // 左侧面板
-  leftPanel: { display: 'flex', flexDirection: 'column', gap: 16 },
-  // 右侧面板
-  rightPanel: { display: 'flex', flexDirection: 'column', gap: 16 },
-  // 统计卡片行
-  statRow: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 },
-  statCard: { background: C.card, borderRadius: 12, padding: '16px 18px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex', alignItems: 'center', gap: 12 },
-  statIconWrap: { width: 42, height: 42, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
-  statInfo: { flex: 1, minWidth: 0 },
-  statValue: { fontSize: 22, fontWeight: 700, color: C.text, lineHeight: 1.2 },
-  statLabel: { fontSize: 11, color: C.textMuted, marginTop: 2 },
-  statTrend: { fontSize: 10, color: C.green, marginTop: 2, display: 'flex', alignItems: 'center', gap: 2 },
-  // 搜索筛选
-  searchBar: { display: 'flex', gap: 8, alignItems: 'center' },
-  searchInput: { flex: 1, padding: '9px 14px', border: `1px solid ${C.border}`, borderRadius: 10, fontSize: 13, outline: 'none', background: C.card },
-  filterBtn: { padding: '9px 14px', border: `1px solid ${C.border}`, borderRadius: 10, background: C.card, cursor: 'pointer', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6, color: C.textMuted },
-  // 筛选面板
-  filterPanel: { background: C.card, borderRadius: 12, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  filterTitle: { fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 },
-  filterRow: { display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 12 },
-  filterLabel: { fontSize: 11, color: C.textMuted, fontWeight: 500 },
-  filterSelect: { padding: '8px 12px', border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 12, outline: 'none', background: '#fff', width: '100%' },
-  filterChips: { display: 'flex', flexWrap: 'wrap', gap: 6 },
-  filterChip: { padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 500, cursor: 'pointer', border: `1px solid ${C.border}` },
-  filterChipActive: { padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 500, cursor: 'pointer', background: C.blue, color: '#fff', border: 'none' },
-  // 图表卡片
-  chartCard: { background: C.card, borderRadius: 12, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  chartTitle: { fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 },
-  chartIcon: { color: C.textMuted },
-  // 问题分类卡片
-  categoryCard: { background: C.card, borderRadius: 12, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', cursor: 'pointer', transition: 'all 0.2s', border: '2px solid transparent' },
-  categoryCardActive: { background: C.card, borderRadius: 12, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', cursor: 'pointer', transition: 'all 0.2s', border: `2px solid ${C.blue}` },
-  categoryHeader: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 },
-  categoryName: { fontSize: 12, fontWeight: 600, color: C.text, display: 'flex', alignItems: 'center', gap: 6 },
-  categoryCount: { fontSize: 18, fontWeight: 700, color: C.text },
-  categoryBar: { height: 4, borderRadius: 2, background: C.border, marginTop: 8, overflow: 'hidden' },
-  categoryBarFill: { height: '100%', borderRadius: 2, transition: 'width 0.3s' },
-  // 规则配置
-  configCard: { background: C.card, borderRadius: 12, padding: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  configTitle: { fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 },
-  configRow: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  configLabel: { fontSize: 12, color: C.textMuted },
-  configValue: { display: 'flex', alignItems: 'center', gap: 6 },
-  configInput: { width: 60, padding: '4px 8px', border: `1px solid ${C.border}`, borderRadius: 6, fontSize: 12, textAlign: 'center' },
-  // 标签页
-  tabs: { display: 'flex', gap: 4, borderBottom: `2px solid ${C.border}`, marginBottom: 16 },
-  tab: { padding: '10px 18px', fontSize: 13, fontWeight: 600, color: C.textMuted, cursor: 'pointer', borderBottom: '2px solid transparent', marginBottom: -2 },
-  tabActive: { padding: '10px 18px', fontSize: 13, fontWeight: 600, color: C.blue, cursor: 'pointer', borderBottom: `2px solid ${C.blue}`, marginBottom: -2 },
-  // 问题列表
-  issueList: { display: 'flex', flexDirection: 'column', gap: 10 },
-  issueCard: { background: C.card, borderRadius: 12, padding: 14, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', borderLeft: '4px solid' },
-  issueHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
-  issueTitle: { fontSize: 13, fontWeight: 600, color: C.text },
-  issueMeta: { fontSize: 11, color: C.textMuted, marginTop: 2 },
-  issueTag: { fontSize: 10, fontWeight: 600, padding: '2px 8px', borderRadius: 6 },
-  issueContent: { fontSize: 12, color: C.textMuted, lineHeight: 1.5, marginBottom: 8 },
-  issueActions: { display: 'flex', gap: 6 },
-  // 详情面板
-  detailPanel: { background: C.card, borderRadius: 12, padding: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  detailHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16, paddingBottom: 12, borderBottom: `1px solid ${C.border}` },
-  detailTitle: { fontSize: 15, fontWeight: 600, color: C.text },
-  detailSection: { marginBottom: 16 },
-  detailLabel: { fontSize: 11, color: C.textMuted, marginBottom: 6, fontWeight: 500 },
-  detailText: { fontSize: 13, color: C.text, lineHeight: 1.6 },
-  // AI评分
-  scoreCircle: { position: 'relative', width: 80, height: 80 },
-  scoreValue: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: 22, fontWeight: 700 },
-  // 复查申请弹窗
-  modal: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 },
-  modalContent: { background: '#fff', borderRadius: 16, padding: 24, width: 480, maxHeight: '80vh', overflowY: 'auto' },
-  modalTitle: { fontSize: 16, fontWeight: 700, color: C.text, marginBottom: 16 },
-  modalRow: { marginBottom: 14 },
-  modalLabel: { fontSize: 12, color: C.textMuted, marginBottom: 4 },
-  modalInput: { width: '100%', padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13, outline: 'none', boxSizing: 'border-box' },
-  modalTextarea: { width: '100%', padding: '10px 12px', border: `1px solid ${C.border}`, borderRadius: 8, fontSize: 13, outline: 'none', resize: 'vertical', minHeight: 80, boxSizing: 'border-box' },
-  modalActions: { display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 20 },
-  // 按钮
-  btn: { padding: '8px 14px', borderRadius: 8, border: 'none', cursor: 'pointer', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 5, transition: 'all 0.2s' },
-  btnPrimary: { background: C.blue, color: '#fff' },
-  btnOutline: { padding: '8px 14px', borderRadius: 8, border: `1px solid ${C.border}`, cursor: 'pointer', fontSize: 12, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 5, background: '#fff', color: C.textMuted },
-  btnSuccess: { background: C.green, color: '#fff' },
-  btnDanger: { background: C.red, color: '#fff' },
-  btnOrange: { background: C.orange, color: '#fff' },
-  // 标签色
-  blue: { backgroundColor: '#eff6ff', color: C.blue },
-  green: { backgroundColor: '#f0fdf4', color: C.green },
-  orange: { backgroundColor: '#fff7ed', color: C.orange },
-  red: { backgroundColor: '#fef2f2', color: C.red },
-  purple: { backgroundColor: '#f5f3ff', color: C.purple },
-  teal: { backgroundColor: '#f0fdfa', color: C.teal },
-  // 空状态
-  emptyState: { textAlign: 'center', padding: '40px 20px', color: C.textMuted },
-  emptyIcon: { marginBottom: 12 },
-  // 趋势选择器
-  trendTabs: { display: 'flex', gap: 4, marginBottom: 12 },
-  trendTab: { padding: '4px 12px', fontSize: 11, fontWeight: 500, borderRadius: 6, cursor: 'pointer', color: C.textMuted, background: 'transparent' },
-  trendTabActive: { padding: '4px 12px', fontSize: 11, fontWeight: 500, borderRadius: 6, cursor: 'pointer', color: '#fff', background: C.blue },
+interface StandardPhotoItem {
+  id: string
+  name: string
+  description: string
+  required: boolean
+  captured: boolean
+  quality: 'good' | 'fair' | 'poor' | 'missing'
+  thumbnail?: string
 }
 
-// ---------- Mock数据 ----------
-const QC_RULES_DEFAULT = {
-  passScore: 80,
-  requiredFields: ['超声描述', '超声诊断', '检查医生', '检查日期'],
+interface QCPhotoStandard {
+  examType: string
+  totalRequired: number
+  items: StandardPhotoItem[]
 }
 
-const generateTrendData = (days: number) => {
-  const data = []
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date()
-    d.setDate(d.getDate() - i)
-    const dateStr = `${d.getMonth() + 1}-${d.getDate()}`
-    const base = 85 + Math.random() * 10
-    data.push({
-      date: dateStr,
-      qualified: Math.round(base),
-      unqualified: Math.round(100 - base),
-      rate: Math.round(base * 10) / 10,
+interface Detection {
+  id: string
+  frame: number
+  type: 'polyp' | 'lesion' | 'bleeding' | 'inflammation' | 'other'
+  confidence: number
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
+interface CADeRecord {
+  id: number
+  patientName: string
+  examType: string
+  startTime: string
+  status: 'detecting' | 'completed' | 'alert'
+  detections: Detection[]
+  progress: number
+  imageCount: number
+  requiredImages: number
+  withdrawalTime: number
+  requiredTime: number
+  aiScore: number
+}
+
+interface HistoryRecord {
+  id: number
+  date: string
+  patientName: string
+  examType: string
+  score: number
+  grade: string
+  aiSuggestion: string
+  doctor: string
+  reportTimeliness: number
+  imageStandard: number
+  withdrawalTime: number
+}
+
+interface QCScoring {
+  id: number
+  patientName: string
+  examType: string
+  imageQuality: number
+  clarity: number
+  brightness: number
+  coverage: number
+  examCompleteness: number
+  operationStandard: number
+  reportStandard: number
+  totalScore: number
+  deductions: Deduction[]
+}
+
+interface Deduction {
+  item: string
+  points: number
+  reason: string
+}
+
+interface AIModel {
+  id: string
+  name: string
+  version: string
+  type: 'cade' | 'jmanbi' | 'bbps' | 'report' | 'imageqc' | 'other'
+  description: string
+  status: 'active' | 'training' | 'inactive'
+  accuracy: number
+  precision: number
+  recall: number
+  detections: number
+  lastUpdated: string
+}
+
+interface QCIndicator {
+  key: string
+  label: string
+  value: number
+  unit: string
+  target: number
+  trend: number[]
+  status: 'excellent' | 'good' | 'warning' | 'danger'
+}
+
+interface QCIssue {
+  id: string
+  patientName: string
+  examType: string
+  date: string
+  issueType: string
+  severity: 'high' | 'medium' | 'low'
+  description: string
+  suggestion: string
+  status: 'pending' | 'resolved' | 'ignored'
+}
+
+// ========== 22张图片标准数据 ==========
+const GASTROSCOPY_STANDARD: QCPhotoStandard = {
+  examType: '电子胃镜检查',
+  totalRequired: 22,
+  items: [
+    { id: 'G01', name: '食道上段', description: '距门齿约15-20cm，吸气相', required: true, captured: false, quality: 'missing' },
+    { id: 'G02', name: '食道中段', description: '距门齿约25-30cm', required: true, captured: false, quality: 'missing' },
+    { id: 'G03', name: '食道下段', description: '距门齿约35-38cm', required: true, captured: false, quality: 'missing' },
+    { id: 'G04', name: '齿状线（Z线）', description: '清晰显示Z线位置', required: true, captured: false, quality: 'missing' },
+    { id: 'G05', name: '胃底（倒镜）', description: '倒镜观察胃底', required: true, captured: false, quality: 'missing' },
+    { id: 'G06', name: '胃底黏液湖', description: '观察黏液湖性状', required: true, captured: false, quality: 'missing' },
+    { id: 'G07', name: '胃体上部', description: '倒镜观察胃体上部', required: true, captured: false, quality: 'missing' },
+    { id: 'G08', name: '胃体中部', description: '观察胃体中部大弯', required: true, captured: false, quality: 'missing' },
+    { id: 'G09', name: '胃体下部', description: '观察胃体下部', required: true, captured: false, quality: 'missing' },
+    { id: 'G10', name: '胃角（正面）', description: '清晰显示胃角形态', required: true, captured: false, quality: 'missing' },
+    { id: 'G11', name: '胃角（远景）', description: '显示胃角与周围关系', required: true, captured: false, quality: 'missing' },
+    { id: 'G12', name: '胃窦（远景）', description: '显示胃窦全貌', required: true, captured: false, quality: 'missing' },
+    { id: 'G13', name: '胃窦（近景）', description: '近距观察胃窦黏膜', required: true, captured: false, quality: 'missing' },
+    { id: 'G14', name: '幽门（开放）', description: '幽门管开放状态', required: true, captured: false, quality: 'missing' },
+    { id: 'G15', name: '幽门（关闭）', description: '幽门管关闭状态', required: true, captured: false, quality: 'missing' },
+    { id: 'G16', name: '十二指肠球部', description: '显示十二指肠球部', required: true, captured: false, quality: 'missing' },
+    { id: 'G17', name: '十二指肠降部', description: '显示十二指肠降部', required: true, captured: false, quality: 'missing' },
+    { id: 'G18', name: '后壁位（胃体）', description: '胃体后壁', required: false, captured: false, quality: 'missing' },
+    { id: 'G19', name: '小弯位（胃体）', description: '胃体小弯', required: false, captured: false, quality: 'missing' },
+    { id: 'G20', name: '病变部位1', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
+    { id: 'G21', name: '病变部位2', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
+    { id: 'G22', name: 'NBI/色素染色', description: '特殊检查（如有）', required: false, captured: false, quality: 'missing' },
+  ],
+}
+
+const COLONOSCOPY_STANDARD: QCPhotoStandard = {
+  examType: '电子结肠镜检查',
+  totalRequired: 22,
+  items: [
+    { id: 'C01', name: '肛管', description: '观察肛管病变', required: true, captured: false, quality: 'missing' },
+    { id: 'C02', name: '直肠（远景）', description: '直肠全貌', required: true, captured: false, quality: 'missing' },
+    { id: 'C03', name: '直肠（近景）', description: '直肠黏膜', required: true, captured: false, quality: 'missing' },
+    { id: 'C04', name: '直肠乙状结肠交界', description: '观察交界处', required: true, captured: false, quality: 'missing' },
+    { id: 'C05', name: '乙状结肠（近景）', description: '乙状结肠黏膜', required: true, captured: false, quality: 'missing' },
+    { id: 'C06', name: '乙状结肠（远景）', description: '乙状结肠全貌', required: true, captured: false, quality: 'missing' },
+    { id: 'C07', name: '降结肠', description: '降结肠黏膜', required: true, captured: false, quality: 'missing' },
+    { id: 'C08', name: '脾曲', description: '脾曲通过', required: true, captured: false, quality: 'missing' },
+    { id: 'C09', name: '横结肠（近景）', description: '横结肠黏膜', required: true, captured: false, quality: 'missing' },
+    { id: 'C10', name: '横结肠（远景）', description: '横结肠全貌', required: true, captured: false, 'quality': 'missing' },
+    { id: 'C11', name: '肝曲', description: '肝曲通过', required: true, captured: false, quality: 'missing' },
+    { id: 'C12', name: '升结肠', description: '升结肠黏膜', required: true, captured: false, quality: 'missing' },
+    { id: 'C13', name: '盲肠', description: '盲肠黏膜', required: true, captured: false, quality: 'missing' },
+    { id: 'C14', name: '回盲瓣（正面）', description: '清晰显示回盲瓣', required: true, captured: false, quality: 'missing' },
+    { id: 'C15', name: '回肠末段', description: '回肠末段黏膜', required: true, captured: false, quality: 'missing' },
+    { id: 'C16', name: '阑尾开口', description: '阑尾开口位置', required: true, captured: false, quality: 'missing' },
+    { id: 'C17', name: '退镜观察（直肠）', description: '退镜时直肠观察', required: true, captured: false, quality: 'missing' },
+    { id: 'C18', name: '退镜观察（乙状）', description: '退镜时乙状结肠', required: true, captured: false, quality: 'missing' },
+    { id: 'C19', name: 'BBPS评分图像', description: 'BBPS评分部位', required: false, captured: false, quality: 'missing' },
+    { id: 'C20', name: '病变部位1', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
+    { id: 'C21', name: '病变部位2', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
+    { id: 'C22', name: '染色/NBI图像', description: '特殊检查（如有）', required: false, captured: false, quality: 'missing' },
+  ],
+}
+
+const EUS_STANDARD: QCPhotoStandard = {
+  examType: '超声内镜检查（EUS）',
+  totalRequired: 18,
+  items: [
+    { id: 'E01', name: '探查部位1', description: '超声探头探查位置', required: true, captured: false, quality: 'missing' },
+    { id: 'E02', name: '探查部位2', description: '第二个探查位置', required: true, captured: false, quality: 'missing' },
+    { id: 'E03', name: '病变部位1', description: '病变部位超声图像', required: true, captured: false, quality: 'missing' },
+    { id: 'E04', name: '病变测量1', description: '病变大小测量', required: true, captured: false, quality: 'missing' },
+    { id: 'E05', name: 'Doppler模式', description: '血流显示（如适用）', required: false, captured: false, quality: 'missing' },
+    { id: 'E06', name: 'CEUS模式', description: '造影增强（如适用）', required: false, captured: false, quality: 'missing' },
+    { id: 'E07', name: 'EUS-FNA穿刺', description: '细针穿刺（如适用）', required: false, captured: false, quality: 'missing' },
+    { id: 'E08', name: '淋巴结评估', description: '淋巴结超声评估', required: true, captured: false, quality: 'missing' },
+    { id: 'E09', name: '层面1', description: '标准层面图像', required: true, captured: false, quality: 'missing' },
+    { id: 'E10', name: '层面2', description: '标准层面图像', required: true, captured: false, quality: 'missing' },
+    { id: 'E11', name: '层面3', description: '标准层面图像', required: true, captured: false, quality: 'missing' },
+    { id: 'E12', name: '层间关系', description: '与周围结构关系', required: true, captured: false, quality: 'missing' },
+    { id: 'E13', name: '毗邻结构', description: '周围血管/器官', required: true, captured: false, quality: 'missing' },
+    { id: 'E14', name: '腔道形态', description: '管腔形态评估', required: false, captured: false, quality: 'missing' },
+    { id: 'E15', name: '对比增强', description: '造影增强（如适用）', required: false, captured: false, quality: 'missing' },
+    { id: 'E16', name: '弹性成像', description: '弹性成像（如适用）', required: false, captured: false, quality: 'missing' },
+    { id: 'E17', name: '实时图像', description: '动态采集（如适用）', required: false, captured: false, quality: 'missing' },
+    { id: 'E18', name: '报告附图', description: '关键图像存档', required: true, captured: false, quality: 'missing' },
+  ],
+}
+
+// ========== Mock 数据 ==========
+const generateHistoryRecords = (): HistoryRecord[] => {
+  const patients = ['张伟', '王芳', '李明', '刘洋', '陈静', '杨帆', '赵雷', '周婷', '吴强', '郑鑫',
+                     '孙鹏', '马云', '李娜', '王磊', '刘芳', '陈刚', '周洋', '吴琳', '郑浩', '冯雪',
+                     '许志明', '邓丽华', '梁志强', '肖娜', '朱红梅', '秦建国', '薛丽娜', '贺明', '谭志远', '卢晓峰']
+  const types = ['胃镜', '肠镜', 'EUS']
+  const suggestions = [
+    '建议加强退镜时间把控',
+    '图片采集数量需达标',
+    'JMANBI评分应完整填写',
+    '操作规范符合要求',
+    '报告书写需更规范',
+    '黏膜下注射量充足',
+    '标记点间距合理',
+    '剥离层次清晰',
+    '图像清晰度需提升',
+    '覆盖度不足，需补充拍摄',
+  ]
+  const doctors = ['李建国', '王秀英', '张志远', '刘德明', '陈晓燕', '赵文博', '陈晓峰']
+
+  return Array.from({ length: 50 }, (_, i) => ({
+    id: i + 1,
+    date: `2026-04-${String(30 - (i % 30)).padStart(2, '0')}`,
+    patientName: patients[i % patients.length],
+    examType: types[i % types.length],
+    score: Math.floor(Math.random() * 20) + 80,
+    grade: ['优秀', '良好', '合格', '不合格'][i % 4] as string,
+    aiSuggestion: suggestions[i % suggestions.length],
+    doctor: doctors[i % doctors.length],
+    reportTimeliness: Math.floor(Math.random() * 15) + 85,
+    imageStandard: Math.floor(Math.random() * 20) + 78,
+    withdrawalTime: Math.floor(Math.random() * 25) + 65,
+  }))
+}
+
+const generateScoringRecords = (): QCScoring[] => {
+  const patients = ['张伟', '王芳', '李明', '刘洋', '陈静', '杨帆', '赵雷', '周婷', '吴强', '郑鑫',
+                     '孙鹏', '马云', '李娜', '王磊', '刘芳']
+  const types = ['胃镜', '肠镜', 'EUS']
+  const deductionItems = [
+    { item: '图片数量不足', points: 2 },
+    { item: '退镜时间不足', points: 3 },
+    { item: 'JMANBI未评分', points: 5 },
+    { item: '图片质量欠佳', points: 2 },
+    { item: '报告迟交', points: 2 },
+    { item: 'Photo-Documentation缺失', points: 3 },
+    { item: '清晰度不达标', points: 2 },
+    { item: '亮度异常', points: 1 },
+    { item: '覆盖度不足', points: 2 },
+  ]
+
+  return Array.from({ length: 30 }, (_, i) => {
+    const deductionCount = Math.floor(Math.random() * 3)
+    const deductions = Array.from({ length: deductionCount }, () => {
+      const d = deductionItems[Math.floor(Math.random() * deductionItems.length)]
+      return { ...d, reason: `${d.item}，扣${d.points}分` }
     })
-  }
-  return data
+    const totalDeduction = deductions.reduce((sum, d) => sum + d.points, 0)
+    const clarity = Math.floor(Math.random() * 15) + 85
+    const brightness = Math.floor(Math.random() * 20) + 80
+    const coverage = Math.floor(Math.random() * 15) + 80
+
+    return {
+      id: i + 1,
+      patientName: patients[i % patients.length],
+      examType: types[i % types.length],
+      imageQuality: Math.floor(Math.random() * 15) + 85,
+      clarity,
+      brightness,
+      coverage,
+      examCompleteness: Math.floor(Math.random() * 15) + 85,
+      operationStandard: Math.floor(Math.random() * 15) + 85,
+      reportStandard: Math.floor(Math.random() * 15) + 85,
+      totalScore: 100 - totalDeduction,
+      deductions,
+    }
+  })
 }
 
-const INITIAL_QC_LIST = [
+const generateImageQCResults = (): ImageQCResult[] => {
+  return Array.from({ length: 8 }, (_, i) => {
+    const clarity = Math.floor(Math.random() * 30) + 70
+    const brightness = Math.floor(Math.random() * 25) + 75
+    const coverage = Math.floor(Math.random() * 20) + 78
+    const overall = Math.round(clarity * 0.4 + brightness * 0.3 + coverage * 0.3)
+    const issues: string[] = []
+    if (clarity < 80) issues.push('清晰度欠佳')
+    if (brightness < 75) issues.push('亮度不足')
+    if (brightness > 95) issues.push('亮度过度')
+    if (coverage < 80) issues.push('视野覆盖不全')
+    return {
+      id: `IQ_${i + 1}`,
+      name: `图像${i + 1}.jpg`,
+      clarity,
+      brightness,
+      coverage,
+      overall,
+      issues,
+    }
+  })
+}
+
+const aiModels: AIModel[] = [
   {
-    id: 1, patient: '张三', exam: '腹部超声', doctor: '李明辉', date: '2024-12-15 10:30',
-    aiScore: 95, pass: true, category: 'image',
-    issues: [], imageQuality: { clarity: 95, artifact: 2, overall: 96 },
-    reportComplete: true, reportIssues: [],
-    alerts: []
+    id: 'model-1', name: 'CADe-PolypNet', version: 'v3.2.1', type: 'cade',
+    description: '息肉检测深度学习模型，基于ResNet50骨干网络训练，在内镜视频中实时检测可疑息肉病变',
+    status: 'active', accuracy: 94.5, precision: 92.8, recall: 96.2, detections: 15420, lastUpdated: '2026-04-25',
   },
   {
-    id: 2, patient: '李红', exam: '心脏超声', doctor: '王芳', date: '2024-12-15 10:15',
-    aiScore: 72, pass: false, category: 'report',
-    issues: ['描述不完整：左室壁运动描述缺失'],
-    imageQuality: { clarity: 80, artifact: 5, overall: 78 },
-    reportComplete: false, reportIssues: ['缺少左室壁运动描述'],
-    alerts: [{ type: 'warning', text: '疑似漏诊：左室壁运动异常' }]
+    id: 'model-2', name: 'JMANBI-Scorer', version: 'v2.1.0', type: 'jmanbi',
+    description: '胃镜黏膜下肿瘤分期评分模型，自动评估JMANBI分期指标并给出评分建议',
+    status: 'active', accuracy: 88.3, precision: 85.6, recall: 91.1, detections: 8930, lastUpdated: '2026-04-20',
   },
   {
-    id: 3, patient: '王五', exam: '甲状腺超声', doctor: '张伟', date: '2024-12-15 09:45',
-    aiScore: 58, pass: false, category: 'alert',
-    issues: ['诊断建议不明确', '测量数据缺失'],
-    imageQuality: { clarity: 65, artifact: 12, overall: 62 },
-    reportComplete: false, reportIssues: ['诊断结论模糊', '缺少结节大小测量'],
-    alerts: [
-      { type: 'error', text: '图像伪影：运动伪影明显' },
-      { type: 'warning', text: '疑似漏诊：结节恶性特征未描述' }
-    ]
+    id: 'model-3', name: 'BBPS-Analyser', version: 'v1.8.5', type: 'bbps',
+    description: '肠镜BBPS评分分析模型，自动评估肠道准备质量和BBPS分项得分',
+    status: 'active', accuracy: 91.2, precision: 89.5, recall: 93.0, detections: 6780, lastUpdated: '2026-04-18',
   },
   {
-    id: 4, patient: '赵丽', exam: '乳腺超声', doctor: '李明辉', date: '2024-12-15 09:20',
-    aiScore: 88, pass: true, category: 'report',
-    issues: [],
-    imageQuality: { clarity: 88, artifact: 3, overall: 87 },
-    reportComplete: true, reportIssues: [],
-    alerts: []
+    id: 'model-4', name: 'Report-Generator', version: 'v4.0.2', type: 'report',
+    description: '智能报告生成模型，基于检查结果和图像分析自动生成结构化报告草稿',
+    status: 'active', accuracy: 87.5, precision: 84.2, recall: 90.8, detections: 12350, lastUpdated: '2026-04-22',
   },
   {
-    id: 5, patient: '孙磊', exam: '血管超声', doctor: '王芳', date: '2024-12-14 16:00',
-    aiScore: 45, pass: false, category: 'image',
-    issues: ['图像质量差：血管走形不清晰', '测量值异常'],
-    imageQuality: { clarity: 48, artifact: 25, overall: 45 },
-    reportComplete: true, reportIssues: ['流速测量值超出正常范围'],
-    alerts: [{ type: 'error', text: '测量值异常：颈内动脉流速超标' }]
+    id: 'model-5', name: 'ImageQC-Inspector', version: 'v2.3.0', type: 'imageqc',
+    description: '内镜图像质量评估模型，自动评估清晰度、亮度、覆盖度三项指标并给出综合评分',
+    status: 'active', accuracy: 92.1, precision: 89.7, recall: 94.5, detections: 45200, lastUpdated: '2026-04-28',
   },
   {
-    id: 6, patient: '周婷', exam: '妇产科超声', doctor: '张伟', date: '2024-12-14 15:30',
-    aiScore: 92, pass: true, category: 'image',
-    issues: [],
-    imageQuality: { clarity: 92, artifact: 1, overall: 93 },
-    reportComplete: true, reportIssues: [],
-    alerts: []
+    id: 'model-6', name: 'Bleeding-Detector', version: 'v2.0.1', type: 'other',
+    description: '术中出血检测模型，实时监测内镜操作过程中的出血情况并及时预警',
+    status: 'training', accuracy: 89.1, precision: 86.7, recall: 91.5, detections: 4520, lastUpdated: '2026-04-28',
   },
   {
-    id: 7, patient: '吴建国', exam: '浅表器官', doctor: '李明辉', date: '2024-12-14 14:00',
-    aiScore: 78, pass: false, category: 'report',
-    issues: ['描述规范性差：术语使用不规范'],
-    imageQuality: { clarity: 82, artifact: 4, overall: 80 },
-    reportComplete: true, reportIssues: ['术语使用不规范'],
-    alerts: []
-  },
-  {
-    id: 8, patient: '郑小红', exam: '腹部超声', doctor: '王芳', date: '2024-12-14 11:00',
-    aiScore: 85, pass: true, category: 'alert',
-    issues: [],
-    imageQuality: { clarity: 85, artifact: 3, overall: 84 },
-    reportComplete: true, reportIssues: [],
-    alerts: [{ type: 'info', text: '建议补充：肝血管瘤可能，建议增强扫描' }]
+    id: 'model-7', name: 'Lesion-Segmentation', version: 'v1.5.3', type: 'other',
+    description: '病变区域分割模型，自动标注内镜图像中的可疑病变区域范围',
+    status: 'inactive', accuracy: 85.6, precision: 83.1, recall: 88.2, detections: 3210, lastUpdated: '2026-04-10',
   },
 ]
 
-const getScoreColor = (score: number) => {
-  if (score >= 85) return C.green
-  if (score >= 70) return C.orange
-  return C.red
+const QC_INDICATORS: QCIndicator[] = [
+  { key: 'reportTimeliness', label: '报告及时率', value: 94.2, unit: '%', target: 95, trend: [90, 91, 89, 92, 93, 94, 93, 94, 94, 95, 94, 94], status: 'good' },
+  { key: 'imageStandard', label: '图像达标率', value: 87.6, unit: '%', target: 90, trend: [82, 83, 84, 85, 86, 86, 87, 87, 88, 87, 88, 88], status: 'warning' },
+  { key: 'withdrawalTime', label: '退镜时间合格率', value: 78.3, unit: '%', target: 85, trend: [70, 72, 71, 74, 73, 75, 76, 77, 78, 78, 78, 78], status: 'danger' },
+  { key: 'disinfection', label: '洗消合格率', value: 99.1, unit: '%', target: 99, trend: [98, 98, 99, 99, 99, 99, 99, 99, 99, 99, 99, 99], status: 'excellent' },
+  { key: 'criticalValue', label: '危急值上报率', value: 96.8, unit: '%', target: 98, trend: [94, 95, 95, 96, 96, 96, 97, 96, 97, 97, 97, 97], status: 'good' },
+]
+
+const QC_ISSUES: QCIssue[] = [
+  { id: 'Q001', patientName: '王芳', examType: '肠镜', date: '2026-04-29', issueType: '图像不达标', severity: 'high', description: '退镜时间仅4分32秒，低于标准6分钟', suggestion: '加强退镜时间培训，使用计时器', status: 'pending' },
+  { id: 'Q002', patientName: '李明', examType: '胃镜', date: '2026-04-29', issueType: '图片缺失', severity: 'medium', description: '缺少胃体上部图像', suggestion: '补充采集缺失体位图片', status: 'pending' },
+  { id: 'Q003', patientName: '刘洋', examType: '肠镜', date: '2026-04-28', issueType: '清晰度不足', severity: 'medium', description: '图像清晰度评分低于80分', suggestion: '检查摄像头状态，清洁镜头', status: 'resolved' },
+  { id: 'Q004', patientName: '陈静', examType: '胃镜', date: '2026-04-28', issueType: '报告迟交', severity: 'low', description: '报告提交时间超过24小时', suggestion: '优化报告书写流程', status: 'ignored' },
+]
+
+// ========== 样式定义 ==========
+const s: Record<string, React.CSSProperties> = {
+  pageWrapper: {
+    display: 'flex', flexDirection: 'column', height: '100%', minHeight: '80vh',
+    background: '#f0f4f8', padding: 20,
+  },
+  pageHeader: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: 16, flexShrink: 0,
+  },
+  title: { fontSize: 20, fontWeight: 700, color: '#1a3a5c', display: 'flex', alignItems: 'center', gap: 10, margin: 0 },
+  subtitle: { fontSize: 13, color: '#64748b', marginTop: 4 },
+  headerActions: { display: 'flex', gap: 10 },
+  btnLarge: {
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    background: '#1a3a5c', color: '#fff', border: 'none', borderRadius: 8,
+    padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    boxShadow: '0 2px 6px rgba(26,58,92,0.2)', minHeight: 44,
+  },
+  btnLargeSuccess: {
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    background: '#16a34a', color: '#fff', border: 'none', borderRadius: 8,
+    padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    boxShadow: '0 2px 6px rgba(22,163,74,0.2)', minHeight: 44,
+  },
+  btnLargeInfo: {
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    background: '#2563eb', color: '#fff', border: 'none', borderRadius: 8,
+    padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    boxShadow: '0 2px 6px rgba(37,99,235,0.2)', minHeight: 44,
+  },
+  btnLargeWarning: {
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    background: '#d97706', color: '#fff', border: 'none', borderRadius: 8,
+    padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    boxShadow: '0 2px 6px rgba(217,119,6,0.2)', minHeight: 44,
+  },
+  btnIcon: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: 6,
+    padding: '8px 12px', fontSize: 12, cursor: 'pointer', minHeight: 36,
+  },
+  btnSuccess: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    background: '#dcfce7', color: '#16a34a', border: 'none', borderRadius: 6,
+    padding: '8px 12px', fontSize: 12, cursor: 'pointer', minHeight: 36,
+  },
+  btnWarning: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    background: '#fef3c7', color: '#d97706', border: 'none', borderRadius: 6,
+    padding: '8px 12px', fontSize: 12, cursor: 'pointer', minHeight: 36,
+  },
+  btnDanger: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: 6,
+    padding: '8px 12px', fontSize: 12, cursor: 'pointer', minHeight: 36,
+  },
+  filterBar: {
+    display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' as const,
+    background: '#fff', padding: '12px 16px', borderRadius: 8,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.06)', marginBottom: 12,
+  },
+  searchBox: {
+    display: 'flex', alignItems: 'center', gap: 8,
+    background: '#f8fafc', border: '1px solid #e2e8f0',
+    borderRadius: 6, padding: '8px 12px', flex: 1, minWidth: 200,
+  },
+  searchInput: {
+    border: 'none', outline: 'none', background: 'transparent',
+    fontSize: 13, color: '#334155', width: '100%',
+  },
+  select: {
+    border: '1px solid #e2e8f0', borderRadius: 6, padding: '8px 12px',
+    fontSize: 13, color: '#334155', background: '#f8fafc', outline: 'none', cursor: 'pointer',
+  },
+  fourColGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 },
+  threeColGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 16 },
+  twoColGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 16 },
+  panel: {
+    background: '#fff', borderRadius: 10, overflow: 'hidden',
+    boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' as const,
+  },
+  panelHeader: {
+    padding: '12px 16px', borderBottom: '1px solid #e2e8f0',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    background: '#f8fafc', flexShrink: 0,
+  },
+  panelTitle: { fontSize: 14, fontWeight: 700, color: '#1a3a5c', display: 'flex', alignItems: 'center', gap: 6, margin: 0 },
+  panelBody: { padding: 16, overflowY: 'auto' as const, flex: 1 },
+  tabNav: {
+    display: 'flex', borderBottom: '1px solid #e2e8f0', padding: '0 16px', background: '#fff',
+  },
+  tabBtn: {
+    padding: '14px 20px', border: 'none', background: 'none', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 500,
+    color: '#64748b', borderBottom: '2px solid transparent', marginBottom: -1,
+  },
+  tabBtnActive: {
+    padding: '14px 20px', border: 'none', background: 'none', cursor: 'pointer',
+    display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, fontWeight: 600,
+    color: '#2563eb', borderBottom: '2px solid #2563eb', marginBottom: -1,
+  },
+  kpiCard: {
+    background: '#fff', borderRadius: 12, padding: 20,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb',
+  },
+  kpiLabel: { fontSize: 13, color: '#64748b', margin: 0 },
+  kpiValue: { fontSize: 28, fontWeight: 700, color: '#1f2937', margin: '8px 0 0 0' },
+  kpiSub: { fontSize: 12, color: '#64748b', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: 4 },
+  badge: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 500,
+  },
+  badgeSuccess: { background: '#dcfce7', color: '#16a34a' },
+  badgeWarning: { background: '#fef3c7', color: '#d97706' },
+  badgeDanger: { background: '#fee2e2', color: '#dc2626' },
+  badgeInfo: { background: '#dbeafe', color: '#2563eb' },
+  badgePurple: { background: '#f3e8ff', color: '#7c3aed' },
+  table: { width: '100%', borderCollapse: 'collapse' },
+  th: {
+    background: '#f8fafc', padding: '10px 12px', textAlign: 'left' as const,
+    fontSize: 12, fontWeight: 600, color: '#64748b', borderBottom: '1px solid #e2e8f0',
+  },
+  td: {
+    padding: '10px 12px', fontSize: 13, color: '#334155', borderBottom: '1px solid #f1f5f9',
+  },
+  pagination: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    padding: '12px 16px', background: '#fff', borderTop: '1px solid #e2e8f0',
+  },
+  pageInfo: { fontSize: 13, color: '#64748b' },
+  pageBtns: { display: 'flex', gap: 4 },
+  pageBtn: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 6, border: '1px solid #e2e8f0',
+    background: '#fff', cursor: 'pointer', fontSize: 13, color: '#475569',
+  },
+  pageBtnActive: {
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    width: 36, height: 36, borderRadius: 6, border: '1px solid #2563eb',
+    background: '#2563eb', cursor: 'pointer', fontSize: 13, color: '#fff',
+  },
+  emptyState: { textAlign: 'center' as const, padding: '48px 20px', display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 12 },
+  emptyIcon: { width: 72, height: 72, borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  emptyText: { fontSize: 16, color: '#94a3b8', fontWeight: 500 },
+  emptySubtext: { fontSize: 13, color: '#cbd5e1' },
+  // CADe
+  cadePanel: {
+    background: '#1a1a2e', borderRadius: 10, padding: 16,
+    display: 'flex', flexDirection: 'column', gap: 12,
+  },
+  cadeHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  cadeTitle: { fontSize: 14, fontWeight: 600, color: '#fff', display: 'flex', alignItems: 'center', gap: 8, margin: 0 },
+  cadeStatus: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#22c55e' },
+  cadeStatusInactive: { display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#ef4444' },
+  cadeView: {
+    background: '#0f0f1a', borderRadius: 8, aspectRatio: '16/9',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative',
+  },
+  cadeControls: { display: 'flex', gap: 8, justifyContent: 'center' },
+  cadeStats: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 },
+  cadeStat: { background: 'rgba(255,255,255,0.1)', borderRadius: 6, padding: '8px 12px', textAlign: 'center' as const },
+  cadeStatLabel: { fontSize: 11, color: 'rgba(255,255,255,0.6)', margin: 0 },
+  cadeStatValue: { fontSize: 18, fontWeight: 700, color: '#fff', margin: '4px 0 0 0' },
+  // 模型卡片
+  modelCard: {
+    background: '#fff', borderRadius: 10, padding: 16,
+    border: '1px solid #e2e8f0', display: 'flex', flexDirection: 'column', gap: 12,
+  },
+  modelCardHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+  modelIcon: {
+    width: 48, height: 48, borderRadius: 10,
+    background: 'linear-gradient(135deg, #667eea, #764ba2)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+  },
+  modelName: { fontSize: 15, fontWeight: 600, color: '#1a3a5c', margin: 0 },
+  modelVersion: { fontSize: 12, color: '#64748b', margin: '4px 0 0 0' },
+  modelDesc: { fontSize: 13, color: '#475569', lineHeight: 1.5, margin: 0 },
+  modelStats: {
+    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8,
+    padding: '12px 0', borderTop: '1px solid #f1f5f9', borderBottom: '1px solid #f1f5f9',
+  },
+  modelStat: { textAlign: 'center' as const },
+  modelStatValue: { fontSize: 16, fontWeight: 700, color: '#1a3a5c' },
+  modelStatLabel: { fontSize: 11, color: '#64748b' },
+  modelActions: { display: 'flex', gap: 8 },
+  // 评分详情
+  scoreDetail: { display: 'flex', flexDirection: 'column', gap: 12, padding: 16, background: '#f9fafb', borderRadius: 10, border: '1px solid #e5e7eb' },
+  scoreRow: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  scoreLabel: { fontSize: 13, color: '#64748b', display: 'flex', alignItems: 'center', gap: 6 },
+  scoreBar: { flex: 1, height: 8, background: '#e5e7eb', borderRadius: 4, margin: '0 12px', overflow: 'hidden' },
+  scoreBarFill: { height: '100%', borderRadius: 4, transition: 'width 0.5s' },
+  scoreValue: { fontSize: 14, fontWeight: 600, color: '#1a3a5c', minWidth: 40, textAlign: 'right' as const },
+  // 图片质量
+  imageQCCard: {
+    background: '#fff', borderRadius: 8, padding: 12,
+    border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: 8,
+  },
+  imageQCHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  imageQCThumb: {
+    width: '100%', aspectRatio: '4/3', borderRadius: 6, background: '#f1f5f9',
+    display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden',
+  },
+  imageQCProgress: { display: 'flex', flexDirection: 'column', gap: 4 },
+  imageQCProgressRow: { display: 'flex', alignItems: 'center', gap: 8 },
+  imageQCProgressLabel: { fontSize: 11, color: '#64748b', minWidth: 50 },
+  imageQCProgressBar: { flex: 1, height: 6, background: '#e5e7eb', borderRadius: 3, overflow: 'hidden' },
+  imageQCProgressFill: { height: '100%', borderRadius: 3, transition: 'width 0.3s' },
+  imageQCProgressValue: { fontSize: 11, fontWeight: 600, minWidth: 30, textAlign: 'right' as const },
+  // 22张图标准
+  standardGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 },
+  standardItem: {
+    background: '#f8fafc', border: '1px solid #e5e7eb', borderRadius: 8,
+    padding: '8px 10px', display: 'flex', flexDirection: 'column', gap: 4,
+  },
+  standardItemRequired: { borderLeft: '3px solid #dc2626' },
+  standardItemCaptured: { background: '#f0fdf4', border: '1px solid #86efac' },
+  standardItemName: { fontSize: 12, fontWeight: 600, color: '#1a3a5c' },
+  standardItemDesc: { fontSize: 10, color: '#94a3b8' },
+  standardItemQuality: {
+    display: 'inline-flex', alignItems: 'center', gap: 3,
+    padding: '1px 6px', borderRadius: 8, fontSize: 10, fontWeight: 600,
+  },
+  // 仪表盘
+  dashboardGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 14, marginBottom: 16 },
+  dashboardCard: { background: '#fff', borderRadius: 12, padding: 18, border: '1px solid #e5e7eb' },
+  dashboardCardTitle: { fontSize: 12, color: '#64748b', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 4 },
+  dashboardCardValue: { fontSize: 24, fontWeight: 800, margin: '4px 0' },
+  dashboardCardSub: { fontSize: 11, color: '#94a3b8' },
+  // 趋势条
+  trendBarContainer: { display: 'flex', alignItems: 'flex-end', gap: 3, height: 40 },
+  trendBar: { flex: 1, borderRadius: '3px 3px 0 0', minWidth: 8, transition: 'height 0.3s' },
+  // 问题列表
+  issueCard: {
+    background: '#fff', borderRadius: 8, padding: 12, marginBottom: 8,
+    border: '1px solid #e5e7eb', display: 'flex', flexDirection: 'column', gap: 6,
+  },
+  issueHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  issueTitle: { fontSize: 13, fontWeight: 600, color: '#1a3a5c' },
+  issueType: { fontSize: 11, color: '#64748b' },
+  issueDesc: { fontSize: 12, color: '#475569', lineHeight: 1.5 },
+  issueSuggestion: { fontSize: 11, color: '#2563eb', background: '#dbeafe', padding: '4px 8px', borderRadius: 4 },
+  // 环形图
+  donutContainer: { position: 'relative', display: 'inline-block' },
+  donutCenter: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center' },
 }
 
-const getCategoryIcon = (cat: string) => {
-  switch (cat) {
-    case 'image': return Image
-    case 'report': return Clipboard
-    case 'alert': return Bell
-    default: return AlertCircle
-  }
+// ========== 子组件 ==========
+const EmptyState = ({ icon: Icon, text, subtext }: { icon: React.ElementType; text: string; subtext: string }) => (
+  <div style={s.emptyState}>
+    <div style={s.emptyIcon}><Icon size={32} color="#94a3b8" /></div>
+    <div style={s.emptyText}>{text}</div>
+    <div style={s.emptySubtext}>{subtext}</div>
+  </div>
+)
+
+// 环形图
+const DonutChart = ({ value, size = 80, stroke = 8, color = '#2563eb' }: { value: number; size?: number; stroke?: number; color?: string }) => {
+  const radius = (size - stroke) / 2
+  const circumference = 2 * Math.PI * radius
+  const offset = circumference - (value / 100) * circumference
+  return (
+    <div style={s.donutContainer}>
+      <svg width={size} height={size}>
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="#e5e7eb" strokeWidth={stroke} />
+        <circle
+          cx={size / 2} cy={size / 2} r={radius} fill="none"
+          stroke={color} strokeWidth={stroke}
+          strokeDasharray={circumference}
+          strokeDashoffset={offset}
+          strokeLinecap="round"
+          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        />
+      </svg>
+      <div style={s.donutCenter}>
+        <div style={{ fontSize: 16, fontWeight: 800, color: '#1a3a5c' }}>{value}</div>
+        <div style={{ fontSize: 9, color: '#94a3b8' }}>%</div>
+      </div>
+    </div>
+  )
 }
 
-const getCategoryColor = (cat: string) => {
-  switch (cat) {
-    case 'image': return C.orange
-    case 'report': return C.blue
-    case 'alert': return C.red
-    default: return C.textMuted
-  }
+// 趋势图
+const TrendChart = ({ data, color }: { data: number[]; color: string }) => {
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const range = max - min || 1
+  return (
+    <div style={s.trendBarContainer}>
+      {data.map((val, i) => {
+        const height = 5 + ((val - min) / range) * 35
+        return (
+          <div key={i} style={{ ...s.trendBar, height, background: i === data.length - 1 ? color : `${color}66` }} title={`${val.toFixed(1)}%`} />
+        )
+      })}
+    </div>
+  )
 }
 
-const getCategoryLabel = (cat: string) => {
-  switch (cat) {
-    case 'image': return '图像质量'
-    case 'report': return '报告规范'
-    case 'alert': return '异常提醒'
-    default: return '全部'
-  }
-}
-
+// ========== 主组件 ==========
 export default function AIQCPage() {
-  const [activeTab, setActiveTab] = useState('list')
-  const [searchText, setSearchText] = useState('')
-  const [filterCategory, setFilterCategory] = useState('all')
-  const [filterStatus, setFilterStatus] = useState('all')
-  const [showFilter, setShowFilter] = useState(false)
-  const [qcList, setQcList] = useState(INITIAL_QC_LIST)
-  const [selectedItem, setSelectedItem] = useState<typeof INITIAL_QC_LIST[0] | null>(null)
-  const [showReviewModal, setShowReviewModal] = useState(false)
-  const [showConfigModal, setShowConfigModal] = useState(false)
-  const [reviewForm, setReviewForm] = useState({ reason: '', contact: '' })
-  const [qcRules, setQcRules] = useState(QC_RULES_DEFAULT)
-  const [trendDays, setTrendDays] = useState(7)
-  const [trendData, setTrendData] = useState(generateTrendData(7))
+  const [activeTab, setActiveTab] = useState<TabKey>('realtime')
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const [filterType, setFilterType] = useState('全部')
+  const [page, setPage] = useState(1)
+  const [selectedExamType, setSelectedExamType] = useState<string>('gastroscopy')
+  const pageSize = 10
 
-  const todayStats = {
-    total: qcList.length,
-    passed: qcList.filter(q => q.pass).length,
-    failed: qcList.filter(q => !q.pass).length,
-    rate: Math.round((qcList.filter(q => q.pass).length / qcList.length) * 1000) / 10,
-  }
+  const historyRecords = generateHistoryRecords()
+  const scoringRecords = generateScoringRecords()
+  const imageQCResults = generateImageQCResults()
 
-  const categoryStats = [
-    { name: '图像质量', count: qcList.filter(q => q.category === 'image' && !q.pass).length, total: qcList.filter(q => q.category === 'image').length, color: C.orange, icon: Image },
-    { name: '报告规范', count: qcList.filter(q => q.category === 'report' && !q.pass).length, total: qcList.filter(q => q.category === 'report').length, color: C.blue, icon: Clipboard },
-    { name: '异常提醒', count: qcList.filter(q => q.category === 'alert').length, total: qcList.length, color: C.red, icon: Bell },
+  const filteredHistory = historyRecords.filter(r => {
+    const matchSearch = r.patientName.includes(searchKeyword) || r.examType.includes(searchKeyword) || r.doctor.includes(searchKeyword)
+    const matchType = filterType === '全部' || r.examType === filterType
+    return matchSearch && matchType
+  })
+
+  const filteredScoring = scoringRecords.filter(r => {
+    const matchSearch = r.patientName.includes(searchKeyword) || r.examType.includes(searchKeyword)
+    const matchType = filterType === '全部' || r.examType === filterType
+    return matchSearch && matchType
+  })
+
+  const paginatedHistory = filteredHistory.slice((page - 1) * pageSize, page * pageSize)
+  const totalPages = Math.ceil(filteredHistory.length / pageSize)
+
+  const examTypes = ['全部', '胃镜', '肠镜', 'EUS']
+
+  // KPI数据
+  const kpiData = [
+    { label: '今日检测', value: '38', unit: '例', sub: '较昨日 +12%', color: '#2563eb', bg: '#dbeafe' },
+    { label: 'AI提醒次数', value: '126', unit: '次', sub: '发现可疑 23 例', color: '#dc2626', bg: '#fee2e2' },
+    { label: '平均评分', value: '92.5', unit: '分', sub: '较上月 +2.3', color: '#16a34a', bg: '#dcfce7' },
+    { label: '模型准确率', value: '94.5', unit: '%', sub: 'CADe-PolypNet', color: '#7c3aed', bg: '#f3e8ff' },
   ]
 
-  const filteredList = qcList.filter(item => {
-    if (filterCategory !== 'all' && item.category !== filterCategory) return false
-    if (filterStatus === 'pass' && !item.pass) return false
-    if (filterStatus === 'fail' && item.pass) return false
-    if (searchText && !item.patient.includes(searchText) && !item.exam.includes(searchText) && !item.doctor.includes(searchText)) return false
-    return true
-  })
-
-  const handleApplyRules = () => {
-    const updated = qcList.map(item => ({
-      ...item,
-      pass: item.aiScore >= qcRules.passScore,
-    }))
-    setQcList(updated)
-    setShowConfigModal(false)
-  }
-
-  const handleResetRules = () => {
-    setQcRules(QC_RULES_DEFAULT)
-    setQcList(INITIAL_QC_LIST)
-  }
-
-  const getPieOption = () => ({
-    tooltip: { trigger: 'item', formatter: '{b}: {c} ({d}%)' },
-    legend: { show: false },
-    series: [{
-      type: 'pie',
-      radius: ['50%', '75%'],
-      center: ['50%', '50%'],
-      avoidLabelOverlap: false,
-      label: { show: true, position: 'outside', formatter: '{b}\n{d}%', fontSize: 10, color: C.textMuted },
-      labelLine: { show: true },
-      data: [
-        { value: todayStats.passed, name: '合格', itemStyle: { color: C.green } },
-        { value: todayStats.failed, name: '不合格', itemStyle: { color: C.red } },
-      ],
-    }],
-  })
-
-  const getLineOption = (data: typeof trendData) => ({
-    tooltip: { trigger: 'axis', axisPointer: { type: 'line' }, formatter: (params: any) => {
-      const d = params[0]
-      return `${d.name}<br/><span style="color:${C.green}">● 合格率: ${d.data.rate}%</span><br/><span style="color:${C.blue}">● 合格: ${d.data.qualified}</span><br/><span style="color:${C.red}">● 不合格: ${d.data.unqualified}</span>`
-    }},
-    grid: { left: 40, right: 16, top: 10, bottom: 24 },
-    xAxis: { type: 'category', data: data.map(d => d.date), axisLine: { lineStyle: { color: C.border } }, axisLabel: { fontSize: 10, color: C.textMuted } },
-    yAxis: { type: 'value', min: 0, max: 100, splitLine: { lineStyle: { color: C.border, type: 'dashed' } }, axisLabel: { fontSize: 10, color: C.textMuted } },
-    series: [{
-      type: 'line',
-      data: data.map(d => d.rate),
-      smooth: true,
-      lineStyle: { color: C.blue, width: 2 },
-      areaStyle: { color: { type: 'linear', x: 0, y: 0, x2: 0, y2: 1, colorStops: [{ offset: 0, color: 'rgba(59,130,246,0.3)' }, { offset: 1, color: 'rgba(59,130,246,0)' }] } },
-      symbol: 'circle',
-      symbolSize: 6,
-    }],
-  })
-
-  const getGaugeOption = (score: number) => {
-    const color = getScoreColor(score)
-    return {
-      series: [{
-        type: 'gauge',
-        startAngle: 200,
-        endAngle: -20,
-        min: 0,
-        max: 100,
-        splitNumber: 5,
-        radius: '90%',
-        center: ['50%', '55%'],
-        pointer: { show: false },
-        progress: { show: true, overlap: false, roundCap: true, clip: false, itemStyle: { color } },
-        axisLine: { lineStyle: { width: 8, color: [[1, C.border]] } },
-        axisTick: { show: false },
-        splitLine: { show: false },
-        axisLabel: { show: false },
-        anchor: { show: false },
-        title: { show: false },
-        detail: {
-          valueAnimation: true, offsetCenter: [0, '10%'],
-          fontSize: 22, fontWeight: 700, color,
-          formatter: '{value}',
-        },
-        data: [{ value: score }],
-      }],
-    }
-  }
+  // 当前选中的22张图标准
+  const currentStandard = selectedExamType === 'gastroscopy' ? GASTROSCOPY_STANDARD
+    : selectedExamType === 'colonoscopy' ? COLONOSCOPY_STANDARD
+    : EUS_STANDARD
 
   return (
-    <div style={s.root}>
-      {/* 标题 */}
-      <div style={s.header}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-          <div>
-            <h1 style={s.title}>AI质控中心</h1>
-            <p style={s.subtitle}>AI图像质量评估 · 报告完整性检查 · 异常检测提醒 · 质控统计</p>
-          </div>
-          <div style={s.headerRight}>
-            <button style={s.btnOutline} onClick={() => { setTrendData(generateTrendData(trendDays)) }}><RefreshCw size={13} /> 刷新数据</button>
-            <button style={s.btnOutline}><Download size={13} /> 导出报告</button>
-            <button style={{ ...s.btn, ...s.btnPrimary }} onClick={() => setShowConfigModal(true)}><Settings size={13} /> 质控规则</button>
-          </div>
+    <div style={s.pageWrapper}>
+      {/* 页面头部 */}
+      <div style={s.pageHeader}>
+        <div>
+          <h1 style={s.title}>
+            <BrainCircuit size={24} color="#2563eb" />
+            AI智能质控中心
+          </h1>
+          <p style={s.subtitle}>智能辅助质控 · CADe实时检测 · 图像质量评分 · 22张图片标准检测</p>
+        </div>
+        <div style={s.headerActions}>
+          <button style={s.btnLargeInfo}><Upload size={16} />导入数据</button>
+          <button style={s.btnLarge}><Download size={16} />导出报告</button>
         </div>
       </div>
 
-      <div style={s.mainLayout}>
-        {/* ========== 左侧面板 ========== */}
-        <div style={s.leftPanel}>
-          {/* 今日统计 */}
-          <div style={s.chartCard}>
-            <div style={s.chartTitle}><Activity size={15} style={s.chartIcon} /> 今日AI质控统计</div>
-            <div style={s.statRow}>
-              <div style={s.statCard}>
-                <div style={{ ...s.statIconWrap, background: '#f0fdf4' }}><CheckCircle size={18} color={C.green} /></div>
-                <div style={s.statInfo}>
-                  <div style={s.statValue}>{todayStats.total}</div>
-                  <div style={s.statLabel}>AI质检数</div>
-                </div>
+      {/* KPI统计卡片 */}
+      <div style={s.fourColGrid}>
+        {kpiData.map((kpi) => (
+          <div key={kpi.label} style={s.kpiCard}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <div style={{ width: 48, height: 48, borderRadius: 10, background: kpi.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Brain size={24} color={kpi.color} />
               </div>
-              <div style={s.statCard}>
-                <div style={{ ...s.statIconWrap, background: '#eff6ff' }}><Sparkles size={18} color={C.blue} /></div>
-                <div style={s.statInfo}>
-                  <div style={{ ...s.statValue, color: C.green }}>{todayStats.rate}%</div>
-                  <div style={s.statLabel}>合格率</div>
-                  <div style={s.statTrend}><TrendingUp size={10} /> +2.3%</div>
-                </div>
+              <div>
+                <div style={s.kpiLabel}>{kpi.label}</div>
+                <div style={{ ...s.kpiValue, color: kpi.color }}>{kpi.value}</div>
+                <div style={s.kpiSub}>{kpi.unit} · {kpi.sub}</div>
               </div>
-              <div style={s.statCard}>
-                <div style={{ ...s.statIconWrap, background: '#fff7ed' }}><AlertCircle size={18} color={C.orange} /></div>
-                <div style={s.statInfo}>
-                  <div style={{ ...s.statValue, color: C.orange }}>{todayStats.failed}</div>
-                  <div style={s.statLabel}>问题数</div>
-                </div>
-              </div>
-            </div>
-            {/* 饼图 */}
-            <div style={{ height: 160 }}>
-              <ReactECharts option={getPieOption()} style={{ height: '100%', width: '100%' }} />
             </div>
           </div>
-
-          {/* 历史趋势 */}
-          <div style={s.chartCard}>
-            <div style={s.chartTitle}><TrendingUp size={15} style={s.chartIcon} /> 历史质控趋势</div>
-            <div style={s.trendTabs}>
-              <div style={trendDays === 7 ? s.trendTabActive : s.trendTab} onClick={() => { setTrendDays(7); setTrendData(generateTrendData(7)) }}>7天</div>
-              <div style={trendDays === 30 ? s.trendTabActive : s.trendTab} onClick={() => { setTrendDays(30); setTrendData(generateTrendData(30)) }}>30天</div>
-            </div>
-            <div style={{ height: 160 }}>
-              <ReactECharts option={getLineOption(trendData)} style={{ height: '100%', width: '100%' }} />
-            </div>
-          </div>
-
-          {/* 问题分类 */}
-          <div style={s.chartCard}>
-            <div style={s.chartTitle}><Layers size={15} style={s.chartIcon} /> 问题分类</div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {categoryStats.map(cat => {
-                const Icon = cat.icon
-                const pct = cat.total > 0 ? Math.round((cat.count / cat.total) * 100) : 0
-                return (
-                  <div
-                    key={cat.name}
-                    style={filterCategory === cat.name.toLowerCase().includes('图像') ? s.categoryCardActive : s.categoryCard}
-                    onClick={() => setFilterCategory(filterCategory === cat.name.toLowerCase().includes('图像') ? 'all' : cat.name.toLowerCase().includes('图像') ? 'image' : cat.name.toLowerCase().includes('报告') ? 'report' : 'alert')}
-                  >
-                    <div style={s.categoryHeader}>
-                      <div style={s.categoryName}>
-                        <Icon size={14} color={cat.color} />
-                        {cat.name}
-                      </div>
-                      <div style={{ ...s.categoryCount, color: cat.color }}>{cat.count}</div>
-                    </div>
-                    <div style={s.categoryBar}>
-                      <div style={{ ...s.categoryBarFill, width: `${pct}%`, background: cat.color }} />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-
-          {/* 质控规则配置快捷入口 */}
-          <div style={s.configCard}>
-            <div style={s.configTitle}><Settings size={14} style={{ color: C.textMuted }} /> 质控规则配置</div>
-            <div style={s.configRow}>
-              <span style={s.configLabel}>合格分数阈值</span>
-              <span style={{ fontWeight: 700, color: C.text, fontSize: 14 }}>{qcRules.passScore}分</span>
-            </div>
-            <div style={s.configRow}>
-              <span style={s.configLabel}>必填报告项</span>
-              <span style={{ fontWeight: 700, color: C.text, fontSize: 14 }}>{qcRules.requiredFields.length}项</span>
-            </div>
-            <button style={{ ...s.btn, ...s.btnOutline, width: '100%', justifyContent: 'center', marginTop: 4 }} onClick={() => setShowConfigModal(true)}>
-              <Settings size={12} /> 配置规则
-            </button>
-          </div>
-        </div>
-
-        {/* ========== 右侧面板 ========== */}
-        <div style={s.rightPanel}>
-          {/* 搜索栏 */}
-          <div style={s.searchBar}>
-            <input style={s.searchInput} placeholder="搜索患者、检查项目、检查医生..." value={searchText} onChange={(e) => setSearchText(e.target.value)} />
-            <button style={s.filterBtn} onClick={() => setShowFilter(!showFilter)}>
-              <Filter size={13} /> 筛选 {showFilter ? <ChevronDown size={12} /> : null}
-            </button>
-          </div>
-
-          {/* 筛选面板 */}
-          {showFilter && (
-            <div style={s.filterPanel}>
-              <div style={s.filterRow}>
-                <div style={s.filterLabel}>问题类型</div>
-                <div style={s.filterChips}>
-                  {['all', 'image', 'report', 'alert'].map(cat => (
-                    <span key={cat} style={filterCategory === cat ? s.filterChipActive : s.filterChip} onClick={() => setFilterCategory(cat)}>
-                      {cat === 'all' ? '全部' : getCategoryLabel(cat)}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              <div style={s.filterRow}>
-                <div style={s.filterLabel}>审核状态</div>
-                <div style={s.filterChips}>
-                  {[['all', '全部'], ['pass', '合格'], ['fail', '不合格']].map(([val, label]) => (
-                    <span key={val} style={filterStatus === val ? s.filterChipActive : s.filterChip} onClick={() => setFilterStatus(val)}>{label}</span>
-                  ))}
-                </div>
-              </div>
-              <button style={{ ...s.btn, ...s.btnOutline, marginTop: 4 }} onClick={() => { setFilterCategory('all'); setFilterStatus('all'); setSearchText(''); }}>
-                <RotateCcw size={11} /> 重置筛选
-              </button>
-            </div>
-          )}
-
-          {/* 标签页 */}
-          <div style={s.tabs}>
-            {[
-              ['list', '质控问题列表'],
-              ['detail', '详情面板'],
-            ].map(([tab, label]) => (
-              <div key={tab} style={activeTab === tab ? s.tabActive : s.tab} onClick={() => setActiveTab(tab)}>
-                {label}
-                {tab === 'list' && <span style={{ marginLeft: 6, background: C.orange, color: '#fff', borderRadius: 10, padding: '1px 7px', fontSize: 10 }}>{filteredList.length}</span>}
-              </div>
-            ))}
-          </div>
-
-          {/* 质控问题列表 */}
-          {activeTab === 'list' && (
-            <div style={s.issueList}>
-              {filteredList.length === 0 ? (
-                <div style={s.emptyState}>
-                  <CheckCircle size={40} style={{ color: C.green, marginBottom: 12 }} />
-                  <div style={{ fontSize: 14, fontWeight: 600, color: C.text, marginBottom: 4 }}>暂无问题</div>
-                  <div style={{ fontSize: 12 }}>当前筛选条件下没有需要处理的问题</div>
-                </div>
-              ) : (
-                filteredList.map(item => {
-                  const CatIcon = getCategoryIcon(item.category)
-                  return (
-                    <div key={item.id} style={{ ...s.issueCard, borderLeftColor: getCategoryColor(item.category) }}>
-                      <div style={s.issueHeader}>
-                        <div>
-                          <div style={s.issueTitle}>{item.patient} - {item.exam}</div>
-                          <div style={s.issueMeta}>检查医生：{item.doctor} | {item.date}</div>
-                        </div>
-                        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                          <span style={{ ...s.issueTag, background: item.pass ? '#f0fdf4' : '#fef2f2', color: item.pass ? C.green : C.red }}>
-                            {item.pass ? '合格' : '不合格'}
-                          </span>
-                          <span style={{ ...s.issueTag, background: `${getCategoryColor(item.category)}15`, color: getCategoryColor(item.category), display: 'flex', alignItems: 'center', gap: 3 }}>
-                            <CatIcon size={10} /> {getCategoryLabel(item.category)}
-                          </span>
-                        </div>
-                      </div>
-                      {/* AI评分 */}
-                      <div style={{ display: 'flex', gap: 16, marginBottom: 10 }}>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 4 }}>AI质控评分</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontSize: 22, fontWeight: 700, color: getScoreColor(item.aiScore) }}>{item.aiScore}</span>
-                            <span style={{ fontSize: 11, color: C.textMuted }}>/ 100</span>
-                          </div>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 4 }}>图像质量</div>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span style={{ fontSize: 22, fontWeight: 700, color: getScoreColor(item.imageQuality.overall) }}>{item.imageQuality.overall}</span>
-                            <span style={{ fontSize: 11, color: C.textMuted }}>/ 100</span>
-                          </div>
-                        </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: 11, color: C.textMuted, marginBottom: 4 }}>发现问题</div>
-                          <div style={{ fontSize: 22, fontWeight: 700, color: item.issues.length > 0 ? C.orange : C.green }}>
-                            {item.issues.length}
-                          </div>
-                        </div>
-                      </div>
-                      {/* 问题描述 */}
-                      {item.issues.length > 0 && (
-                        <div style={{ background: '#fef2f2', borderRadius: 8, padding: '8px 12px', marginBottom: 8 }}>
-                          <div style={{ fontSize: 11, color: C.red, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <AlertTriangle size={11} /> 存在问题
-                          </div>
-                          <div style={{ fontSize: 12, color: C.textMuted }}>{item.issues.join('；')}</div>
-                        </div>
-                      )}
-                      {/* 异常提醒 */}
-                      {item.alerts.length > 0 && (
-                        <div style={{ background: '#fff7ed', borderRadius: 8, padding: '8px 12px', marginBottom: 8 }}>
-                          <div style={{ fontSize: 11, color: C.orange, fontWeight: 600, marginBottom: 4, display: 'flex', alignItems: 'center', gap: 4 }}>
-                            <Bell size={11} /> 异常提醒
-                          </div>
-                          {item.alerts.map((alert, idx) => (
-                            <div key={idx} style={{ fontSize: 12, color: C.textMuted, display: 'flex', alignItems: 'center', gap: 4 }}>
-                              <span style={{ width: 6, height: 6, borderRadius: '50%', background: alert.type === 'error' ? C.red : alert.type === 'warning' ? C.orange : C.blue, flexShrink: 0 }} />
-                              {alert.text}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      <div style={s.issueActions}>
-                        <button style={{ ...s.btn, ...s.btnSuccess }} onClick={() => { const u = qcList.map(q => q.id === item.id ? { ...q, pass: true } : q); setQcList(u); }}><ThumbsUp size={12} /> 审核通过</button>
-                        <button style={{ ...s.btn, ...s.btnDanger }} onClick={() => { const u = qcList.map(q => q.id === item.id ? { ...q, pass: false } : q); setQcList(u); }}><ThumbsDown size={12} /> 退回修改</button>
-                        <button style={s.btnOutline} onClick={() => { setSelectedItem(item); setActiveTab('detail'); }}><Eye size={12} /> 查看详情</button>
-                        <button style={{ ...s.btn, ...s.btnOrange }} onClick={() => { setSelectedItem(item); setShowReviewModal(true); }}><MessageSquare size={12} /> 申请复查</button>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
-            </div>
-          )}
-
-          {/* 详情面板 */}
-          {activeTab === 'detail' && selectedItem && (
-            <div style={s.detailPanel}>
-              <div style={s.detailHeader}>
-                <div style={s.detailTitle}>报告详情 - {selectedItem.patient}</div>
-                <button style={s.btnOutline} onClick={() => setActiveTab('list')}><X size={14} /></button>
-              </div>
-              {/* 患者信息 */}
-              <div style={s.detailSection}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 10 }}>基本信息</div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                  {[
-                    ['患者姓名', selectedItem.patient],
-                    ['检查项目', selectedItem.exam],
-                    ['检查医生', selectedItem.doctor],
-                    ['检查日期', selectedItem.date],
-                  ].map(([label, val]) => (
-                    <div key={label} style={{ background: '#f8fafc', borderRadius: 8, padding: '8px 12px' }}>
-                      <div style={{ fontSize: 10, color: C.textMuted }}>{label}</div>
-                      <div style={{ fontSize: 13, color: C.text, fontWeight: 500, marginTop: 2 }}>{val}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* AI评分 */}
-              <div style={s.detailSection}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 10 }}>AI质量评估</div>
-                <div style={{ display: 'flex', gap: 24, alignItems: 'center' }}>
-                  <div style={{ width: 100, height: 100 }}>
-                    <ReactECharts option={getGaugeOption(selectedItem.aiScore)} style={{ width: '100%', height: '100%' }} />
-                    <div style={{ textAlign: 'center', fontSize: 10, color: C.textMuted, marginTop: -8 }}>AI评分</div>
-                  </div>
-                  <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
-                    {[
-                      ['图像清晰度', selectedItem.imageQuality.clarity, C.blue],
-                      ['伪影评分', selectedItem.imageQuality.artifact, C.orange],
-                      ['图像总分', selectedItem.imageQuality.overall, getScoreColor(selectedItem.imageQuality.overall)],
-                      ['报告完整', selectedItem.reportComplete ? '完整' : '缺失', selectedItem.reportComplete ? C.green : C.red],
-                    ].map(([label, val, color]) => (
-                      <div key={label} style={{ background: '#f8fafc', borderRadius: 8, padding: '8px 12px' }}>
-                        <div style={{ fontSize: 10, color: C.textMuted }}>{label}</div>
-                        <div style={{ fontSize: 16, fontWeight: 700, color, marginTop: 2 }}>{val}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              {/* 报告完整性 */}
-              <div style={s.detailSection}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 10 }}>报告完整性检查</div>
-                {selectedItem.reportIssues.length === 0 ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.green, fontSize: 12, background: '#f0fdf4', padding: '8px 12px', borderRadius: 8 }}>
-                    <Check size={13} /> 报告完整，所有必填项均已填写
-                  </div>
-                ) : (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    {selectedItem.reportIssues.map((issue, idx) => (
-                      <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 6, color: C.red, fontSize: 12, background: '#fef2f2', padding: '8px 12px', borderRadius: 8 }}>
-                        <AlertTriangle size={12} /> {issue}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-              {/* 问题列表 */}
-              {(selectedItem.issues.length > 0 || selectedItem.alerts.length > 0) && (
-                <div style={s.detailSection}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: C.text, marginBottom: 10 }}>AI检测问题</div>
-                  {selectedItem.issues.map((issue, idx) => (
-                    <div key={`issue-${idx}`} style={{ marginBottom: 6, padding: '8px 12px', background: '#fef2f2', borderRadius: 8 }}>
-                      <div style={{ fontSize: 12, color: C.red, fontWeight: 600, marginBottom: 2 }}><AlertCircle size={11} /> {issue}</div>
-                    </div>
-                  ))}
-                  {selectedItem.alerts.map((alert, idx) => (
-                    <div key={`alert-${idx}`} style={{ marginBottom: 6, padding: '8px 12px', background: '#fff7ed', borderRadius: 8 }}>
-                      <div style={{ fontSize: 12, color: C.orange, fontWeight: 600, marginBottom: 2, display: 'flex', alignItems: 'center', gap: 4 }}>
-                        <Bell size={11} />
-                        <span style={{ width: 6, height: 6, borderRadius: '50%', background: alert.type === 'error' ? C.red : C.orange }} />
-                        {alert.text}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-                <button style={{ ...s.btn, ...s.btnSuccess }}><ThumbsUp size={12} /> 审核通过</button>
-                <button style={{ ...s.btn, ...s.btnDanger }}><ThumbsDown size={12} /> 退回修改</button>
-                <button style={{ ...s.btn, ...s.btnOrange }} onClick={() => setShowReviewModal(true)}><MessageSquare size={12} /> 申请复查</button>
-              </div>
-            </div>
-          )}
-        </div>
+        ))}
       </div>
 
-      {/* ========== 复查申请弹窗 ========== */}
-      {showReviewModal && selectedItem && (
-        <div style={s.modal} onClick={(e) => { if (e.target === e.currentTarget) setShowReviewModal(false); }}>
-          <div style={s.modalContent}>
-            <div style={s.modalTitle}>申请复查 - {selectedItem.patient}</div>
-            <div style={s.modalRow}>
-              <div style={s.modalLabel}>报告信息</div>
-              <div style={{ fontSize: 13, color: C.text, padding: '8px 12px', background: '#f8fafc', borderRadius: 8 }}>
-                {selectedItem.exam} | {selectedItem.doctor} | {selectedItem.date}
+      {/* Tab导航 */}
+      <div style={s.tabNav}>
+        <button style={activeTab === 'realtime' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('realtime')}>
+          <Zap size={16} />实时检测
+        </button>
+        <button style={activeTab === 'history' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('history')}>
+          <FileSearch size={16} />历史记录
+        </button>
+        <button style={activeTab === 'scoring' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('scoring')}>
+          <Award size={16} />质控评分
+        </button>
+        <button style={activeTab === 'dashboard' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('dashboard')}>
+          <BarChart3 size={16} />质控仪表盘
+        </button>
+        <button style={activeTab === 'models' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('models')}>
+          <Cpu size={16} />AI模型
+        </button>
+      </div>
+
+      {/* ========== 实时检测 ========== */}
+      {activeTab === 'realtime' && (
+        <div style={s.twoColGrid}>
+          {/* CADe检测面板 */}
+          <div style={s.cadePanel}>
+            <div style={s.cadeHeader}>
+              <div style={s.cadeTitle}>
+                <Brain size={16} color="#60a5fa" />
+                CADe 实时检测
+              </div>
+              <div style={s.cadeStatus}>
+                <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#22c55e', boxShadow: '0 0 6px #22c55e', display: 'inline-block' }} />
+                检测中
               </div>
             </div>
-            <div style={s.modalRow}>
-              <div style={s.modalLabel}>复查原因 *</div>
-              <select style={s.modalInput} value={reviewForm.reason} onChange={(e) => setReviewForm({ ...reviewForm, reason: e.target.value })}>
-                <option value="">请选择复查原因</option>
-                <option value="图像质量存疑">图像质量存疑</option>
-                <option value="诊断结论有争议">诊断结论有争议</option>
-                <option value="报告描述不准确">报告描述不准确</option>
-                <option value="疑似漏诊">疑似漏诊</option>
-                <option value="其他">其他</option>
-              </select>
+            <div style={s.cadeView}>
+              <svg width="100%" height="100%" viewBox="0 0 640 360">
+                <defs>
+                  <radialGradient id="cadeGlow" cx="50%" cy="50%" r="50%">
+                    <stop offset="0%" stopColor="#1e4080" stopOpacity="0.6" />
+                    <stop offset="100%" stopColor="#0f2744" stopOpacity="0" />
+                  </radialGradient>
+                </defs>
+                <rect fill="#0f0f1a" width="100%" height="100%" />
+                <ellipse cx="320" cy="180" rx="200" ry="140" fill="url(#cadeGlow)" />
+                <path d="M100 280 Q200 250 300 280 T500 260 T620 280" stroke="#1e4080" strokeWidth="1.5" fill="none" opacity="0.5" />
+                <path d="M80 200 Q180 170 280 200 T480 180 T640 200" stroke="#1e4080" strokeWidth="1" fill="none" opacity="0.3" />
+                <path d="M120 320 Q220 290 320 320 T520 300 T620 320" stroke="#1e4080" strokeWidth="1" fill="none" opacity="0.4" />
+                <rect x="280" y="140" width="60" height="50" fill="none" stroke="#ef4444" strokeWidth="2" rx="4">
+                  <animate attributeName="opacity" values="1;0.5;1" dur="1s" repeatCount="indefinite" />
+                </rect>
+                <text x="310" y="135" fill="#ef4444" fontSize="10" textAnchor="middle">息肉 92%</text>
+              </svg>
             </div>
-            <div style={s.modalRow}>
-              <div style={s.modalLabel}>详细说明 *</div>
-              <textarea style={s.modalTextarea} placeholder="请详细描述复查原因和具体疑问..." value={reviewForm.reason === '其他' ? reviewForm.reason : ''} />
+            <div style={s.cadeControls}>
+              <button style={{ ...s.btnLarge, padding: '8px 16px', minHeight: 40 }}><Play size={14} />开始检测</button>
+              <button style={{ ...s.btnLargeWarning, padding: '8px 16px', minHeight: 40 }}><Pause size={14} />暂停</button>
+              <button style={{ ...s.btnLarge, padding: '8px 16px', minHeight: 40 }}><RefreshCw size={14} />重置</button>
             </div>
-            <div style={s.modalRow}>
-              <div style={s.modalLabel}>联系邮箱/电话</div>
-              <input style={s.modalInput} placeholder="选填，方便质控人员联系您" value={reviewForm.contact} onChange={(e) => setReviewForm({ ...reviewForm, contact: e.target.value })} />
+            <div style={s.cadeStats}>
+              <div style={s.cadeStat}><div style={s.cadeStatLabel}>检测帧数</div><div style={s.cadeStatValue}>1,256</div></div>
+              <div style={s.cadeStat}><div style={{ ...s.cadeStatValue, color: '#ef4444' }}>3</div><div style={s.cadeStatLabel}>发现可疑</div></div>
+              <div style={s.cadeStat}><div style={s.cadeStatValue}>00:42</div><div style={s.cadeStatLabel}>检测时长</div></div>
+              <div style={s.cadeStat}><div style={{ ...s.cadeStatValue, color: '#22c55e' }}>94.5%</div><div style={s.cadeStatLabel}>置信度</div></div>
             </div>
-            <div style={s.modalActions}>
-              <button style={s.btnOutline} onClick={() => setShowReviewModal(false)}>取消</button>
-              <button style={{ ...s.btn, ...s.btnPrimary }} onClick={() => { setShowReviewModal(false); alert('复查申请已提交！'); }}><Check size={13} /> 提交复查申请</button>
+          </div>
+
+          {/* 检测记录列表 */}
+          <div style={s.panel}>
+            <div style={s.panelHeader}>
+              <div style={s.panelTitle}><AlertOctagon size={16} color="#dc2626" />待处理提醒</div>
+              <span style={{ ...s.badge, ...s.badgeDanger }}>3 条</span>
+            </div>
+            <div style={s.panelBody}>
+              {[
+                { patient: '王芳', type: '肠镜', time: '10:32', detection: '发现结肠息肉', confidence: 92 },
+                { patient: '李明', type: '胃镜', time: '10:28', detection: '可疑溃疡病灶', confidence: 87 },
+                { patient: '刘洋', type: '肠镜', time: '10:15', detection: '直肠息肉', confidence: 95 },
+              ].map((item, idx) => (
+                <div key={idx} style={{
+                  padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 8,
+                  cursor: 'pointer', transition: 'all 0.2s',
+                  background: idx === 0 ? '#f0f7ff' : '#fff',
+                  borderColor: idx === 0 ? '#2563eb' : '#e5e7eb',
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span style={{ fontSize: 13, fontWeight: 600, color: '#1a3a5c' }}>{item.patient}</span>
+                      <span style={{ ...s.badge, ...s.badgeInfo }}>{item.type}</span>
+                    </div>
+                    <span style={{ fontSize: 11, color: '#94a3b8' }}>{item.time}</span>
+                  </div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginBottom: 4 }}>{item.detection}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{ flex: 1, height: 4, background: '#e5e7eb', borderRadius: 2, overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${item.confidence}%`, background: item.confidence > 90 ? '#22c55e' : '#f59e0b', borderRadius: 2 }} />
+                    </div>
+                    <span style={{ fontSize: 11, fontWeight: 600, color: item.confidence > 90 ? '#22c55e' : '#f59e0b' }}>{item.confidence}%</span>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* ========== 质控规则配置弹窗 ========== */}
-      {showConfigModal && (
-        <div style={s.modal} onClick={(e) => { if (e.target === e.currentTarget) setShowConfigModal(false); }}>
-          <div style={s.modalContent}>
-            <div style={s.modalTitle}>质控规则配置</div>
-            <div style={s.modalRow}>
-              <div style={s.modalLabel}>合格分数阈值（0-100）</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  type="range" min="50" max="100" value={qcRules.passScore}
-                  style={{ flex: 1 }}
-                  onChange={(e) => setQcRules({ ...qcRules, passScore: parseInt(e.target.value) })}
-                />
-                <span style={{ fontWeight: 700, color: C.blue, fontSize: 16, width: 36, textAlign: 'center' }}>{qcRules.passScore}</span>
-              </div>
-              <div style={{ fontSize: 10, color: C.textMuted, marginTop: 4 }}>AI评分低于此分数的报告将被标记为不合格</div>
+      {/* ========== 历史记录 ========== */}
+      {activeTab === 'history' && (
+        <>
+          <div style={s.filterBar}>
+            <div style={s.searchBox}>
+              <Search size={16} color="#94a3b8" />
+              <input style={s.searchInput} placeholder="搜索患者姓名、检查类型或医生..." value={searchKeyword} onChange={e => setSearchKeyword(e.target.value)} />
             </div>
-            <div style={s.modalRow}>
-              <div style={s.modalLabel}>必填报告项</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {['超声描述', '超声诊断', '检查医生', '检查日期', '检查设备', '测量数据'].map(field => (
-                  <label key={field} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, cursor: 'pointer' }}>
-                    <input
-                      type="checkbox"
-                      checked={qcRules.requiredFields.includes(field)}
-                      onChange={(e) => {
-                        if (e.target.checked) setQcRules({ ...qcRules, requiredFields: [...qcRules.requiredFields, field] })
-                        else setQcRules({ ...qcRules, requiredFields: qcRules.requiredFields.filter(f => f !== field) })
+            <select style={s.select} value={filterType} onChange={e => setFilterType(e.target.value)}>
+              {examTypes.map(t => (<option key={t} value={t}>{t === '全部' ? '全部类型' : t}</option>))}
+            </select>
+            <button style={s.btnIcon}><Download size={14} />导出</button>
+          </div>
+
+          <div style={s.panel}>
+            <div style={s.panelBody}>
+              {paginatedHistory.length > 0 ? (
+                <table style={s.table}>
+                  <thead>
+                    <tr>
+                      <th style={s.th}>日期</th>
+                      <th style={s.th}>患者姓名</th>
+                      <th style={s.th}>检查类型</th>
+                      <th style={s.th}>AI评分</th>
+                      <th style={s.th}>等级</th>
+                      <th style={s.th}>报告及时率</th>
+                      <th style={s.th}>图像达标率</th>
+                      <th style={s.th}>退镜时间</th>
+                      <th style={s.th}>AI建议</th>
+                      <th style={s.th}>审核医生</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginatedHistory.map((record) => (
+                      <tr key={record.id}>
+                        <td style={s.td}>{record.date}</td>
+                        <td style={{ ...s.td, fontWeight: 500 }}>{record.patientName}</td>
+                        <td style={s.td}><span style={{ ...s.badge, ...s.badgeInfo }}>{record.examType}</span></td>
+                        <td style={s.td}>
+                          <span style={{ fontWeight: 600, color: record.score >= 90 ? '#16a34a' : record.score >= 80 ? '#d97706' : '#dc2626' }}>{record.score}分</span>
+                        </td>
+                        <td style={s.td}>
+                          <span style={{ ...s.badge, ...(record.grade === '优秀' ? s.badgeSuccess : record.grade === '良好' ? s.badgeInfo : record.grade === '合格' ? s.badgeWarning : s.badgeDanger) }}>{record.grade}</span>
+                        </td>
+                        <td style={s.td}>
+                          <span style={{ color: record.reportTimeliness >= 95 ? '#16a34a' : record.reportTimeliness >= 90 ? '#d97706' : '#dc2626' }}>{record.reportTimeliness}%</span>
+                        </td>
+                        <td style={s.td}>
+                          <span style={{ color: record.imageStandard >= 90 ? '#16a34a' : record.imageStandard >= 85 ? '#d97706' : '#dc2626' }}>{record.imageStandard}%</span>
+                        </td>
+                        <td style={s.td}>
+                          <span style={{ color: record.withdrawalTime >= 85 ? '#16a34a' : record.withdrawalTime >= 75 ? '#d97706' : '#dc2626' }}>{record.withdrawalTime}%</span>
+                        </td>
+                        <td style={s.td}>{record.aiSuggestion}</td>
+                        <td style={s.td}>{record.doctor}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (<EmptyState icon={FileSearch} text="暂无历史质控记录" subtext="请先进行AI智能质控检测" />)}
+            </div>
+
+            {filteredHistory.length > 0 && (
+              <div style={s.pagination}>
+                <div style={s.pageInfo}>显示 {(page - 1) * pageSize + 1}-{Math.min(page * pageSize, filteredHistory.length)} 条，共 {filteredHistory.length} 条</div>
+                <div style={s.pageBtns}>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let p = i + 1
+                    if (totalPages > 5 && page > 3) p = page - 2 + i
+                    if (totalPages > 5 && page > totalPages - 2) p = totalPages - 4 + i
+                    return (<button key={p} style={page === p ? s.pageBtnActive : s.pageBtn} onClick={() => setPage(p)}>{p}</button>)
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
+
+      {/* ========== 质控评分 ========== */}
+      {activeTab === 'scoring' && (
+        <>
+          <div style={s.filterBar}>
+            <div style={s.searchBox}>
+              <Search size={16} color="#94a3b8" />
+              <input style={s.searchInput} placeholder="搜索患者姓名或检查类型..." value={searchKeyword} onChange={e => setSearchKeyword(e.target.value)} />
+            </div>
+            <select style={s.select} value={filterType} onChange={e => setFilterType(e.target.value)}>
+              {examTypes.map(t => (<option key={t} value={t}>{t === '全部' ? '全部类型' : t}</option>))}
+            </select>
+            <button style={s.btnIcon}><Award size={14} />生成报告</button>
+          </div>
+
+          {/* 22张图片标准切换 */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
+              <button
+                style={{ ...s.btnIcon, background: selectedExamType === 'gastroscopy' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'gastroscopy' ? '#fff' : '#475569' }}
+                onClick={() => setSelectedExamType('gastroscopy')}
+              >
+                <Camera size={14} />胃镜（22张）
+              </button>
+              <button
+                style={{ ...s.btnIcon, background: selectedExamType === 'colonoscopy' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'colonoscopy' ? '#fff' : '#475569' }}
+                onClick={() => setSelectedExamType('colonoscopy')}
+              >
+                <Camera size={14} />肠镜（22张）
+              </button>
+              <button
+                style={{ ...s.btnIcon, background: selectedExamType === 'eus' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'eus' ? '#fff' : '#475569' }}
+                onClick={() => setSelectedExamType('eus')}
+              >
+                <Camera size={14} />超声内镜（18张）
+              </button>
+            </div>
+
+            {/* 22张图片标准展示 */}
+            <div style={s.panel}>
+              <div style={s.panelHeader}>
+                <div style={s.panelTitle}>
+                  <Layers2 size={14} />
+                  {currentStandard.examType} - 图片采集标准（共{currentStandard.totalRequired}张）
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, color: '#64748b' }}>
+                    已采集: <strong style={{ color: '#16a34a' }}>{currentStandard.items.filter(i => i.captured).length}</strong> / {currentStandard.totalRequired}
+                  </span>
+                  <span style={{ ...s.badge, ...s.badgeSuccess }}>
+                    达标率: {Math.round(currentStandard.items.filter(i => i.captured && i.quality !== 'poor').length / currentStandard.totalRequired * 100)}%
+                  </span>
+                </div>
+              </div>
+              <div style={{ padding: 16 }}>
+                <div style={s.standardGrid}>
+                  {currentStandard.items.map(item => (
+                    <div
+                      key={item.id}
+                      style={{
+                        ...s.standardItem,
+                        ...(item.required ? s.standardItemRequired : {}),
+                        ...(item.captured && item.quality === 'good' ? s.standardItemCaptured : {}),
                       }}
-                    />
-                    {field}
-                  </label>
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={s.standardItemName}>{item.name}</span>
+                        {item.required && <span style={{ fontSize: 9, color: '#dc2626', fontWeight: 600 }}>必选</span>}
+                      </div>
+                      <div style={s.standardItemDesc}>{item.description}</div>
+                      <div style={{
+                        ...s.standardItemQuality,
+                        background: item.captured && item.quality === 'good' ? '#dcfce7' : item.captured && item.quality === 'fair' ? '#fef3c7' : item.captured && item.quality === 'poor' ? '#fee2e2' : '#f1f5f9',
+                        color: item.captured && item.quality === 'good' ? '#16a34a' : item.captured && item.quality === 'fair' ? '#d97706' : item.captured && item.quality === 'poor' ? '#dc2626' : '#94a3b8',
+                      }}>
+                        {item.captured ? (item.quality === 'good' ? '✓ 优质' : item.quality === 'fair' ? '○ 一般' : '△ 差') : '○ 未采集'}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 图像质量评分 */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: '#1a3a5c', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <Gauge size={14} /> 图像质量自动评分（清晰度/亮度/覆盖度）
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 }}>
+              {imageQCResults.map(img => (
+                <div key={img.id} style={s.imageQCCard}>
+                  <div style={s.imageQCHeader}>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c' }}>{img.name}</span>
+                    <span style={{
+                      ...s.badge,
+                      background: img.overall >= 85 ? '#dcfce7' : img.overall >= 75 ? '#fef3c7' : '#fee2e2',
+                      color: img.overall >= 85 ? '#16a34a' : img.overall >= 75 ? '#d97706' : '#dc2626',
+                    }}>
+                      {img.overall >= 85 ? '优秀' : img.overall >= 75 ? '良好' : '不合格'}
+                    </span>
+                  </div>
+                  <div style={s.imageQCThumb}>
+                    <Camera size={24} color="#94a3b8" />
+                  </div>
+                  <div style={s.imageQCProgress}>
+                    {[
+                      { label: '清晰度', value: img.clarity, color: '#2563eb' },
+                      { label: '亮度', value: img.brightness, color: '#f59e0b' },
+                      { label: '覆盖度', value: img.coverage, color: '#16a34a' },
+                    ].map(item => (
+                      <div key={item.label} style={s.imageQCProgressRow}>
+                        <span style={s.imageQCProgressLabel}>{item.label}</span>
+                        <div style={s.imageQCProgressBar}>
+                          <div style={{ ...s.imageQCProgressFill, width: `${item.value}%`, background: item.color }} />
+                        </div>
+                        <span style={{ ...s.imageQCProgressValue, color: item.color }}>{item.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                  {img.issues.length > 0 && (
+                    <div style={{ fontSize: 10, color: '#dc2626' }}>{img.issues.join('; ')}</div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 质控评分表 */}
+          <div style={s.panel}>
+            <div style={s.panelHeader}>
+              <div style={s.panelTitle}><Award size={14} />质控评分详情</div>
+              <button style={s.btnIcon}><Download size={14} />导出评分</button>
+            </div>
+            <div style={s.panelBody}>
+              {filteredScoring.length > 0 ? (
+                <table style={s.table}>
+                  <thead>
+                    <tr>
+                      <th style={s.th}>患者</th>
+                      <th style={s.th}>类型</th>
+                      <th style={s.th}>图像质量</th>
+                      <th style={s.th}>清晰度</th>
+                      <th style={s.th}>亮度</th>
+                      <th style={s.th}>覆盖度</th>
+                      <th style={s.th}>检查完整度</th>
+                      <th style={s.th}>操作规范</th>
+                      <th style={s.th}>报告规范</th>
+                      <th style={s.th}>总分</th>
+                      <th style={s.th}>扣分详情</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredScoring.map((record) => (
+                      <tr key={record.id}>
+                        <td style={{ ...s.td, fontWeight: 500 }}>{record.patientName}</td>
+                        <td style={s.td}><span style={{ ...s.badge, ...s.badgeInfo }}>{record.examType}</span></td>
+                        <td style={s.td}>{record.imageQuality}分</td>
+                        <td style={s.td}>
+                          <span style={{ color: record.clarity >= 85 ? '#16a34a' : record.clarity >= 75 ? '#d97706' : '#dc2626' }}>{record.clarity}分</span>
+                        </td>
+                        <td style={s.td}>
+                          <span style={{ color: record.brightness >= 80 ? '#16a34a' : record.brightness >= 70 ? '#d97706' : '#dc2626' }}>{record.brightness}分</span>
+                        </td>
+                        <td style={s.td}>
+                          <span style={{ color: record.coverage >= 85 ? '#16a34a' : record.coverage >= 75 ? '#d97706' : '#dc2626' }}>{record.coverage}分</span>
+                        </td>
+                        <td style={s.td}>{record.examCompleteness}分</td>
+                        <td style={s.td}>{record.operationStandard}分</td>
+                        <td style={s.td}>{record.reportStandard}分</td>
+                        <td style={s.td}>
+                          <span style={{ ...s.badge, ...(record.totalScore >= 90 ? s.badgeSuccess : record.totalScore >= 80 ? s.badgeWarning : s.badgeDanger) }}>{record.totalScore}分</span>
+                        </td>
+                        <td style={s.td}>
+                          {record.deductions.length > 0 ? (
+                            <span style={{ fontSize: 11, color: '#dc2626' }}>{record.deductions.map(d => d.item).join('、')}</span>
+                          ) : (
+                            <span style={{ fontSize: 11, color: '#16a34a' }}>无扣分</span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (<EmptyState icon={Award} text="暂无质控评分记录" subtext="请先进行AI智能质控评分" />)}
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* ========== 质控仪表盘 ========== */}
+      {activeTab === 'dashboard' && (
+        <>
+          {/* 5项核心指标 */}
+          <div style={s.dashboardGrid}>
+            {QC_INDICATORS.map(ind => (
+              <div key={ind.key} style={s.dashboardCard}>
+                <div style={s.dashboardCardTitle}>
+                  {ind.label}
+                </div>
+                <div style={{ ...s.dashboardCardValue, color: ind.status === 'excellent' ? '#16a34a' : ind.status === 'good' ? '#2563eb' : ind.status === 'warning' ? '#d97706' : '#dc2626' }}>
+                  {ind.value}
+                  <span style={{ fontSize: 14, fontWeight: 400 }}>{ind.unit}</span>
+                </div>
+                <div style={s.dashboardCardSub}>目标: {ind.target}{ind.unit}</div>
+                <TrendChart data={ind.trend} color={ind.status === 'excellent' ? '#16a34a' : ind.status === 'good' ? '#2563eb' : ind.status === 'warning' ? '#d97706' : '#dc2626'} />
+                <div style={{ fontSize: 10, color: '#94a3b8', marginTop: 4 }}>
+                  {ind.value >= ind.target ? '✓ 已达标' : `差距 ${(ind.target - ind.value).toFixed(1)}${ind.unit}`}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* 质控问题列表 */}
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#1a3a5c', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <AlertTriangle size={16} color="#d97706" /> 质控问题列表及整改建议
+            </div>
+            {QC_ISSUES.map(issue => (
+              <div key={issue.id} style={s.issueCard}>
+                <div style={s.issueHeader}>
+                  <div>
+                    <span style={s.issueTitle}>{issue.patientName}</span>
+                    <span style={{ ...s.badge, ...(issue.severity === 'high' ? s.badgeDanger : issue.severity === 'medium' ? s.badgeWarning : s.badgeInfo), marginLeft: 8 }}>{issue.severity === 'high' ? '严重' : issue.severity === 'medium' ? '中等' : '轻微'}</span>
+                    <span style={{ ...s.badge, ...s.badgeInfo, marginLeft: 4 }}>{issue.examType}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 6 }}>
+                    {issue.status === 'pending' && <span style={{ ...s.badge, ...s.badgeWarning }}>待处理</span>}
+                    {issue.status === 'resolved' && <span style={{ ...s.badge, ...s.badgeSuccess }}>已解决</span>}
+                    {issue.status === 'ignored' && <span style={{ ...s.badge, ...s.badgeInfo }}>已忽略</span>}
+                  </div>
+                </div>
+                <div style={s.issueDesc}>{issue.description}</div>
+                <div style={s.issueSuggestion}>💡 {issue.suggestion}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* AI模型性能概览 */}
+          <div style={s.panel}>
+            <div style={s.panelHeader}>
+              <div style={s.panelTitle}><Cpu size={14} />AI模型性能概览</div>
+              <button style={s.btnIcon} onClick={() => setActiveTab('models')}><Eye size={14} />查看详情</button>
+            </div>
+            <div style={{ padding: 16 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12 }}>
+                {aiModels.slice(0, 5).map(model => (
+                  <div key={model.id} style={{ background: '#f8fafc', borderRadius: 8, padding: 12, border: '1px solid #e5e7eb' }}>
+                    <div style={{ fontSize: 13, fontWeight: 600, color: '#1a3a5c', marginBottom: 4 }}>{model.name}</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8', marginBottom: 8 }}>v{model.version}</div>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <div style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: '#2563eb' }}>{model.accuracy}%</div>
+                        <div style={{ fontSize: 10, color: '#94a3b8' }}>准确率</div>
+                      </div>
+                      <div style={{ flex: 1, textAlign: 'center' }}>
+                        <div style={{ fontSize: 16, fontWeight: 700, color: '#16a34a' }}>{model.detections > 9999 ? `${(model.detections / 1000).toFixed(0)}k` : model.detections}</div>
+                        <div style={{ fontSize: 10, color: '#94a3b8' }}>检测数</div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
-            <div style={s.modalActions}>
-              <button style={s.btnOutline} onClick={() => setShowConfigModal(false)}>取消</button>
-              <button style={s.btnOutline} onClick={handleResetRules}><RotateCcw size={12} /> 重置</button>
-              <button style={{ ...s.btn, ...s.btnPrimary }} onClick={handleApplyRules}><Save size={13} /> 保存并应用</button>
-            </div>
           </div>
-        </div>
+        </>
+      )}
+
+      {/* ========== AI模型 ========== */}
+      {activeTab === 'models' && (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button style={s.btnLargeSuccess}><Plus size={16} />新增模型</button>
+              <button style={s.btnLarge}><RefreshCw size={16} />同步模型</button>
+            </div>
+            <button style={s.btnLargeInfo}><Download size={16} />导出配置</button>
+          </div>
+
+          <div style={s.threeColGrid}>
+            {aiModels.map((model) => (
+              <div key={model.id} style={s.modelCard}>
+                <div style={s.modelCardHeader}>
+                  <div style={s.modelIcon}>
+                    <Brain size={24} color="#fff" />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                    <span style={{ ...s.badge, ...(model.status === 'active' ? s.badgeSuccess : model.status === 'training' ? s.badgeWarning : s.badgeDanger) }}>
+                      {model.status === 'active' ? '运行中' : model.status === 'training' ? '训练中' : '已停用'}
+                    </span>
+                  </div>
+                </div>
+                <div>
+                  <div style={s.modelName}>{model.name}</div>
+                  <div style={s.modelVersion}>版本 {model.version}</div>
+                  <div style={s.modelDesc}>{model.description}</div>
+                </div>
+                <div style={s.modelStats}>
+                  <div style={s.modelStat}><div style={s.modelStatValue}>{model.accuracy}%</div><div style={s.modelStatLabel}>准确率</div></div>
+                  <div style={s.modelStat}><div style={s.modelStatValue}>{model.precision}%</div><div style={s.modelStatLabel}>精确率</div></div>
+                  <div style={s.modelStat}><div style={s.modelStatValue}>{model.recall}%</div><div style={s.modelStatLabel}>召回率</div></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontSize: 11, color: '#94a3b8' }}>已检测 {model.detections.toLocaleString()} 次</span>
+                  <span style={{ fontSize: 11, color: '#94a3b8' }}>更新于 {model.lastUpdated}</span>
+                </div>
+                <div style={s.modelActions}>
+                  {model.status === 'active' ? (
+                    <><button style={s.btnWarning} title="暂停模型"><Pause size={12} />暂停</button><button style={s.btnDanger} title="停用模型"><X size={12} />停用</button></>
+                  ) : model.status === 'training' ? (
+                    <button style={s.btnSuccess}><TrendingUp size={12} />训练中</button>
+                  ) : (
+                    <button style={s.btnSuccess}><Check size={12} />启用</button>
+                  )}
+                  <button style={s.btnIcon}><Settings size={12} /></button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   )

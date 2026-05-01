@@ -1,397 +1,305 @@
-// @ts-nocheck
-// ============================================================
-// G003 超声RIS系统 - 权限管理页面
-// 用户权限 / 角色配置 / 访问控制 / 审计日志
-// ============================================================
-import { useState } from 'react'
+import React, { useState } from 'react'
 import {
-  Shield, Users, UserCog, Key, Lock, Unlock, CheckCircle,
-  XCircle, AlertTriangle, Search, Filter, Plus, ChevronRight,
-  Edit, Trash2, Eye, MoreHorizontal, Download, RefreshCw,
-  Settings, Activity, Clock, Server, Database, Monitor
+  Shield, Users, UserCog, Key, Eye, EyeOff, Plus, Trash2,
+  Edit3, Save, X, Search, Filter, CheckCircle, XCircle,
+  ChevronRight, ChevronDown, Lock, Unlock, AlertTriangle
 } from 'lucide-react'
-import {
-  BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip,
-  Legend, ResponsiveContainer
-} from 'recharts'
 
-// ---------- 样式 ----------
+interface Role { id: string; name: string; desc: string; userCount: number; color: string }
+interface Permission { id: string; name: string; module: string; description: string }
+interface User { id: string; name: string; dept: string; role: string; status: 'active' | 'inactive'; lastLogin: string }
+
+const roles: Role[] = [
+  { id: 'R001', name: '系统管理员', desc: '拥有系统所有权限，可管理所有模块', userCount: 2, color: '#f85149' },
+  { id: 'R002', name: '科室主任', desc: '管理科室运营、查看全部数据、审批报告', userCount: 3, color: '#a371f7' },
+  { id: 'R003', name: '主治医师', desc: '书写报告、查看患者、检查执行', userCount: 12, color: '#58a6ff' },
+  { id: 'R004', name: '住院医师', desc: '协助检查、记录、随访患者', userCount: 18, color: '#3fb950' },
+  { id: 'R005', name: '护士长', desc: '管理护理排班、洗消监督、物资管理', userCount: 5, color: '#f0b429' },
+  { id: 'R006', name: '护士', desc: '执行护理操作、协助检查、患者管理', userCount: 24, color: '#3fb950' },
+  { id: 'R007', name: '技师', desc: '设备操作、影像采集、洗消执行', userCount: 8, color: '#8b949e' },
+  { id: 'R008', name: '数据上报员', desc: '仅可操作国家平台数据上报模块', userCount: 2, color: '#f0b429' },
+]
+
+const modules = ['患者管理', '检查执行', '报告管理', '影像管理', '内镜设备', '洗消追溯', '手术管理', '质控管理', '统计报表', '系统设置']
+const allPermissions: Permission[] = modules.flatMap(mod =>
+  ['查看', '新增', '编辑', '删除', '导出'].map(act => ({
+    id: `${mod}-${act}`, name: `${act}`, module: mod,
+    description: `${mod}的${act}权限`
+  }))
+)
+
+const users: User[] = [
+  { id: 'U001', name: '张明华', dept: '消化内科', role: '主治医师', status: 'active', lastLogin: '2026-04-30 09:12' },
+  { id: 'U002', name: '李秀英', dept: '消化内科', role: '护士长', status: 'active', lastLogin: '2026-04-30 08:45' },
+  { id: 'U003', name: '王建国', dept: '内镜中心', role: '技师', status: 'active', lastLogin: '2026-04-29 17:30' },
+  { id: 'U004', name: '陈晓梅', dept: '消化内科', role: '住院医师', status: 'inactive', lastLogin: '2026-04-20 10:00' },
+  { id: 'U005', name: '刘大力', dept: '内镜中心', role: '主治医师', status: 'active', lastLogin: '2026-04-30 10:30' },
+  { id: 'U006', name: '赵丽', dept: '医务科', role: '数据上报员', status: 'active', lastLogin: '2026-04-30 09:00' },
+]
+
 const s: Record<string, React.CSSProperties> = {
-  root: { padding: 0 },
-  header: { marginBottom: 24 },
-  title: { fontSize: 20, fontWeight: 700, color: '#1a3a5c', margin: 0 },
-  subtitle: { fontSize: 13, color: '#64748b', marginTop: 4 },
-  headerRight: { display: 'flex', gap: 8, marginTop: 8 },
-  // 操作按钮
-  btnPrimary: {
-    padding: '8px 16px', borderRadius: 8, border: 'none',
-    background: '#3b82f6', color: '#fff', cursor: 'pointer',
-    fontSize: 13, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 6,
-  },
-  btnSecondary: {
-    padding: '8px 16px', borderRadius: 8, border: '1px solid #e2e8f0',
-    background: '#fff', cursor: 'pointer', fontSize: 13, display: 'flex',
-    alignItems: 'center', gap: 6,
-  },
-  // 统计卡片
-  statRow: {
-    display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 24,
-  },
-  statCard: {
-    background: '#fff', borderRadius: 12, padding: '20px 24px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', display: 'flex',
-    alignItems: 'center', gap: 16,
-  },
-  statIconWrap: {
-    width: 52, height: 52, borderRadius: 12, display: 'flex',
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
-  statInfo: { flex: 1, minWidth: 0 },
-  statValue: { fontSize: 28, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.2 },
-  statLabel: { fontSize: 12, color: '#64748b', marginTop: 4 },
-  // 标签页
-  tabs: {
-    display: 'flex', gap: 4, background: '#f8fafc', padding: 4, borderRadius: 10,
-    marginBottom: 24,
-  },
-  tab: {
-    padding: '8px 20px', borderRadius: 8, border: 'none', background: 'transparent',
-    cursor: 'pointer', fontSize: 13, fontWeight: 500, color: '#64748b',
-  },
-  tabActive: {
-    padding: '8px 20px', borderRadius: 8, border: 'none',
-    background: '#fff', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-    color: '#1a3a5c', boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-  },
-  // 卡片
-  card: {
-    background: '#fff', borderRadius: 12, padding: 20,
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)', marginBottom: 16,
-  },
-  cardTitle: {
-    fontSize: 14, fontWeight: 600, color: '#1a3a5c', marginBottom: 16,
-    display: 'flex', alignItems: 'center', gap: 8,
-  },
-  // 用户列表
-  userItem: {
-    display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0',
-    borderBottom: '1px solid #f1f5f9',
-  },
-  userAvatar: {
-    width: 40, height: 40, borderRadius: 10, background: '#eff6ff',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    color: '#3b82f6', fontWeight: 600, fontSize: 14,
-  },
-  userInfo: { flex: 1 },
-  userName: { fontSize: 13, fontWeight: 600, color: '#1a3a5c' },
-  userRole: { fontSize: 12, color: '#64748b', marginTop: 2 },
-  // 角色标签
-  roleBadge: {
-    fontSize: 11, fontWeight: 600, padding: '3px 10px', borderRadius: 10,
-    display: 'inline-block',
-  },
-  // 权限列表
-  permissionItem: {
-    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-    padding: '10px 0', borderBottom: '1px solid #f1f5f9',
-  },
-  permissionLabel: { fontSize: 13, color: '#1a3a5c', display: 'flex', alignItems: 'center', gap: 8 },
-  // 开关
-  toggle: {
-    width: 44, height: 24, borderRadius: 12, position: 'relative', cursor: 'pointer',
-    transition: 'background 0.2s',
-  },
-  toggleOn: { background: '#22c55e' },
-  toggleOff: { background: '#e2e8f0' },
-  toggleKnob: {
-    width: 20, height: 20, borderRadius: '50%', background: '#fff',
-    position: 'absolute', top: 2, transition: 'left 0.2s',
-    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-  },
-  // 日志列表
-  logItem: {
-    display: 'flex', gap: 12, padding: '12px 0', borderBottom: '1px solid #f1f5f9',
-  },
-  logIcon: {
-    width: 36, height: 36, borderRadius: 8, display: 'flex',
-    alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-  },
-  logContent: { flex: 1 },
-  logTitle: { fontSize: 13, color: '#1a3a5c', marginBottom: 4 },
-  logTime: { fontSize: 11, color: '#94a3b8' },
-  // 颜色
-  blue: { backgroundColor: '#eff6ff', color: '#3b82f6' },
-  green: { backgroundColor: '#f0fdf4', color: '#22c55e' },
-  orange: { backgroundColor: '#fff7ed', color: '#f97316' },
-  red: { backgroundColor: '#fef2f2', color: '#ef4444' },
-  purple: { backgroundColor: '#f5f3ff', color: '#8b5cf6' },
+  root: { padding: 32, minHeight: '100vh', background: '#0d1117', color: '#e6edf3', fontFamily: 'system-ui, sans-serif' },
+  header: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 28 },
+  title: { fontSize: 22, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 10 },
+  grid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 },
+  card: { background: '#161b22', border: '1px solid #30363d', borderRadius: 10, overflow: 'hidden' },
+  cardHeader: { padding: '14px 20px', borderBottom: '1px solid #30363d', display: 'flex', justifyContent: 'space-between', alignItems: 'center' },
+  cardTitle: { fontSize: 15, fontWeight: 600, display: 'flex', alignItems: 'center', gap: 8 },
+  cardBody: { padding: 16 },
+  roleItem: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderBottom: '1px solid #21262d', cursor: 'pointer', transition: 'background 0.15s' },
+  roleInfo: { display: 'flex', alignItems: 'center', gap: 10 },
+  roleDot: { width: 8, height: 8, borderRadius: '50%', flexShrink: 0 },
+  userRow: { display: 'flex', alignItems: 'center', padding: '10px 14px', borderBottom: '1px solid #21262d', gap: 12 },
+  avatar: { width: 36, height: 36, borderRadius: '50%', background: '#21262d', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: '#8b949e', flexShrink: 0 },
+  searchInput: { padding: '8px 12px', background: '#0d1117', border: '1px solid #30363d', borderRadius: 6, color: '#e6edf3', fontSize: 13, outline: 'none', width: 200 },
+  btn: { padding: '8px 16px', borderRadius: 6, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 500, display: 'flex', alignItems: 'center', gap: 6, minHeight: 40, transition: 'all 0.15s' },
+  btnPrimary: { background: '#1f6feb', color: '#fff' },
+  btnOutline: { background: 'transparent', border: '1px solid #30363d', color: '#8b949e' },
+  btnDanger: { background: 'rgba(248,81,73,0.1)', border: '1px solid rgba(248,81,73,0.3)', color: '#f85149' },
+  badge: { padding: '2px 8px', borderRadius: 12, fontSize: 11, fontWeight: 600 },
+  table: { width: '100%', borderCollapse: 'collapse' },
+  th: { textAlign: 'left', padding: '10px 12px', fontSize: 12, color: '#8b949e', fontWeight: 500, borderBottom: '1px solid #30363d' },
+  td: { padding: '10px 12px', fontSize: 13, borderBottom: '1px solid #21262d' },
+  divider: { height: 1, background: '#30363d', margin: '20px 0' },
+  permGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 },
+  permItem: { padding: '8px 10px', borderRadius: 6, border: '1px solid #30363d', display: 'flex', alignItems: 'center', gap: 6, cursor: 'pointer', transition: 'all 0.15s' },
+  permItemActive: { background: 'rgba(88,166,255,0.1)', border: '1px solid rgba(88,166,255,0.4)', color: '#58a6ff' },
+  empty: { textAlign: 'center', padding: '60px 20px', color: '#8b949e', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10 },
 }
 
-const PIE_COLORS = ['#3b82f6', '#22c55e', '#f97316', '#8b5cf6', '#14b8a6']
-
-const tooltipStyle = {
-  contentStyle: { background: '#fff', border: '1px solid #e2e8f0', borderRadius: 8, fontSize: 12 },
-  labelStyle: { color: '#1a3a5c', fontWeight: 600 },
-}
-
-// ---------- 常量数据 ----------
-const STATS = [
-  { label: '总用户数', value: 128, icon: Users, color: '#3b82f6', bg: '#eff6ff' },
-  { label: '活跃会话', value: 45, icon: Activity, color: '#22c55e', bg: '#f0fdf4' },
-  { label: '角色数量', value: 8, icon: Shield, color: '#8b5cf6', bg: '#f5f3ff' },
-  { label: '权限项', value: 156, icon: Key, color: '#f97316', bg: '#fff7ed' },
-]
-
-const ROLES = [
-  { id: 'admin', name: '系统管理员', count: 3, color: '#ef4444', bg: '#fef2f2', desc: '完全系统控制权' },
-  { id: 'doctor', name: '主治医生', count: 28, color: '#3b82f6', bg: '#eff6ff', desc: '检查与报告管理' },
-  { id: 'technician', name: '技师', count: 35, color: '#22c55e', bg: '#f0fdf4', desc: '设备操作与图像' },
-  { id: 'nurse', name: '护士', count: 42, color: '#f97316', bg: '#fff7ed', desc: '患者管理与预约' },
-  { id: 'viewer', name: '查阅者', count: 20, color: '#64748b', bg: '#f1f5f9', desc: '只读数据访问' },
-]
-
-const USERS = [
-  { id: 1, name: '李建国', username: 'liguojian', role: 'admin', roleName: '系统管理员', dept: '信息中心', status: 'active', lastLogin: '2026-04-30 09:23' },
-  { id: 2, name: '王晓明', username: 'wangxiaoming', role: 'doctor', roleName: '主治医生', dept: '超声科', status: 'active', lastLogin: '2026-04-30 08:15' },
-  { id: 3, name: '张伟', username: 'zhangwei', role: 'technician', roleName: '技师', dept: '超声科', status: 'active', lastLogin: '2026-04-29 17:42' },
-  { id: 4, name: '刘芳', username: 'liufang', role: 'nurse', roleName: '护士', dept: '门诊部', status: 'inactive', lastLogin: '2026-04-28 16:30' },
-  { id: 5, name: '陈刚', username: 'chengang', role: 'doctor', roleName: '主治医生', dept: '超声科', status: 'active', lastLogin: '2026-04-30 10:05' },
-]
-
-const PERMISSIONS = [
-  { id: 'p1', label: '患者管理', icon: Users, enabled: true },
-  { id: 'p2', label: '预约管理', icon: Clock, enabled: true },
-  { id: 'p3', label: '检查执行', icon: Monitor, enabled: true },
-  { id: 'p4', label: '报告书写', icon: Edit, enabled: true },
-  { id: 'p5', label: '图像管理', icon: Database, enabled: true },
-  { id: 'p6', label: '统计报表', icon: Activity, enabled: true },
-  { id: 'p7', label: '系统设置', icon: Settings, enabled: false },
-  { id: 'p8', label: '用户管理', icon: UserCog, enabled: false },
-]
-
-const LOGS = [
-  { id: 1, type: 'login', icon: Unlock, iconBg: '#f0fdf4', iconColor: '#22c55e', title: '用户李建国登录系统', time: '2026-04-30 09:23:15' },
-  { id: 2, type: 'permission', icon: Key, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '角色权限变更：主治医生', time: '2026-04-30 09:45:32' },
-  { id: 3, type: 'config', icon: Settings, iconBg: '#fff7ed', iconColor: '#f97316', title: '系统配置更新', time: '2026-04-30 10:12:08' },
-  { id: 4, type: 'login', icon: Lock, iconBg: '#fef2f2', iconColor: '#ef4444', title: '用户刘芳登录失败（密码错误）', time: '2026-04-30 11:05:43' },
-  { id: 5, type: 'user', icon: UserCog, iconBg: '#f5f3ff', iconColor: '#8b5cf6', title: '新增用户：陈刚', time: '2026-04-30 14:22:19' },
-]
-
-const ROLE_DISTRIBUTION = [
-  { name: '系统管理员', value: 3 },
-  { name: '主治医生', value: 28 },
-  { name: '技师', value: 35 },
-  { name: '护士', value: 42 },
-  { name: '查阅者', value: 20 },
-]
-
-// ---------- 组件 ----------
 export default function AuthorityPage() {
-  const [activeTab, setActiveTab] = useState('users')
+  const [activeTab, setActiveTab] = useState<'roles' | 'users' | 'permissions'>('roles')
+  const [selectedRole, setSelectedRole] = useState<Role | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [selectedPerms, setSelectedPerms] = useState<Set<string>>(new Set())
+  const [showAddUser, setShowAddUser] = useState(false)
 
-  const getRoleStyle = (role: string) => {
-    const r = ROLES.find(item => item.id === role)
-    return r ? { background: r.bg, color: r.color } : {}
+  const filteredUsers = users.filter(u =>
+    u.name.includes(searchTerm) || u.dept.includes(searchTerm) || u.role.includes(searchTerm)
+  )
+
+  const handleTogglePerm = (permId: string) => {
+    setSelectedPerms(prev => {
+      const next = new Set(prev)
+      next.has(permId) ? next.delete(permId) : next.add(permId)
+      return next
+    })
+  }
+
+  const handleSelectRole = (role: Role) => {
+    setSelectedRole(role)
+    // 模拟：根据角色预设权限
+    const presetPerms = new Set<string>()
+    if (role.id === 'R001') {
+      allPermissions.forEach(p => presetPerms.add(p.id))
+    } else if (role.id === 'R002') {
+      modules.filter(m => !['系统设置'].includes(m)).forEach(m =>
+        ['查看', '新增', '编辑', '删除', '导出'].forEach(a => presetPerms.add(`${m}-${a}`))
+      )
+    } else if (role.id === 'R003') {
+      ;['患者管理', '检查执行', '报告管理', '影像管理', '统计报表'].forEach(m =>
+        ['查看', '新增', '编辑'].forEach(a => presetPerms.add(`${m}-${a}`))
+      )
+    }
+    setSelectedPerms(presetPerms)
   }
 
   return (
     <div style={s.root}>
-      {/* 标题 */}
       <div style={s.header}>
-        <div>
-          <h1 style={s.title}>权限管理</h1>
-          <p style={s.subtitle}>
-            用户账户 · 角色配置 · 权限分配 · 安全审计
-          </p>
-        </div>
-        <div style={s.headerRight}>
-          <button style={s.btnSecondary}>
-            <RefreshCw size={14} color="#64748b" /> 刷新
-          </button>
-          <button style={s.btnSecondary}>
-            <Download size={14} color="#64748b" /> 导出日志
-          </button>
-          <button style={s.btnPrimary}>
-            <Plus size={14} /> 添加用户
-          </button>
+        <div style={s.title}><Shield size={22} color="#58a6ff" /> 权限管理中心</div>
+        <div style={{ display: 'flex', gap: 10 }}>
+          <input
+            style={s.searchInput}
+            placeholder="搜索用户/部门/角色..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+          <button style={{ ...s.btn, ...s.btnPrimary }} onClick={() => setShowAddUser(true)}><Plus size={14} />新增用户</button>
         </div>
       </div>
 
-      {/* 统计卡片 */}
-      <div style={s.statRow}>
-        {STATS.map((item) => (
-          <div key={item.label} style={s.statCard}>
-            <div style={{ ...s.statIconWrap, background: item.bg }}>
-              <item.icon size={24} color={item.color} />
-            </div>
-            <div style={s.statInfo}>
-              <div style={s.statValue}>{item.value}</div>
-              <div style={s.statLabel}>{item.label}</div>
-            </div>
+      {/* 标签 */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 24, borderBottom: '1px solid #30363d', paddingBottom: 0 }}>
+        {([
+          ['roles', '角色管理', Users],
+          ['users', '用户管理', UserCog],
+          ['permissions', '权限配置', Key],
+        ] as [string, string, React.ElementType][]).map(([k, label, Icon]) => (
+          <div
+            key={k}
+            onClick={() => setActiveTab(k as typeof activeTab)}
+            style={{
+              padding: '10px 18px', cursor: 'pointer', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6,
+              borderBottom: activeTab === k ? '2px solid #58a6ff' : '2px solid transparent',
+              color: activeTab === k ? '#58a6ff' : '#8b949e', minHeight: 44, transition: 'all 0.15s'
+            }}
+          >
+            <Icon size={15} />{label}
           </div>
         ))}
       </div>
 
-      {/* 标签页 */}
-      <div style={s.tabs}>
-        <button style={activeTab === 'users' ? s.tabActive : s.tab} onClick={() => setActiveTab('users')}>
-          <Users size={14} style={{ marginRight: 6 }} /> 用户管理
-        </button>
-        <button style={activeTab === 'roles' ? s.tabActive : s.tab} onClick={() => setActiveTab('roles')}>
-          <Shield size={14} style={{ marginRight: 6 }} /> 角色配置
-        </button>
-        <button style={activeTab === 'permissions' ? s.tabActive : s.tab} onClick={() => setActiveTab('permissions')}>
-          <Key size={14} style={{ marginRight: 6 }} /> 权限分配
-        </button>
-        <button style={activeTab === 'logs' ? s.tabActive : s.tab} onClick={() => setActiveTab('logs')}>
-          <Activity size={14} style={{ marginRight: 6 }} /> 审计日志
-        </button>
-      </div>
-
-      {/* 用户管理 */}
-      {activeTab === 'users' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 16 }}>
+      {/* 角色管理 */}
+      {activeTab === 'roles' && (
+        <div style={s.grid}>
           <div style={s.card}>
-            <div style={{ ...s.cardTitle, marginBottom: 0, paddingBottom: 12, borderBottom: '1px solid #f1f5f9' }}>
-              <Users size={16} style={{ color: '#64748b' }} /> 用户列表
-              <span style={{ marginLeft: 'auto', fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>共 {USERS.length} 人</span>
+            <div style={s.cardHeader}>
+              <div style={s.cardTitle}><Users size={15} color="#58a6ff" /> 角色列表</div>
+              <button style={{ ...s.btn, ...s.btnOutline, minHeight: 36, padding: '6px 12px', fontSize: 12 }}><Plus size={13} />新建角色</button>
             </div>
-            <div style={{ padding: '8px 0' }}>
-              {USERS.map((user) => (
-                <div key={user.id} style={s.userItem}>
-                  <div style={s.userAvatar}>{user.name.slice(0, 1)}</div>
-                  <div style={s.userInfo}>
-                    <div style={s.userName}>{user.name}</div>
-                    <div style={s.userRole}>@{user.username} · {user.dept}</div>
+            <div style={{ overflowY: 'auto', maxHeight: 500 }}>
+              {roles.map(role => (
+                <div
+                  key={role.id}
+                  onClick={() => handleSelectRole(role)}
+                  style={{
+                    ...s.roleItem,
+                    background: selectedRole?.id === role.id ? '#1f3a5f' : 'transparent',
+                  }}
+                >
+                  <div style={s.roleInfo}>
+                    <div style={{ ...s.roleDot, background: role.color }} />
+                    <div>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: '#e6edf3' }}>{role.name}</div>
+                      <div style={{ fontSize: 11, color: '#8b949e', marginTop: 2 }}>{role.desc}</div>
+                    </div>
                   </div>
-                  <span style={{ ...s.roleBadge, ...getRoleStyle(user.role) }}>{user.roleName}</span>
-                  <span style={{
-                    fontSize: 11, padding: '3px 8px', borderRadius: 8,
-                    background: user.status === 'active' ? '#f0fdf4' : '#fef2f2',
-                    color: user.status === 'active' ? '#22c55e' : '#ef4444',
-                  }}>
-                    {user.status === 'active' ? '活跃' : '停用'}
-                  </span>
-                  <div style={{ display: 'flex', gap: 4 }}>
-                    <button style={{ padding: 4, border: 'none', background: 'none', cursor: 'pointer' }}>
-                      <Eye size={14} color="#64748b" />
-                    </button>
-                    <button style={{ padding: 4, border: 'none', background: 'none', cursor: 'pointer' }}>
-                      <Edit size={14} color="#3b82f6" />
-                    </button>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ ...s.badge, background: `${role.color}18`, color: role.color }}>{role.userCount}人</span>
+                    <ChevronRight size={14} color="#8b949e" />
                   </div>
                 </div>
               ))}
             </div>
           </div>
+
           <div style={s.card}>
-            <div style={s.cardTitle}>
-              <Shield size={16} style={{ color: '#64748b' }} /> 角色分布
+            <div style={s.cardHeader}>
+              <div style={s.cardTitle}><Key size={15} color="#f0b429" />{selectedRole ? `权限配置 — ${selectedRole.name}` : '选择角色查看权限'}</div>
+              {selectedRole && <button style={{ ...s.btn, ...s.btnPrimary, minHeight: 36, padding: '6px 12px', fontSize: 12 }}><Save size={13} />保存</button>}
             </div>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie
-                  data={ROLE_DISTRIBUTION}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={3}
-                  dataKey="value"
-                  label={({ name, percent }) => `${name.substring(0, 4)} ${(percent * 100).toFixed(0)}%`}
-                  labelLine={false}
-                >
-                  {ROLE_DISTRIBUTION.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={PIE_COLORS[index % PIE_COLORS.length]} />
+            <div style={s.cardBody}>
+              {!selectedRole ? (
+                <div style={s.empty}>
+                  <Shield size={40} color="#30363d" />
+                  <div style={{ fontSize: 14, color: '#8b949e' }}>请从左侧选择一个角色</div>
+                </div>
+              ) : (
+                <>
+                  <div style={{ marginBottom: 16, padding: '10px 12px', background: '#21262d', borderRadius: 8 }}>
+                    <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 4 }}>{selectedRole.name}</div>
+                    <div style={{ fontSize: 12, color: '#8b949e' }}>{selectedRole.desc}</div>
+                    <div style={{ fontSize: 12, color: '#6e7681', marginTop: 4 }}>共 {selectedPerms.size} 项权限</div>
+                  </div>
+                  {modules.map(mod => (
+                    <div key={mod} style={{ marginBottom: 14 }}>
+                      <div style={{ fontSize: 12, color: '#8b949e', marginBottom: 6, fontWeight: 600 }}>{mod}</div>
+                      <div style={s.permGrid}>
+                        {['查看', '新增', '编辑', '删除', '导出'].map(act => {
+                          const permId = `${mod}-${act}`
+                          const active = selectedPerms.has(permId)
+                          return (
+                            <div
+                              key={permId}
+                              onClick={() => handleTogglePerm(permId)}
+                              style={{
+                                ...s.permItem,
+                                ...(active ? s.permItemActive : {}),
+                              }}
+                            >
+                              {active ? <CheckCircle size={12} /> : <XCircle size={12} style={{ opacity: 0.4 }} />}
+                              <span style={{ fontSize: 12 }}>{act}</span>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
                   ))}
-                </Pie>
-                <Tooltip {...tooltipStyle} />
-              </PieChart>
-            </ResponsiveContainer>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}
 
-      {/* 角色配置 */}
-      {activeTab === 'roles' && (
+      {/* 用户管理 */}
+      {activeTab === 'users' && (
         <div style={s.card}>
-          <div style={{ ...s.cardTitle, marginBottom: 0, paddingBottom: 12, borderBottom: '1px solid #f1f5f9' }}>
-            <Shield size={16} style={{ color: '#64748b' }} /> 角色列表
-            <span style={{ marginLeft: 'auto', fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>共 {ROLES.length} 个角色</span>
+          <div style={s.cardHeader}>
+            <div style={s.cardTitle}><UserCog size={15} color="#a371f7" /> 用户列表（共{filteredUsers.length}人）</div>
+            <button style={{ ...s.btn, ...s.btnPrimary, minHeight: 36, padding: '6px 12px', fontSize: 12 }}><Plus size={13} />新增用户</button>
           </div>
-          <div style={{ padding: '8px 0' }}>
-            {ROLES.map((role) => (
-              <div key={role.id} style={{ ...s.userItem, padding: '16px 0' }}>
-                <div style={{ width: 44, height: 44, borderRadius: 10, background: role.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Shield size={20} color={role.color} />
-                </div>
-                <div style={s.userInfo}>
-                  <div style={s.userName}>{role.name}</div>
-                  <div style={s.userRole}>{role.desc}</div>
-                </div>
-                <span style={{ fontSize: 13, color: '#64748b' }}>{role.count} 人</span>
-                <button style={{ ...s.btnSecondary, padding: '6px 12px' }}>
-                  <Edit size={12} color="#64748b" /> 配置
-                </button>
-              </div>
-            ))}
+          <div style={{ overflowX: 'auto' }}>
+            <table style={s.table}>
+              <thead>
+                <tr>{['用户', '部门', '角色', '状态', '最后登录', '操作'].map(h => <th key={h} style={s.th}>{h}</th>)}</tr>
+              </thead>
+              <tbody>
+                {filteredUsers.map(u => (
+                  <tr key={u.id}>
+                    <td style={s.td}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <div style={s.avatar}>{u.name.slice(0, 1)}</div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>{u.name}</div>
+                          <div style={{ fontSize: 11, color: '#8b949e' }}>{u.id}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td style={s.td}>{u.dept}</td>
+                    <td style={s.td}>{u.role}</td>
+                    <td style={s.td}>
+                      <span style={{ ...s.badge, background: u.status === 'active' ? 'rgba(63,185,80,0.15)' : 'rgba(248,81,73,0.15)', color: u.status === 'active' ? '#3fb950' : '#f85149' }}>
+                        {u.status === 'active' ? '在职' : '停用'}
+                      </span>
+                    </td>
+                    <td style={{ ...s.td, color: '#8b949e' }}>{u.lastLogin}</td>
+                    <td style={s.td}>
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <button style={{ ...s.btn, ...s.btnOutline, minHeight: 32, padding: '4px 10px', fontSize: 11 }}><Edit3 size={12} />编辑</button>
+                        <button style={{ ...s.btn, ...s.btnDanger, minHeight: 32, padding: '4px 10px', fontSize: 11 }}><Trash2 size={12} />删除</button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
 
-      {/* 权限分配 */}
+      {/* 权限配置 */}
       {activeTab === 'permissions' && (
         <div style={s.card}>
-          <div style={s.cardTitle}>
-            <Key size={16} style={{ color: '#64748b' }} /> 权限配置
-            <span style={{ marginLeft: 8, fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>当前角色：主治医生</span>
+          <div style={s.cardHeader}>
+            <div style={s.cardTitle}><Lock size={15} color="#f85149" /> 系统权限总览</div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <span style={{ fontSize: 12, color: '#8b949e', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <CheckCircle size={12} color="#3fb950" />已授权
+              </span>
+              <span style={{ fontSize: 12, color: '#8b949e', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <XCircle size={12} color="#8b949e" />未授权
+              </span>
+            </div>
           </div>
-          <div>
-            {PERMISSIONS.map((perm) => (
-              <div key={perm.id} style={s.permissionItem}>
-                <div style={s.permissionLabel}>
-                  <perm.icon size={14} color="#64748b" />
-                  {perm.label}
+          <div style={{ padding: 20 }}>
+            {modules.map(mod => (
+              <div key={mod} style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 10, display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <AlertTriangle size={13} color="#f0b429" />{mod}
                 </div>
-                <div style={{
-                  ...s.toggle,
-                  ...(perm.enabled ? s.toggleOn : s.toggleOff),
-                }}>
-                  <div style={{
-                    ...s.toggleKnob,
-                    left: perm.enabled ? 22 : 2,
-                  }} />
+                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                  {allPermissions.filter(p => p.module === mod).map(p => {
+                    const has = selectedPerms.has(p.id)
+                    return (
+                      <div key={p.id} style={{ ...s.permItem, minWidth: 100, justifyContent: 'center' }}>
+                        {has ? <CheckCircle size={12} color="#3fb950" /> : <XCircle size={12} color="#8b949e" />}
+                        <span style={{ fontSize: 12, color: has ? '#3fb950' : '#8b949e' }}>{p.name}</span>
+                      </div>
+                    )
+                  })}
                 </div>
-              </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 20, display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-            <button style={s.btnSecondary}>取消</button>
-            <button style={s.btnPrimary}>保存配置</button>
-          </div>
-        </div>
-      )}
-
-      {/* 审计日志 */}
-      {activeTab === 'logs' && (
-        <div style={s.card}>
-          <div style={s.cardTitle}>
-            <Activity size={16} style={{ color: '#64748b' }} /> 审计日志
-          </div>
-          <div>
-            {LOGS.map((log) => (
-              <div key={log.id} style={s.logItem}>
-                <div style={{ ...s.logIcon, background: log.iconBg, color: log.iconColor }}>
-                  <log.icon size={16} />
-                </div>
-                <div style={s.logContent}>
-                  <div style={s.logTitle}>{log.title}</div>
-                  <div style={s.logTime}>{log.time}</div>
-                </div>
-                <button style={{ padding: 4, border: 'none', background: 'none', cursor: 'pointer' }}>
-                  <ChevronRight size={14} color="#94a3b8" />
-                </button>
               </div>
             ))}
           </div>
