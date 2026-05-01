@@ -59,6 +59,7 @@ export interface GameState {
   turnStartHp?: Record<string, number>;       // 回合开始时体力（用于桃的限制）
   judgeArea?: string[];  // 判定区的牌ID列表
   lastDamageSource?: string; // 最后造成伤害的来源ID（用于反馈等技能）
+  lastDamageCardId?: string; // 最后造成伤害的卡牌ID（用于奸雄等技能）
 }
 
 export type GamePhase =
@@ -180,7 +181,7 @@ function makeWineCards(): CardDef[] {
 // 装备牌
 function makeEquipCards(): CardDef[] {
   const cards: CardDef[] = [];
-  // 武器（标准版8种）
+  // 武器（军争标准14种）
   const weapons = [
     { id: 'zhangba_sheomao', name: '丈八蛇矛', desc: '你可将两张手牌当杀使用或打出。', range: 4 },
     { id: 'zhuge_liannu', name: '诸葛连弩', desc: '攻击范围1，每回合可额外使用一张杀。', range: 1 },
@@ -190,13 +191,23 @@ function makeEquipCards(): CardDef[] {
     { id: 'guanshi_fu', name: '贯石斧', desc: '你使用的杀被目标抵消后，可弃两张牌，强制命中。', range: 3 },
     { id: 'cixiong_shuanggu', name: '雌雄双股剑', desc: '当你使用杀指定一名异性角色时，可令其弃一张牌或失去一点体力。', range: 2 },
     { id: 'hanbing_sword', name: '寒冰剑', desc: '你使用杀对目标造成伤害时，可改为弃置其两张牌。', range: 3 },
+    { id: 'guding_dao', name: '古锭刀', desc: '当你使用杀对没有装备牌的角色造成伤害时，伤害+1。', range: 3 },
+    { id: 'zhuque_fan', name: '朱雀羽扇', desc: '你可以将一张手牌当火杀使用。', range: 3 },
+    { id: 'qinagang_sword', name: '青冈剑', desc: '锁定技，你使用杀时，伤害+1。', range: 3 },
+    { id: 'shandian_bian', name: '闪电鞭', desc: '你使用的杀伤害+1。', range: 3 },
+    { id: 'wuliu_sword', name: '吴六剑', desc: '你与一名角色计算距离时，始终将其视为在你的攻击范围内。', range: 2 },
+    { id: 'hanbing_axe', name: '寒冰矛', desc: '你使用杀对手牌角色造成伤害时，可改为弃置其两张牌。', range: 3 },
   ];
   for (const w of weapons) {
     cards.push(makeCard(w.id, w.name, 'spade', 2, 'equip', w.desc, { range: w.range, equipType: 'weapon' }));
   }
-  // 防具（2张）
+  // 防具（军争标准6种）
   cards.push(makeCard('bagua_zhen', '八卦阵', 'club', 2, 'equip', '每当你需要使用或打出闪时，可弃1体力，视为使用或打出闪。', { equipType: 'armor' }));
   cards.push(makeCard('renwang_dun', '仁王盾', 'heart', 2, 'equip', '锁定技，黑色杀对你无效。', { equipType: 'armor' }));
+  cards.push(makeCard('tengjia', '藤甲', 'spade', 1, 'equip', '锁定技，火焰伤害-1；普通杀和普通锦囊伤害+1。', { equipType: 'armor' }));
+  cards.push(makeCard('baiyin_shizi', '白银狮子', 'diamond', 1, 'equip', '锁定技，受到伤害时伤害-1，至少承受1点伤害。', { equipType: 'armor' }));
+  cards.push(makeCard('huxin_jing', '护心镜', 'club', 5, 'equip', '受到伤害时，伤害-1。', { equipType: 'armor' }));
+  cards.push(makeCard('huxin_fu', '护心符', 'heart', 5, 'equip', '受到伤害时，伤害-1。', { equipType: 'armor' }));
   // +1马（防御马，2匹）
   cards.push(makeCard('horse_plus_1', '+1马', 'diamond', 5, 'equip', '其他角色与你计算距离+1。', { equipType: 'horse' }));
   cards.push(makeCard('horse_plus_2', '+1马', 'spade', 5, 'equip', '其他角色与你计算距离+1。', { equipType: 'horse' }));

@@ -142,26 +142,132 @@ export function equipCard(game: GameState, playerId: string, cardId: string, slo
 // 伤害与回复
 // ============================================================
 
-export function damagePlayer(game: GameState, sourceId: string, targetId: string, damage: number, nature: 'normal' | 'fire' | 'thunder' = 'normal'): GameState {
+/**
+ * 检查防具效果并返回实际伤害
+ * 返回 { absorbed: boolean, finalDamage: number }
+ * absorbed=true 表示伤害被防具完全吸收
+ */
+function checkArmorEffect(game: GameState, target: PlayerState, damage: number, nature: 'normal' | 'fire' | 'thunder', cardId?: string): { absorbed: boolean; finalDamage: number } {
+  const armorCardId = target.equip.armor;
+  if (!armorCardId) return { absorbed: false, finalDamage: damage };
+  
+  const armorCard = game.deckData?.find((c: CardDef) => c.id === armorCardId);
+  if (!armorCard) return { absorbed: false, finalDamage: damage };
+
+  const armorName = armorCard.name;
+
+  // 仁王盾：锁定技，黑色杀对你无效
+  if (armorName === '仁王盾' && nature === 'normal') {
+    // 检查是否为黑色杀（黑桃/草花）
+    const slashCard = cardId ? game.deckData?.find((c: CardDef) => c.id === cardId) : null;
+    if (slashCard && (slashCard.suit === 'spade' || slashCard.suit === 'club')) {
+      return { absorbed: true, finalDamage: 0 };
+    }
+  }
+
+  // 八卦阵：每当你需要使用或打出闪时，可弃1体力，视为使用或打出闪
+  // 简化处理：八卦阵在受到杀的伤害时，有50%几率抵消（需要判定）
+  // 实际应该是在响应阶段处理，这里简化为被动概率
+  if (armorName === '八卦阵' && nature === 'normal') {
+    // 八卦阵在受到杀的伤害时有50%几率抵消（简化判定）
+    if (Math.random() > 0.5) {
+      return { absorbed: true, finalDamage: 0 };
+    }
+  }
+
+  // 藤甲：锁定技，普通杀和普通锦囊伤害+1；受到火焰伤害时伤害-1
+  if (armorName === '藤甲') {
+    if (nature === 'fire') {
+      // 火焰伤害-1，最低为0
+      return { absorbed: false, finalDamage: Math.max(0, damage - 1) };
+    } else if (nature === 'normal') {
+      // 普通杀和普通锦囊伤害+1
+      return { absorbed: false, finalDamage: damage + 1 };
+    }
+  }
+
+  // 白银狮子：锁定技，受到伤害时伤害-1；至少承受1点伤害
+  if (armorName === '白银狮子') {
+    return { absorbed: false, finalDamage: Math.max(1, damage - 1) };
+  }
+
+  // 护心镜：受到伤害时，若装备区有护心镜，伤害-1
+  if (armorName === '护心镜') {
+    return { absorbed: false, finalDamage: Math.max(0, damage - 1) };
+  }
+
+  return { absorbed: false, finalDamage: damage };
+}
+
+/**
+ * 处理铁索连环的伤害传导
+ * 当一名角色受到火属性或雷属性伤害时，所有与其横置的角色也受到同属性同来源的伤害
+ */
+function processIronChainDamage(g: GameState, sourceId: string, damagedPlayerId: string, damage: number, nature: 'fire' | 'thunder'): void {
+  const damagedPlayer = g.players.find(p => p.id === damagedPlayerId);
+  if (!damagedPlayer || !damagedPlayer.chained) return;
+
+  // 找到所有与受伤角色横置的角色（不包括自己）
+  const chainedPlayers = g.players.filter(p => p.chained && p.id !== damagedPlayerId && p.alive);
+  
+  for (const chainedPlayer of chainedPlayers) {
+    // 保存当前伤害卡牌ID
+    const savedCardId = g.lastDamageCardId;
+    // 临时清除，防止递归传导
+    g.lastDamageCardId = undefined;
+    // 对横置角色造成伤害（直接修改g）
+    const target = g.players.find(p => p.id === chainedPlayer.id);
+    if (target && target.alive) {
+      target.hp -= damage;
+      g.logs.push(`${chainedPlayer.name}因铁索连环受到了${damage}点${nature === 'fire' ? '火' : '雷'}伤害！`);
+      // 触发郭嘉遗计
+      triggerSkill(g, chainedPlayer.id, 'yiji', 'damage', sourceId, damage);
+    }
+    // 恢复卡牌ID
+    g.lastDamageCardId = savedCardId;
+  }
+}
+
+export function damagePlayer(game: GameState, sourceId: string, targetId: string, damage: number, nature: 'normal' | 'fire' | 'thunder' = 'normal', cardId?: string): GameState {
   const g = deepClone(game);
   const target = g.players.find(p => p.id === targetId);
   if (!target || !target.alive) return game;
   g.lastDamageSource = sourceId;
+  g.lastDamageCardId = cardId;
 
-  // 酒效果：若伤害来源本回合使用过酒，杀伤害+1
+  // 酒效果：若伤害来源本回合使用过酒，普通杀伤害+1
   let finalDamage = damage;
-  if ((nature === 'normal' || nature === 'fire' || nature === 'thunder') && sourceId) {
+  if (nature === 'normal' && sourceId) {
     const wineBoost = g.wineDamageBoost?.[sourceId] || 0;
-    if (wineBoost > 0 && (nature === 'normal')) {
-      finalDamage += wineBoost;
+    if (wineBoost > 0) {
+      finalDamage += 1;
       // 酒效果只对普通杀生效，每次只+1
       if (g.wineDamageBoost) g.wineDamageBoost[sourceId] = 0;
     }
   }
 
-  // 护甲/技能处理（简化：直接扣体力）
+  // 防具效果检查
+  const armorResult = checkArmorEffect(g, target, finalDamage, nature, cardId);
+  if (armorResult.absorbed) {
+    g.logs.push(`${target.name}的防具抵挡了伤害！`);
+    return g;
+  }
+  finalDamage = armorResult.finalDamage;
+
+  // 实际扣减体力
   target.hp -= finalDamage;
   g.logs.push(`${target.name}受到了${finalDamage}点${nature === 'fire' ? '火' : nature === 'thunder' ? '雷' : ''}伤害。`);
+
+  // 触发技能：郭嘉-遗计（直接修改g而非重新赋值）
+  triggerSkill(g, targetId, 'yiji', 'damage', sourceId, finalDamage);
+  // 触发技能：司马懿-反馈
+  triggerSkill(g, targetId, 'fankui', 'damage', sourceId);
+  // 触发技能：夏侯惇-刚烈
+  triggerSkill(g, targetId, 'ganglie', 'damage', sourceId);
+  // 触发技能：曹操-奸雄（获得造成伤害的牌）
+  if (cardId) {
+    triggerSkill(g, targetId, 'jianxiong', 'damage', sourceId, cardId);
+  }
 
   if (target.hp <= 0) {
     // 濒死状态，等待桃救助
@@ -169,6 +275,12 @@ export function damagePlayer(game: GameState, sourceId: string, targetId: string
     // 若无桃可救，直接死亡（简化处理：自动判定死亡）
     // 完整处理见 handleDying
   }
+
+  // 铁索连环伤害传导（仅火属性和雷属性伤害触发）
+  if ((nature === 'fire' || nature === 'thunder') && target.chained) {
+    processIronChainDamage(g, sourceId, targetId, finalDamage, nature);
+  }
+
   return g;
 }
 
@@ -590,7 +702,7 @@ export function useCard(
     // 杀：造成伤害
     for (const targetId of targetIds) {
       const nature = card.subType === 'fire_slash' ? 'fire' : card.subType === 'thunder_slash' ? 'thunder' : 'normal';
-      g = damagePlayer(g, playerId, targetId, 1, nature);
+      g = damagePlayer(g, playerId, targetId, 1, nature, cardId);
     }
   } else if (card.subType === 'peach') {
     // 桃：回复体力（体力满时不能吃，除非濒死）
@@ -1189,20 +1301,21 @@ export function checkVictory(game: GameState): string[] | null {
   const lord = g.players.find(p => p.role === 'lord');
   if (!lord?.alive) {
     const traitor = g.players.find(p => p.role === 'traitor');
-    return traitor ? [traitor.id] : ['rebel'];
+    return traitor && traitor.alive ? [traitor.id] : ['rebel'];
   }
 
-  // 反贼/内奸全死 → 主公+忠臣获胜
+  // 反贼全死且内奸已死 → 主公+忠臣获胜
   const rebels = g.players.filter(p => p.role === 'rebel' && p.alive);
-  const traitors = g.players.filter(p => p.role === 'traitor' && p.alive);
-  if (rebels.length === 0 && traitors.length === 0) {
+  const traitors = g.players.filter(p => p.role === 'traitor');
+  if (rebels.length === 0 && (!traitors.length || !traitors.some(t => t.alive))) {
     const winners = g.players.filter(p => (p.role === 'lord' || p.role === 'loyalist') && p.alive);
     return winners.map(p => p.id);
   }
 
   // 忠臣死亡后只剩主公+内奸→单挑（返回null表示游戏继续）
   const loyalists = g.players.filter(p => p.role === 'loyalist' && p.alive);
-  if (rebels.length === 0 && loyalists.length === 0 && traitors.length === 1 && alivePlayers.length === 2) {
+  const aliveTraitors = g.players.filter(p => p.role === 'traitor' && p.alive);
+  if (rebels.length === 0 && loyalists.length === 0 && aliveTraitors.length === 1 && alivePlayers.length === 2) {
     // 单挑模式，游戏继续，暂不宣告胜利
     return null;
   }
@@ -1330,7 +1443,7 @@ export const SKILL_EFFECTS: { [skillName: string]: SkillEffect } = {
     triggerOn: 'damage',
     handler: (game, playerId, sourceId, damage) => {
       if (damage >= 1) {
-        game = drawCards(game, playerId, 2);
+        drawCards(game, playerId, 2);
         game.logs.push(`${game.players.find(p => p.id === playerId)?.name}发动遗计，摸了两张牌`);
       }
       return game;
@@ -1368,7 +1481,7 @@ export const SKILL_EFFECTS: { [skillName: string]: SkillEffect } = {
       // 简化判定：随机判定
       const success = Math.random() > 0.5;
       if (!success && sourceId) {
-        game = damagePlayer(game, playerId, sourceId, 1);
+        damagePlayer(game, playerId, sourceId, 1);
         game.logs.push(`${game.players.find(p => p.id === playerId)?.name}发动刚烈，反击了${sourceId}`);
       }
       return game;
@@ -1399,7 +1512,7 @@ export const SKILL_EFFECTS: { [skillName: string]: SkillEffect } = {
     handler: (game, playerId, cardId) => {
       const card = getCardById(cardId, game.deckData || []);
       if (card?.type === 'trick') {
-        game = drawCards(game, playerId, 1);
+        drawCards(game, playerId, 1);
         game.logs.push(`${game.players.find(p => p.id === playerId)?.name}发动集智，摸了一张牌`);
       }
       return game;
@@ -1418,6 +1531,58 @@ export const SKILL_EFFECTS: { [skillName: string]: SkillEffect } = {
       return game;
     },
     effectDesc: '谦逊免疫锦囊'
+  },
+  
+  // 马超-铁骑：锁定技，你的杀不可闪避
+  tieqi: {
+    name: '铁骑',
+    description: '锁定技，你使用的杀不可被闪避',
+    type: 'passive',
+    triggerOn: 'use_card',
+    handler: (game, playerId) => {
+      // 铁骑效果：杀不可闪避由AI响应逻辑处理
+      return game;
+    },
+    effectDesc: '铁骑强命'
+  },
+  
+  // 小乔-连环：当你处于连环状态受到伤害时，你可令伤害来源也进入连环状态
+  lianhuan: {
+    name: '连环',
+    description: '当你处于连环状态受到伤害时，你可令伤害来源也进入连环状态',
+    type: 'trigger',
+    triggerOn: 'damage',
+    handler: (game, playerId, sourceId) => {
+      // 简化：连环状态下受到伤害时，自动将伤害来源也横置
+      const source = game.players.find(p => p.id === sourceId);
+      if (source && !source.chained && source.alive) {
+        source.chained = true;
+        game.logs.push(`${source.name}因连环进入了横置状态。`);
+      }
+      return game;
+    },
+    effectDesc: '连环传导'
+  },
+  
+  // 张角-雷击：当你使用雷杀或受到雷伤害时，可进行一次判定
+  leiji: {
+    name: '雷击',
+    description: '当你使用雷杀或受到雷属性伤害时，可进行一次判定',
+    type: 'trigger',
+    triggerOn: 'damage',
+    handler: (game, playerId, sourceId) => {
+      // 简化：张角受到雷电伤害时有几率对伤害来源造成1点雷伤害
+      const success = Math.random() > 0.5;
+      if (success && sourceId) {
+        const source = game.players.find(p => p.id === sourceId);
+        if (source && source.alive) {
+          source.hp -= 1;
+          game.logs.push(`${game.players.find(p => p.id === playerId)?.name}发动雷击，对${source.name}造成了1点雷伤害！`);
+        }
+      }
+      return game;
+    },
+    effectDesc: '雷击伤害'
   },
 };
 
@@ -1537,6 +1702,26 @@ export function processJudge(game: GameState, playerId: string): GameState {
           g.logs.push(`${player.name}判定乐不思蜀，跳过出牌阶段。`);
         } else {
           g.logs.push(`${player.name}判定乐不思蜀，判定结果为红桃A，继续出牌阶段。`);
+        }
+        break;
+      }
+      if (card.subType === 'supply') {
+        // 兵粮寸断判定：非草花跳过摸牌阶段
+        if (g.deck.length === 0) {
+          g.deck = shuffleDeckIds(g.deckData?.filter((c: CardDef) => g.discard.includes(c.id)).map(c => c.id) || []);
+          g.discard = [];
+        }
+        const judgeCardId = g.deck.pop()!;
+        const judgeCard = getCardById(judgeCardId, g.deckData || []);
+        g.discard.push(judgeCardId);
+        g.judgeArea = (g.judgeArea || []).filter((id: string) => id !== cardId);
+        
+        if (judgeCard && judgeCard.suit !== 'club') {
+          // 非草花，跳过摸牌阶段
+          g.players.find(p => p.id === playerId).marks.skipDrawPhase = 1;
+          g.logs.push(`${player.name}判定兵粮寸断，跳过摸牌阶段。`);
+        } else {
+          g.logs.push(`${player.name}判定兵粮寸断，判定结果为草花，继续摸牌阶段。`);
         }
         break;
       }

@@ -448,10 +448,10 @@ export const ALL_GENERALS: General[] = [
     desc: '河北双雄，勇冠三军',
     skills: [
       {
-        id: 'yanliangwenchou_wuji',
-        name: '武继',
-        desc: '出牌阶段，你可失去1点体力，视为使用一张决斗；当你因决斗杀死角色时，可回复1点体力。',
-        triggered: false,
+        id: 'yanliangwenchou_yijue',
+        name: '义绝',
+        desc: '出牌阶段，你可弃置一张牌，与一名角色拼点；若你赢，该角色不能使用或打出牌直到回合结束。',
+        triggered: true,
       },
     ],
   },
@@ -471,12 +471,12 @@ export const ALL_GENERALS: General[] = [
         desc: '当一名角色死亡时，你可令其选择一项：弃置一张牌，或失去1点体力。',
         triggered: true,
       },
-      {
-        id: 'caiwenji_dufu',
-        name: '断肠',
-        desc: '锁定技，当你死亡时，所有角色弃置所有手牌。',
-        triggered: false,
-      },
+    {
+      id: 'caiwenji_lihun',
+      name: '离魂',
+      desc: '当你死亡时，可令一名其他角色弃置所有手牌和装备。',
+      triggered: true,
+    },
     ],
   },
   {
@@ -679,10 +679,13 @@ export const ALL_GENERALS: General[] = [
     desc: '魏国谋士，司马徽弟子，多智近妖',
     skills: [
       {
-        id: 'guojia_tianyi',
-        name: '天义',
-        desc: '出牌阶段限一次，可弃置一张牌，然后与一名角色拼点，若赢，你本回合内攻击范围增加且可额外使用一张杀。',
+        id: 'guojia_tiandu',
+        name: '天妒',
+        desc: '当你受到伤害时，可观看牌堆顶的两张牌，将其中一张交给一名角色，另一张交给另一名角色。',
         triggered: false,
+        onHurt: (targetId, damage, game) => {
+          return { damage, game };
+        },
       },
       {
         id: 'guojia_yiji',
@@ -1176,7 +1179,13 @@ export const ALL_GENERALS: General[] = [
     {
       id: 'sunshangxiang_jieyin',
       name: '结姻',
-      desc: '出牌阶段，可以弃两张牌并选择一名男性角色，分别对你们各造成1点伤害，然后你们各回复1点体力。',
+      desc: '出牌阶段，你可弃一张装备牌并选择一名已受伤的男性角色，令其回复1点体力。',
+      triggered: false,
+    },
+    {
+      id: 'sunshangxiang_yinyue',
+      name: '银月',
+      desc: '当你使用酒时，若你已受伤，可视为使用一张杀。',
       triggered: false,
     },
   ],
@@ -1212,7 +1221,7 @@ export const ALL_GENERALS: General[] = [
   skills: [
     {
       id: 'dongzhuo_baoling',
-      name: '暴凌',
+      name: '崩坏',
       desc: '锁定技，回合开始时，你增加1点体力上限并回复1点体力。',
       triggered: false,
     },
@@ -1247,10 +1256,10 @@ export const ALL_GENERALS: General[] = [
       triggered: false,
     },
     {
-      id: 'jiaxu_moui',
-      name: '谋识',
-      desc: '出牌阶段，若你的手牌数大于你的体力值，你可以将一张手牌交给一名其他角色，然后对另一名其他角色造成1点伤害。',
-      triggered: false,
+      id: 'jiaxu_moukui',
+      name: '谋溃',
+      desc: '当你使用杀对目标造成伤害时，若你不在其攻击范围内，可令此杀无效。',
+      triggered: true,
     },
   ],
 },
