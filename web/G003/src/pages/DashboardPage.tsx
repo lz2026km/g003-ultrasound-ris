@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 科室BI看板
+// G004 超声管理系统 - 科室BI看板
 // 今日实时概览 / 趋势分析 / 工作量排名 / 预警
 // ============================================================
 import { useState } from 'react'
@@ -396,12 +396,12 @@ const WARNING_ITEMS = [
 
 const TODAY_TODOS = [
   { time: '08:00', text: '交班会议', done: true, color: s.green },
-  { time: '08:30', text: '胃镜检查 #1023 患者王五', done: true, color: s.green },
+  { time: '08:30', text: '胃超声检查 #1023 患者王五', done: true, color: s.green },
   { time: '09:15', text: '肠镜检查 #1024 患者赵六', done: true, color: s.green },
   { time: '10:00', text: '超声内镜 #1025 患者刘七', done: false, color: s.orange },
-  { time: '10:45', text: '胃镜检查 #1026 患者陈八', done: false, color: s.blue },
+  { time: '10:45', text: '胃超声检查 #1026 患者陈八', done: false, color: s.blue },
   { time: '11:30', text: 'ERCP手术 #1027 患者周九', done: false, color: s.purple },
-  { time: '14:00', text: '胃镜检查 #1028 患者吴十', done: false, color: s.blue },
+  { time: '14:00', text: '胃超声检查 #1028 患者吴十', done: false, color: s.blue },
   { time: '15:00', text: '书写昨日报告', done: false, color: s.teal },
   { time: '16:30', text: '洗消室交接班', done: false, color: s.teal },
 ]
@@ -458,7 +458,7 @@ export default function DashboardPage() {
         <select style={{ ...s.filterBtn, borderRadius: 6 }}>
           <option>全部科室</option>
           <option>消化内科</option>
-          <option>内镜中心</option>
+          <option>超声中心</option>
         </select>
       </div>
 
@@ -549,7 +549,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 医生工作量 + 内镜使用率 */}
+      {/* 医生工作量 + 超声使用率 */}
       <div style={s.chartGrid2}>
         <div style={s.chartCard}>
           <div style={s.chartTitle}>
@@ -570,7 +570,7 @@ export default function DashboardPage() {
         <div style={s.chartCard}>
           <div style={s.chartTitle}>
             <Microscope size={16} style={s.chartIcon} />
-            内镜设备使用率
+            超声设备使用率
           </div>
           <div style={{ padding: '8px 0' }}>
             {ENDOSCOPE_USAGE.map((item, idx) => {

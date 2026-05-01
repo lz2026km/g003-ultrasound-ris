@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - 医保审核页面
+// G004 超声管理系统 - 医保审核页面
 // 审核待办 / 审核历史 / 限制药品库 / 适应证规则
 // ============================================================
 import { useState, useMemo } from 'react'
@@ -61,77 +61,77 @@ interface IndicationRule {
 
 // 审核待办 - 15条
 const pendingAudits: PendingAudit[] = [
-  { id: 'PA001', patientName: '王秀兰', patientId: 'P10001', examType: '胃镜', examItem: '无痛胃镜检查', drugName: '丙泊酚注射液', drugSpec: '50ml:500mg', restriction: '限二级以上公立医疗机构使用', reason: '门诊患者申请门诊手术镇静', submitTime: '2026-04-30 09:15', submitDept: '消化内科门诊', urgency: '高' },
-  { id: 'PA002', patientName: '李建国', patientId: 'P10002', examType: '肠镜', examItem: '结肠镜检查', drugName: '复方聚乙二醇散', drugSpec: '68.56g*10袋', restriction: '限肠镜检查前肠道清洁', reason: '常规肠道准备', submitTime: '2026-04-30 09:32', submitDept: '消化内科门诊', urgency: '中' },
+  { id: 'PA001', patientName: '王秀兰', patientId: 'P10001', examType: '腹部超声', examItem: '无痛腹部超声检查', drugName: '丙泊酚注射液', drugSpec: '50ml:500mg', restriction: '限二级以上公立医疗机构使用', reason: '门诊患者申请门诊手术镇静', submitTime: '2026-04-30 09:15', submitDept: '消化内科门诊', urgency: '高' },
+  { id: 'PA002', patientName: '李建国', patientId: 'P10002', examType: '肠镜', examItem: '浅表超声检查', drugName: '复方聚乙二醇散', drugSpec: '68.56g*10袋', restriction: '限肠镜检查前肠道清洁', reason: '常规肠道准备', submitTime: '2026-04-30 09:32', submitDept: '消化内科门诊', urgency: '中' },
   { id: 'PA003', patientName: '张伟', patientId: 'P10003', examType: 'ERCP', examItem: '逆行胰胆管造影', drugName: '盐酸哌替啶注射液', drugSpec: '1ml:50mg', restriction: '限急性疼痛、术后镇痛', reason: 'ERCP术中镇痛', submitTime: '2026-04-30 09:45', submitDept: '肝胆外科', urgency: '高' },
-  { id: 'PA004', patientName: '陈美娟', patientId: 'P10004', examType: '胃镜', examItem: '普通胃镜检查', drugName: '盐酸丁卡因胶浆', drugSpec: '10g:80mg', restriction: '限表面麻醉', reason: '咽部局部麻醉', submitTime: '2026-04-30 10:02', submitDept: '消化内科门诊', urgency: '低' },
-  { id: 'PA005', patientName: '刘大力', patientId: 'P10005', examType: '超声内镜', examItem: 'EUS-FNA', drugName: '注射用英夫利西单抗', drugSpec: '100mg', restriction: '限克罗恩病、类风湿关节炎', reason: '克罗恩病伴狭窄', submitTime: '2026-04-30 10:18', submitDept: '消化内科', urgency: '中' },
-  { id: 'PA006', patientName: '赵雪梅', patientId: 'P10006', examType: '肠镜', examItem: '无痛结肠镜', drugName: '地西泮注射液', drugSpec: '2ml:10mg', restriction: '限癫痫持续状态、麻醉前给药', reason: '结肠镜检查镇静', submitTime: '2026-04-30 10:35', submitDept: '消化内科门诊', urgency: '中' },
-  { id: 'PA007', patientName: '孙国庆', patientId: 'P10007', examType: '胃镜', examItem: 'ESD术', drugName: '甘油果糖注射液', drugSpec: '250ml', restriction: '限脱水及脑水肿治疗', reason: 'ESD术后减轻脑水肿', submitTime: '2026-04-30 10:52', submitDept: '消化内科', urgency: '低' },
+  { id: 'PA004', patientName: '陈美娟', patientId: 'P10004', examType: '腹部超声', examItem: '普通腹部超声检查', drugName: '盐酸丁卡因胶浆', drugSpec: '10g:80mg', restriction: '限表面麻醉', reason: '咽部局部麻醉', submitTime: '2026-04-30 10:02', submitDept: '消化内科门诊', urgency: '低' },
+  { id: 'PA005', patientName: '刘大力', patientId: 'P10005', examType: '超声超声探头', examItem: 'EUS-FNA', drugName: '注射用英夫利西单抗', drugSpec: '100mg', restriction: '限克罗恩病、类风湿关节炎', reason: '克罗恩病伴狭窄', submitTime: '2026-04-30 10:18', submitDept: '消化内科', urgency: '中' },
+  { id: 'PA006', patientName: '赵雪梅', patientId: 'P10006', examType: '肠镜', examItem: '无痛浅表超声', drugName: '地西泮注射液', drugSpec: '2ml:10mg', restriction: '限癫痫持续状态、麻醉前给药', reason: '浅表超声检查镇静', submitTime: '2026-04-30 10:35', submitDept: '消化内科门诊', urgency: '中' },
+  { id: 'PA007', patientName: '孙国庆', patientId: 'P10007', examType: '腹部超声', examItem: 'ESD术', drugName: '甘油果糖注射液', drugSpec: '250ml', restriction: '限脱水及脑水肿治疗', reason: 'ESD术后减轻脑水肿', submitTime: '2026-04-30 10:52', submitDept: '消化内科', urgency: '低' },
   { id: 'PA008', patientName: '周丽华', patientId: 'P10008', examType: 'ERCP', examItem: 'ERCP+EST', drugName: '硫酸阿托品注射液', drugSpec: '1ml:0.5mg', restriction: '限有机磷中毒、缓慢型心律失常', reason: 'ERCP前抑制肠蠕动', submitTime: '2026-04-30 11:08', submitDept: '肝胆外科', urgency: '高' },
-  { id: 'PA009', patientName: '吴明', patientId: 'P10009', examType: '胃镜', examItem: '胃镜下止血术', drugName: '肾上腺素注射液', drugSpec: '1ml:1mg', restriction: '限过敏性休克、心脏骤停', reason: '胃镜下局部止血', submitTime: '2026-04-30 11:25', submitDept: '消化内科急诊', urgency: '高' },
+  { id: 'PA009', patientName: '吴明', patientId: 'P10009', examType: '腹部超声', examItem: '腹部超声下止血术', drugName: '肾上腺素注射液', drugSpec: '1ml:1mg', restriction: '限过敏性休克、心脏骤停', reason: '腹部超声下局部止血', submitTime: '2026-04-30 11:25', submitDept: '消化内科急诊', urgency: '高' },
   { id: 'PA010', patientName: '郑小红', patientId: 'P10010', examType: '肠镜', examItem: '肠镜下息肉切除', drugName: '二氧化碳气体', drugSpec: '10L/瓶', restriction: '限腔镜手术充气', reason: '肠镜术中充气', submitTime: '2026-04-30 11:42', submitDept: '消化内科', urgency: '低' },
-  { id: 'PA011', patientName: '黄志强', patientId: 'P10011', examType: '超声内镜', examItem: '胰腺EUS', drugName: '醋酸戈舍瑞林缓释植入剂', drugSpec: '3.6mg', restriction: '限前列腺癌、乳腺癌', reason: '前列腺癌伴消化道侵犯待查', submitTime: '2026-04-30 12:00', submitDept: '肿瘤科', urgency: '中' },
-  { id: 'PA012', patientName: '林晓峰', patientId: 'P10012', examType: '胃镜', examItem: '食管扩张术', drugName: '硝酸甘油注射液', drugSpec: '5ml:5mg', restriction: '限冠心病、心绞痛', reason: '食管痉挛缓解', submitTime: '2026-04-30 13:15', submitDept: '消化内科', urgency: '中' },
+  { id: 'PA011', patientName: '黄志强', patientId: 'P10011', examType: '超声超声探头', examItem: '胰腺EUS', drugName: '醋酸戈舍瑞林缓释植入剂', drugSpec: '3.6mg', restriction: '限前列腺癌、乳腺癌', reason: '前列腺癌伴消化道侵犯待查', submitTime: '2026-04-30 12:00', submitDept: '肿瘤科', urgency: '中' },
+  { id: 'PA012', patientName: '林晓峰', patientId: 'P10012', examType: '腹部超声', examItem: '食管扩张术', drugName: '硝酸甘油注射液', drugSpec: '5ml:5mg', restriction: '限冠心病、心绞痛', reason: '食管痉挛缓解', submitTime: '2026-04-30 13:15', submitDept: '消化内科', urgency: '中' },
   { id: 'PA013', patientName: '杨丽', patientId: 'P10013', examType: '肠镜', examItem: '小肠镜检查', drugName: '双歧杆菌三联活菌胶囊', drugSpec: '0.5g*24粒', restriction: '限肠道菌群失调', reason: '肠道菌群调节', submitTime: '2026-04-30 13:30', submitDept: '消化内科', urgency: '低' },
   { id: 'PA014', patientName: '徐斌', patientId: 'P10014', examType: 'ERCP', examItem: '胆道支架置入', drugName: '注射用头孢哌酮钠舒巴坦钠', drugSpec: '1.5g', restriction: '限中重度感染', reason: '预防ERCP术后胆道感染', submitTime: '2026-04-30 13:48', submitDept: '肝胆外科', urgency: '高' },
-  { id: 'PA015', patientName: '马秀英', patientId: 'P10015', examType: '胃镜', examItem: '胃造口术', drugName: '肠内营养混悬液', drugSpec: '500ml', restriction: '限不能经口进食患者', reason: '经胃造口肠内营养', submitTime: '2026-04-30 14:05', submitDept: '消化内科', urgency: '中' },
+  { id: 'PA015', patientName: '马秀英', patientId: 'P10015', examType: '腹部超声', examItem: '胃造口术', drugName: '肠内营养混悬液', drugSpec: '500ml', restriction: '限不能经口进食患者', reason: '经胃造口肠内营养', submitTime: '2026-04-30 14:05', submitDept: '消化内科', urgency: '中' },
 ]
 
 // 审核历史 - 40条
 const auditHistory: AuditHistory[] = [
-  { id: 1, patientName: '张三', patientId: 'P20001', examType: '胃镜', examItem: '无痛胃镜', drugName: '丙泊酚注射液', result: '通过', auditor: '李审核', auditTime: '2026-04-29 14:20' },
-  { id: 2, patientName: '李四', patientId: 'P20002', examType: '肠镜', examItem: '结肠镜', drugName: '复方聚乙二醇散', result: '通过', auditor: '王审核', auditTime: '2026-04-29 14:35' },
+  { id: 1, patientName: '张三', patientId: 'P20001', examType: '腹部超声', examItem: '无痛腹部超声', drugName: '丙泊酚注射液', result: '通过', auditor: '李审核', auditTime: '2026-04-29 14:20' },
+  { id: 2, patientName: '李四', patientId: 'P20002', examType: '肠镜', examItem: '浅表超声', drugName: '复方聚乙二醇散', result: '通过', auditor: '王审核', auditTime: '2026-04-29 14:35' },
   { id: 3, patientName: '王五', patientId: 'P20003', examType: 'ERCP', examItem: '逆行胰胆管造影', drugName: '盐酸哌替啶注射液', result: '拒绝', auditor: '李审核', auditTime: '2026-04-29 14:50', reason: '适应证不符，限急性疼痛使用' },
-  { id: 4, patientName: '赵六', patientId: 'P20004', examType: '胃镜', examItem: '普通胃镜', drugName: '盐酸丁卡因胶浆', result: '通过', auditor: '张审核', auditTime: '2026-04-29 15:05' },
-  { id: 5, patientName: '钱七', patientId: 'P20005', examType: '超声内镜', examItem: 'EUS-FNA', drugName: '注射用英夫利西单抗', result: '拒绝', auditor: '李审核', auditTime: '2026-04-29 15:20', reason: '克罗恩病未在医保限用范围' },
-  { id: 6, patientName: '孙八', patientId: 'P20006', examType: '肠镜', examItem: '无痛结肠镜', drugName: '地西泮注射液', result: '补充资料', auditor: '王审核', auditTime: '2026-04-29 15:35', reason: '需提供患者心电图' },
-  { id: 7, patientName: '周九', patientId: 'P20007', examType: '胃镜', examItem: 'ESD术', drugName: '甘油果糖注射液', result: '拒绝', auditor: '张审核', auditTime: '2026-04-29 15:50', reason: '脑水肿不符，超医保适应证' },
+  { id: 4, patientName: '赵六', patientId: 'P20004', examType: '腹部超声', examItem: '普通腹部超声', drugName: '盐酸丁卡因胶浆', result: '通过', auditor: '张审核', auditTime: '2026-04-29 15:05' },
+  { id: 5, patientName: '钱七', patientId: 'P20005', examType: '超声超声探头', examItem: 'EUS-FNA', drugName: '注射用英夫利西单抗', result: '拒绝', auditor: '李审核', auditTime: '2026-04-29 15:20', reason: '克罗恩病未在医保限用范围' },
+  { id: 6, patientName: '孙八', patientId: 'P20006', examType: '肠镜', examItem: '无痛浅表超声', drugName: '地西泮注射液', result: '补充资料', auditor: '王审核', auditTime: '2026-04-29 15:35', reason: '需提供患者心电图' },
+  { id: 7, patientName: '周九', patientId: 'P20007', examType: '腹部超声', examItem: 'ESD术', drugName: '甘油果糖注射液', result: '拒绝', auditor: '张审核', auditTime: '2026-04-29 15:50', reason: '脑水肿不符，超医保适应证' },
   { id: 8, patientName: '吴十', patientId: 'P20008', examType: 'ERCP', examItem: 'ERCP+EST', drugName: '硫酸阿托品注射液', result: '通过', auditor: '李审核', auditTime: '2026-04-29 16:05' },
-  { id: 9, patientName: '郑一', patientId: 'P20009', examType: '胃镜', examItem: '胃镜下止血术', drugName: '肾上腺素注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-29 16:20' },
+  { id: 9, patientName: '郑一', patientId: 'P20009', examType: '腹部超声', examItem: '腹部超声下止血术', drugName: '肾上腺素注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-29 16:20' },
   { id: 10, patientName: '冯二', patientId: 'P20010', examType: '肠镜', examItem: '肠镜下息肉切除', drugName: '二氧化碳气体', result: '通过', auditor: '张审核', auditTime: '2026-04-29 16:35' },
-  { id: 11, patientName: '陈三', patientId: 'P20011', examType: '超声内镜', examItem: '胰腺EUS', drugName: '醋酸戈舍瑞林缓释植入剂', result: '拒绝', auditor: '李审核', auditTime: '2026-04-29 16:50', reason: '前列腺癌诊断依据不足' },
-  { id: 12, patientName: '褚四', patientId: 'P20012', examType: '胃镜', examItem: '食管扩张术', drugName: '硝酸甘油注射液', result: '补充资料', auditor: '王审核', auditTime: '2026-04-29 17:05', reason: '需补充冠心病诊断证明' },
+  { id: 11, patientName: '陈三', patientId: 'P20011', examType: '超声超声探头', examItem: '胰腺EUS', drugName: '醋酸戈舍瑞林缓释植入剂', result: '拒绝', auditor: '李审核', auditTime: '2026-04-29 16:50', reason: '前列腺癌诊断依据不足' },
+  { id: 12, patientName: '褚四', patientId: 'P20012', examType: '腹部超声', examItem: '食管扩张术', drugName: '硝酸甘油注射液', result: '补充资料', auditor: '王审核', auditTime: '2026-04-29 17:05', reason: '需补充冠心病诊断证明' },
   { id: 13, patientName: '卫五', patientId: 'P20013', examType: '肠镜', examItem: '小肠镜检查', drugName: '双歧杆菌三联活菌胶囊', result: '通过', auditor: '张审核', auditTime: '2026-04-29 17:20' },
   { id: 14, patientName: '蒋六', patientId: 'P20014', examType: 'ERCP', examItem: '胆道支架置入', drugName: '注射用头孢哌酮钠舒巴坦钠', result: '通过', auditor: '李审核', auditTime: '2026-04-29 17:35' },
-  { id: 15, patientName: '沈七', patientId: 'P20015', examType: '胃镜', examItem: '胃造口术', drugName: '肠内营养混悬液', result: '通过', auditor: '王审核', auditTime: '2026-04-29 17:50' },
-  { id: 16, patientName: '韩八', patientId: 'P20016', examType: '胃镜', examItem: '无痛胃镜', drugName: '丙泊酚注射液', result: '通过', auditor: '张审核', auditTime: '2026-04-28 09:10' },
-  { id: 17, patientName: '杨九', patientId: 'P20017', examType: '肠镜', examItem: '结肠镜', drugName: '复方聚乙二醇散', result: '通过', auditor: '李审核', auditTime: '2026-04-28 09:25' },
+  { id: 15, patientName: '沈七', patientId: 'P20015', examType: '腹部超声', examItem: '胃造口术', drugName: '肠内营养混悬液', result: '通过', auditor: '王审核', auditTime: '2026-04-29 17:50' },
+  { id: 16, patientName: '韩八', patientId: 'P20016', examType: '腹部超声', examItem: '无痛腹部超声', drugName: '丙泊酚注射液', result: '通过', auditor: '张审核', auditTime: '2026-04-28 09:10' },
+  { id: 17, patientName: '杨九', patientId: 'P20017', examType: '肠镜', examItem: '浅表超声', drugName: '复方聚乙二醇散', result: '通过', auditor: '李审核', auditTime: '2026-04-28 09:25' },
   { id: 18, patientName: '朱十', patientId: 'P20018', examType: 'ERCP', examItem: '逆行胰胆管造影', drugName: '盐酸哌替啶注射液', result: '拒绝', auditor: '王审核', auditTime: '2026-04-28 09:40', reason: '无急性疼痛指征' },
-  { id: 19, patientName: '秦一', patientId: 'P20019', examType: '胃镜', examItem: '普通胃镜', drugName: '盐酸丁卡因胶浆', result: '通过', auditor: '张审核', auditTime: '2026-04-28 09:55' },
-  { id: 20, patientName: '尤二', patientId: 'P20020', examType: '超声内镜', examItem: 'EUS-FNA', drugName: '注射用英夫利西单抗', result: '拒绝', auditor: '李审核', auditTime: '2026-04-28 10:10', reason: '类风湿关节炎诊断不明确' },
-  { id: 21, patientName: '许三', patientId: 'P20021', examType: '肠镜', examItem: '无痛结肠镜', drugName: '地西泮注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-28 10:25' },
-  { id: 22, patientName: '何四', patientId: 'P20022', examType: '胃镜', examItem: 'ESD术', drugName: '甘油果糖注射液', result: '拒绝', auditor: '张审核', auditTime: '2026-04-28 10:40', reason: '不符合医保限用条件' },
+  { id: 19, patientName: '秦一', patientId: 'P20019', examType: '腹部超声', examItem: '普通腹部超声', drugName: '盐酸丁卡因胶浆', result: '通过', auditor: '张审核', auditTime: '2026-04-28 09:55' },
+  { id: 20, patientName: '尤二', patientId: 'P20020', examType: '超声超声探头', examItem: 'EUS-FNA', drugName: '注射用英夫利西单抗', result: '拒绝', auditor: '李审核', auditTime: '2026-04-28 10:10', reason: '类风湿关节炎诊断不明确' },
+  { id: 21, patientName: '许三', patientId: 'P20021', examType: '肠镜', examItem: '无痛浅表超声', drugName: '地西泮注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-28 10:25' },
+  { id: 22, patientName: '何四', patientId: 'P20022', examType: '腹部超声', examItem: 'ESD术', drugName: '甘油果糖注射液', result: '拒绝', auditor: '张审核', auditTime: '2026-04-28 10:40', reason: '不符合医保限用条件' },
   { id: 23, patientName: '吕五', patientId: 'P20023', examType: 'ERCP', examItem: 'ERCP+EST', drugName: '硫酸阿托品注射液', result: '通过', auditor: '李审核', auditTime: '2026-04-28 10:55' },
-  { id: 24, patientName: '施六', patientId: 'P20024', examType: '胃镜', examItem: '胃镜下止血术', drugName: '肾上腺素注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-28 11:10' },
+  { id: 24, patientName: '施六', patientId: 'P20024', examType: '腹部超声', examItem: '腹部超声下止血术', drugName: '肾上腺素注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-28 11:10' },
   { id: 25, patientName: '张七', patientId: 'P20025', examType: '肠镜', examItem: '肠镜下息肉切除', drugName: '二氧化碳气体', result: '通过', auditor: '张审核', auditTime: '2026-04-28 11:25' },
-  { id: 26, patientName: '孔八', patientId: 'P20026', examType: '超声内镜', examItem: '胰腺EUS', drugName: '醋酸戈舍瑞林缓释植入剂', result: '补充资料', auditor: '李审核', auditTime: '2026-04-28 11:40', reason: '需提供病理切片' },
-  { id: 27, patientName: '曹九', patientId: 'P20027', examType: '胃镜', examItem: '食管扩张术', drugName: '硝酸甘油注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-28 11:55' },
+  { id: 26, patientName: '孔八', patientId: 'P20026', examType: '超声超声探头', examItem: '胰腺EUS', drugName: '醋酸戈舍瑞林缓释植入剂', result: '补充资料', auditor: '李审核', auditTime: '2026-04-28 11:40', reason: '需提供病理切片' },
+  { id: 27, patientName: '曹九', patientId: 'P20027', examType: '腹部超声', examItem: '食管扩张术', drugName: '硝酸甘油注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-28 11:55' },
   { id: 28, patientName: '严十', patientId: 'P20028', examType: '肠镜', examItem: '小肠镜检查', drugName: '双歧杆菌三联活菌胶囊', result: '通过', auditor: '张审核', auditTime: '2026-04-28 12:10' },
   { id: 29, patientName: '华一', patientId: 'P20029', examType: 'ERCP', examItem: '胆道支架置入', drugName: '注射用头孢哌酮钠舒巴坦钠', result: '通过', auditor: '李审核', auditTime: '2026-04-28 13:30' },
-  { id: 30, patientName: '金二', patientId: 'P20030', examType: '胃镜', examItem: '胃造口术', drugName: '肠内营养混悬液', result: '通过', auditor: '王审核', auditTime: '2026-04-28 13:45' },
-  { id: 31, patientName: '魏三', patientId: 'P20031', examType: '胃镜', examItem: '无痛胃镜', drugName: '丙泊酚注射液', result: '通过', auditor: '张审核', auditTime: '2026-04-27 14:00' },
-  { id: 32, patientName: '陶四', patientId: 'P20032', examType: '肠镜', examItem: '结肠镜', drugName: '复方聚乙二醇散', result: '通过', auditor: '李审核', auditTime: '2026-04-27 14:15' },
+  { id: 30, patientName: '金二', patientId: 'P20030', examType: '腹部超声', examItem: '胃造口术', drugName: '肠内营养混悬液', result: '通过', auditor: '王审核', auditTime: '2026-04-28 13:45' },
+  { id: 31, patientName: '魏三', patientId: 'P20031', examType: '腹部超声', examItem: '无痛腹部超声', drugName: '丙泊酚注射液', result: '通过', auditor: '张审核', auditTime: '2026-04-27 14:00' },
+  { id: 32, patientName: '陶四', patientId: 'P20032', examType: '肠镜', examItem: '浅表超声', drugName: '复方聚乙二醇散', result: '通过', auditor: '李审核', auditTime: '2026-04-27 14:15' },
   { id: 33, patientName: '姜五', patientId: 'P20033', examType: 'ERCP', examItem: '逆行胰胆管造影', drugName: '盐酸哌替啶注射液', result: '拒绝', auditor: '王审核', auditTime: '2026-04-27 14:30', reason: '非急性疼痛适应证' },
-  { id: 34, patientName: '戚六', patientId: 'P20034', examType: '胃镜', examItem: '普通胃镜', drugName: '盐酸丁卡因胶浆', result: '通过', auditor: '张审核', auditTime: '2026-04-27 14:45' },
-  { id: 35, patientName: '谢七', patientId: 'P20035', examType: '超声内镜', examItem: 'EUS-FNA', drugName: '注射用英夫利西单抗', result: '拒绝', auditor: '李审核', auditTime: '2026-04-27 15:00', reason: '超医保适应证范围' },
-  { id: 36, patientName: '邹八', patientId: 'P20036', examType: '肠镜', examItem: '无痛结肠镜', drugName: '地西泮注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-27 15:15' },
-  { id: 37, patientName: '柏九', patientId: 'P20037', examType: '胃镜', examItem: 'ESD术', drugName: '甘油果糖注射液', result: '拒绝', auditor: '张审核', auditTime: '2026-04-27 15:30', reason: '脑水肿诊断不成立' },
+  { id: 34, patientName: '戚六', patientId: 'P20034', examType: '腹部超声', examItem: '普通腹部超声', drugName: '盐酸丁卡因胶浆', result: '通过', auditor: '张审核', auditTime: '2026-04-27 14:45' },
+  { id: 35, patientName: '谢七', patientId: 'P20035', examType: '超声超声探头', examItem: 'EUS-FNA', drugName: '注射用英夫利西单抗', result: '拒绝', auditor: '李审核', auditTime: '2026-04-27 15:00', reason: '超医保适应证范围' },
+  { id: 36, patientName: '邹八', patientId: 'P20036', examType: '肠镜', examItem: '无痛浅表超声', drugName: '地西泮注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-27 15:15' },
+  { id: 37, patientName: '柏九', patientId: 'P20037', examType: '腹部超声', examItem: 'ESD术', drugName: '甘油果糖注射液', result: '拒绝', auditor: '张审核', auditTime: '2026-04-27 15:30', reason: '脑水肿诊断不成立' },
   { id: 38, patientName: '水十', patientId: 'P20038', examType: 'ERCP', examItem: 'ERCP+EST', drugName: '硫酸阿托品注射液', result: '通过', auditor: '李审核', auditTime: '2026-04-27 15:45' },
-  { id: 39, patientName: '窦一', patientId: 'P20039', examType: '胃镜', examItem: '胃镜下止血术', drugName: '肾上腺素注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-27 16:00' },
+  { id: 39, patientName: '窦一', patientId: 'P20039', examType: '腹部超声', examItem: '腹部超声下止血术', drugName: '肾上腺素注射液', result: '通过', auditor: '王审核', auditTime: '2026-04-27 16:00' },
   { id: 40, patientName: '章二', patientId: 'P20040', examType: '肠镜', examItem: '肠镜下息肉切除', drugName: '二氧化碳气体', result: '通过', auditor: '张审核', auditTime: '2026-04-27 16:15' },
 ]
 
-// 限制药品库 - 20种内镜常用药
+// 限制药品库 - 20种超声探头常用药
 const restrictedDrugs: RestrictedDrug[] = [
-  { id: 1, name: '丙泊酚注射液', category: '麻醉用药', restriction: '限二级以上公立医疗机构使用，限短期镇静', applicableExams: '无痛胃镜、无痛肠镜、无痛ERCP', notes: '需麻醉科医师在场' },
+  { id: 1, name: '丙泊酚注射液', category: '麻醉用药', restriction: '限二级以上公立医疗机构使用，限短期镇静', applicableExams: '无痛腹部超声、无痛肠镜、无痛ERCP', notes: '需麻醉科医师在场' },
   { id: 2, name: '盐酸哌替啶注射液', category: '镇痛药', restriction: '限急性疼痛、术后镇痛及麻醉前给药', applicableExams: 'ERCP、ESD、EMR', notes: '需副主任医师以上开具' },
-  { id: 3, name: '地西泮注射液', category: '镇静药', restriction: '限癫痫持续状态、麻醉前给药', applicableExams: '无痛胃镜、无痛肠镜', notes: '需心电图监测' },
-  { id: 4, name: '盐酸丁卡因胶浆', category: '局麻药', restriction: '限表面麻醉使用', applicableExams: '普通胃镜、喉镜', notes: '需皮试阴性' },
-  { id: 5, name: '复方聚乙二醇散', category: '泻药', restriction: '限肠镜检查前肠道清洁', applicableExams: '结肠镜、小肠镜', notes: '2小时内服完' },
-  { id: 6, name: '甘油果糖注射液', category: '脱水药', restriction: '限脱水及脑水肿治疗', applicableExams: '颅内手术前准备', notes: '内镜手术慎用' },
-  { id: 7, name: '硫酸阿托品注射液', category: '抗胆碱药', restriction: '限有机磷中毒、缓慢型心律失常', applicableExams: 'ERCP、十二指肠镜', notes: '青光眼患者禁用' },
-  { id: 8, name: '肾上腺素注射液', category: '升压药', restriction: '限过敏性休克、心脏骤停、支气管痉挛', applicableExams: '胃镜下止血、肠镜下止血', notes: '局部使用需稀释' },
+  { id: 3, name: '地西泮注射液', category: '镇静药', restriction: '限癫痫持续状态、麻醉前给药', applicableExams: '无痛腹部超声、无痛肠镜', notes: '需心电图监测' },
+  { id: 4, name: '盐酸丁卡因胶浆', category: '局麻药', restriction: '限表面麻醉使用', applicableExams: '普通腹部超声、喉镜', notes: '需皮试阴性' },
+  { id: 5, name: '复方聚乙二醇散', category: '泻药', restriction: '限肠镜检查前肠道清洁', applicableExams: '浅表超声、小肠镜', notes: '2小时内服完' },
+  { id: 6, name: '甘油果糖注射液', category: '脱水药', restriction: '限脱水及脑水肿治疗', applicableExams: '颅内手术前准备', notes: '超声探头手术慎用' },
+  { id: 7, name: '硫酸阿托品注射液', category: '抗胆碱药', restriction: '限有机磷中毒、缓慢型心律失常', applicableExams: 'ERCP、介入超声', notes: '青光眼患者禁用' },
+  { id: 8, name: '肾上腺素注射液', category: '升压药', restriction: '限过敏性休克、心脏骤停、支气管痉挛', applicableExams: '腹部超声下止血、肠镜下止血', notes: '局部使用需稀释' },
   { id: 9, name: '二氧化碳气体', category: '气体', restriction: '限腔镜手术充气', applicableExams: '腹腔镜、胸腔镜', notes: '肠镜充气用空气' },
   { id: 10, name: '醋酸戈舍瑞林缓释植入剂', category: '抗肿瘤药', restriction: '限前列腺癌、乳腺癌', applicableExams: '前列腺侵犯消化道EUS', notes: '需肿瘤科会诊' },
   { id: 11, name: '硝酸甘油注射液', category: '扩血管药', restriction: '限冠心病、心绞痛', applicableExams: '食管动力检查、贲门失弛缓', notes: '需心血管评估' },
@@ -139,8 +139,8 @@ const restrictedDrugs: RestrictedDrug[] = [
   { id: 13, name: '注射用头孢哌酮钠舒巴坦钠', category: '抗生素', restriction: '限中重度感染', applicableExams: 'ERCP术后、穿孔修补术后', notes: '需皮试' },
   { id: 14, name: '肠内营养混悬液', category: '营养药', restriction: '限不能经口进食患者', applicableExams: '胃造口术、空肠造口术', notes: '需营养科会诊' },
   { id: 15, name: '注射用英夫利西单抗', category: '生物制剂', restriction: '限克罗恩病、类风湿关节炎、强直性脊柱炎', applicableExams: '克罗恩病EUS评估', notes: '需病理确诊' },
-  { id: 16, name: '甲硫酸新斯的明注射液', category: '促胃肠动力药', restriction: '限术后肠麻痹、术后尿潴留', applicableExams: '结肠镜检查、ERCP术后', notes: '机械性肠梗阻禁用' },
-  { id: 17, name: '氨甲环酸注射液', category: '止血药', restriction: '限急性或慢性局限性纤维蛋白溶解', applicableExams: '消化道出血内镜下止血', notes: '需凝血功能评估' },
+  { id: 16, name: '甲硫酸新斯的明注射液', category: '促胃肠动力药', restriction: '限术后肠麻痹、术后尿潴留', applicableExams: '浅表超声检查、ERCP术后', notes: '机械性肠梗阻禁用' },
+  { id: 17, name: '氨甲环酸注射液', category: '止血药', restriction: '限急性或慢性局限性纤维蛋白溶解', applicableExams: '消化道出血超声探头下止血', notes: '需凝血功能评估' },
   { id: 18, name: '注射用矛头蝮蛇血凝酶', category: '止血药', restriction: '限出血性疾病', applicableExams: '胃ESD、肠息肉切除术后', notes: '需监测凝血功能' },
   { id: 19, name: '脂肪乳氨基酸葡萄糖注射液', category: '肠外营养', restriction: '限不能经口进食且无法肠内营养者', applicableExams: '胃造口术后、空肠造口术后', notes: '需中心静脉通路' },
   { id: 20, name: '枸橼酸芬太尼注射液', category: '镇痛药', restriction: '限急性剧烈疼痛、麻醉镇痛', applicableExams: 'ERCP、ESD、STER', notes: '需麻醉药品处方权' },
@@ -150,11 +150,11 @@ const restrictedDrugs: RestrictedDrug[] = [
 const indicationRules: IndicationRule[] = [
   {
     id: 1,
-    examType: '胃镜',
-    examName: '无痛胃镜检查',
+    examType: '腹部超声',
+    examName: '无痛腹部超声检查',
     drugName: '丙泊酚注射液',
     insuranceRequirement: '限二级以上公立医疗机构，需麻醉医师在场，需术前评估心肺功能',
-    description: '丙泊酚用于无痛胃镜镇静，需满足医疗机构级别和人员资质要求'
+    description: '丙泊酚用于无痛腹部超声镇静，需满足医疗机构级别和人员资质要求'
   },
   {
     id: 2,
@@ -167,14 +167,14 @@ const indicationRules: IndicationRule[] = [
   {
     id: 3,
     examType: '肠镜',
-    examName: '结肠镜检查',
+    examName: '浅表超声检查',
     drugName: '复方聚乙二醇散',
     insuranceRequirement: '限肠镜检查前肠道清洁，不得用于其他清肠目的',
     description: '复方聚乙二醇作为肠镜前肠道准备用药，属医保甲类'
   },
   {
     id: 4,
-    examType: '超声内镜',
+    examType: '超声超声探头',
     examName: 'EUS-FNA穿刺活检',
     drugName: '注射用英夫利西单抗',
     insuranceRequirement: '限克罗恩病（需病理确诊）、类风湿关节炎、强直性脊柱炎',
@@ -182,8 +182,8 @@ const indicationRules: IndicationRule[] = [
   },
   {
     id: 5,
-    examType: '胃镜',
-    examName: '胃镜下止血术',
+    examType: '腹部超声',
+    examName: '腹部超声下止血术',
     drugName: '肾上腺素注射液（局部用）',
     insuranceRequirement: '限过敏性休克、心脏骤停、支气管痉挛；局部使用需说明适应证',
     description: '肾上腺素局部注射用于消化道止血，属超适应证使用，需患者知情同意'
@@ -774,10 +774,10 @@ export default function InsuranceAuditPage() {
             </select>
             <select style={s.select}>
               <option value="">全部类型</option>
-              <option value="胃镜">胃镜</option>
+              <option value="腹部超声">腹部超声</option>
               <option value="肠镜">肠镜</option>
               <option value="ERCP">ERCP</option>
-              <option value="超声内镜">超声内镜</option>
+              <option value="超声超声探头">超声超声探头</option>
             </select>
             <button style={{ ...s.btn, ...s.btnOutline }}>
               <RefreshCw size={13} /> 重置

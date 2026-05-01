@@ -244,7 +244,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA004', patientId: 'P004', patientName: '周丽娟', gender: '女', age: 38,
-    surgeryType: '超声内镜', surgeryDate: '2026-04-30', doctorName: '李秀英',
+    surgeryType: '超声检查', surgeryDate: '2026-04-30', doctorName: '李秀英',
     asaLevel: 'ASA I', metsScore: 9, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '局麻',
@@ -282,7 +282,7 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 11:00', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 11:10', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '患者ASA I级，METs 9，各项指标正常，无明显出血及麻醉风险，可按计划进行超声内镜检查。',
+    conclusion: '患者ASA I级，METs 9，各项指标正常，无明显出血及麻醉风险，可按计划进行超声超声检查。',
     precautions: ['常规监护'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
@@ -508,7 +508,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA010', patientId: 'P010', patientName: '周玉芬', gender: '女', age: 71,
-    surgeryType: '超声内镜', surgeryDate: '2026-04-30', doctorName: '李秀英',
+    surgeryType: '超声检查', surgeryDate: '2026-04-30', doctorName: '李秀英',
     asaLevel: 'ASA III', metsScore: 3, metsLevel: '低',
     bleedingRisk: '中危', bleedingScore: 3, anesthesiaRisk: '中危',
     anesthesiaMethod: '镇静',
@@ -1024,7 +1024,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA022', patientId: 'P002', patientName: '李秀芳', gender: '女', age: 45,
-    surgeryType: '超声内镜', surgeryDate: '2026-04-29', doctorName: '李秀英',
+    surgeryType: '超声检查', surgeryDate: '2026-04-29', doctorName: '李秀英',
     asaLevel: 'ASA I', metsScore: 8, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '镇静',
@@ -1038,7 +1038,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-29 11:30', anesthesiologist: '李医生',
-      visitNotes: 'ASA I级，身体健康，镇静下行超声内镜',
+      visitNotes: 'ASA I级，身体健康，镇静下行超声检查',
       vitalSigns: { bp: '116/72mmHg', hr: 68, rr: 16, temp: 36.3, spo2: 99 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati I，气道正常',
@@ -1062,7 +1062,7 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 11:30', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 11:45', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '术前评估通过，已顺利完成超声内镜检查，提示胃黏膜下肿物。',
+    conclusion: '术前评估通过，已顺利完成超声超声检查，提示胃黏膜下肿物。',
     precautions: ['术后常规观察'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
@@ -1108,7 +1108,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA024', patientId: 'P004', patientName: '周丽娟', gender: '女', age: 38,
-    surgeryType: '胶囊内镜', surgeryDate: '2026-05-01', doctorName: '李秀英',
+    surgeryType: '胶囊超声', surgeryDate: '2026-05-01', doctorName: '李秀英',
     asaLevel: 'ASA I', metsScore: 10, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '无需麻醉',

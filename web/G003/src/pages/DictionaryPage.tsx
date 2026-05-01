@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 数据字典管理页面
+// G004 超声管理系统 - 数据字典管理页面
 // ============================================================
 import { useState, useMemo } from 'react'
 import {
@@ -179,7 +179,7 @@ const s: Record<string, React.CSSProperties> = {
 // ---------- 分类颜色映射 ----------
 const categoryColors: Record<string, string> = {
   '检查室': { backgroundColor: '#dbeafe', color: '#1d4ed8' },
-  '内镜类型': { backgroundColor: '#fce7f3', color: '#be185d' },
+  '探头类型': { backgroundColor: '#fce7f3', color: '#be185d' },
   '诊断术语': { backgroundColor: '#dcfce7', color: '#16a34a' },
   '麻醉方式': { backgroundColor: '#fef3c7', color: '#92400e' },
   '消毒剂': { backgroundColor: '#e0e7ff', color: '#4338ca' },

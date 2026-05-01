@@ -19,7 +19,7 @@ interface ModeInfo {
 
 const imagingModes: ModeInfo[] = [
   {
-    id: 'WL', name: '白光成像', fullName: 'White Light Imaging', shortDesc: '标准内镜检查模式，自然白光照明，显示组织真实颜色',
+    id: 'WL', name: '白光成像', fullName: 'White Light Imaging', shortDesc: '标准超声检查模式，自然白光照明，显示组织真实颜色',
     color: '#e6edf3', bgColor: '#1a1a2e',
     clinicalUse: ['常规筛查', '病变大体形态观察', '初步评估', '治疗随访'],
     normalFindings: '黏膜呈淡粉红色，光滑，血管纹理清晰可见',
@@ -48,19 +48,19 @@ const imagingModes: ModeInfo[] = [
     id: 'ISE', name: '可变硬度', fullName: 'Incremental Stiffness Enteroscopy',
     shortDesc: '调控镜身软硬度，改善插入性，便于完成复杂病变检查和治疗',
     color: '#a371f7', bgColor: '#1a0d2e',
-    clinicalUse: ['结肠镜检查', '小肠检查', '复杂病变治疗', '术后粘连患者'],
+    clinicalUse: ['浅表超声检查', '小肠检查', '复杂病变治疗', '术后粘连患者'],
     normalFindings: '镜身软硬度可调，插入顺畅，患者不适感降低',
     abnormalFindings: ['硬度不可调', '插入阻力增加'],
     imageNote: '可变硬度模式：非成像功能，为检查操作提供更好的镜身控制'
   },
   {
     id: 'BCE', name: '蓝光电子染色', fullName: 'Blue Coordinate Electronic',
-    shortDesc: '电子染色技术，模拟色素内镜效果，无需喷洒染色剂即可观察病变',
+    shortDesc: '电子染色技术，模拟色素超声探头效果，无需喷洒染色剂即可观察病变',
     color: '#f0b429', bgColor: '#2e1f0a',
     clinicalUse: ['早期食管癌筛查', '胃早癌评估', '幽门螺杆菌感染相关改变', '萎缩/肠上皮化生评估'],
     normalFindings: '食管鳞状上皮呈淡蓝色调，黏膜下血管网隐约可见',
     abnormalFindings: ['上皮内血管袢改变', '黏膜色调改变', '病灶边界突出'],
-    imageNote: 'BCE模式：电子染色增强黏膜对比，减少色素内镜的使用'
+    imageNote: 'BCE模式：电子染色增强黏膜对比，减少色素超声探头的使用'
   },
   {
     id: 'AFI', name: '自动荧光成像', fullName: 'Autofluorescence Imaging',
@@ -105,7 +105,7 @@ export default function ImagingModesPage() {
 
   return (
     <div style={s.root}>
-      <div style={s.title}>🔬 内镜成像模式介绍</div>
+      <div style={s.title}>🔬 超声探头成像模式介绍</div>
       <div style={s.subtitle}>了解各种成像技术的原理、临床应用和图像特征，辅助精准诊断</div>
 
       <div style={{ display: 'flex', gap: 6, marginBottom: 24, flexWrap: 'wrap' }}>
@@ -218,7 +218,7 @@ export default function ImagingModesPage() {
             ['1', '白光 WL', '常规筛查，整体观察', '#58a6ff'],
             ['2', 'NBI/AFI', '可疑区域进一步观察', '#3fb950'],
             ['3', '染色/放大', '精确评估病变边界和微血管', '#a371f7'],
-            ['4', '活检/治疗', '取样或内镜下治疗', '#f85149'],
+            ['4', '活检/治疗', '取样或超声探头下治疗', '#f85149'],
           ].map(([step, mode, desc, color]) => (
             <React.Fragment key={step}>
               <div style={{ padding: '12px 16px', background: `${color}15`, border: `1px solid ${color}44`, borderRadius: 10, minWidth: 180 }}>

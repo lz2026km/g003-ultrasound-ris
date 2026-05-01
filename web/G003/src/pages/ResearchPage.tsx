@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 临床数据中心（研究页面）
+// G003 超声RIS系统 - 临床数据中心（研究页面）
 // 5个Tab：研究课题管理 | 数据提取 | 多中心协作 | 统计分析 | 数据总览
 // ============================================================
 import { useState, useMemo } from 'react'
@@ -18,12 +18,12 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 import { initialPatients, patients_v070 } from '../data/initialData'
-import type { Patient, EndoscopyExam } from '../types'
-import { initialEndoscopyExams } from '../data/initialData'
+import type { Patient, UltrasoundExam } from '../types'
+import { initialUltrasoundExams } from '../data/initialData'
 
 // ---------- 数据整合 ----------
 const allPatients: Patient[] = [...initialPatients, ...patients_v070]
-const allExams: EndoscopyExam[] = initialEndoscopyExams
+const allExams: UltrasoundExam[] = initialUltrasoundExams
 
 // ============ 样式 ============
 const s: Record<string, React.CSSProperties> = {
@@ -323,7 +323,7 @@ const RESEARCH_TOPICS = [
   { id: 'RT001', title: '胃镜下早期胃癌筛查多中心研究', PI: '张建国', status: '进行中', patientCount: 156, examCount: 312, startDate: '2026-01-01', endDate: '2026-12-31', progress: 45, institution: '上海市第一人医院' },
   { id: 'RT002', title: '结肠息肉复发因素分析', PI: '李秀英', status: '进行中', patientCount: 89, examCount: 178, startDate: '2026-03-01', endDate: '2027-02-28', progress: 28, institution: '上海市第一人医院' },
   { id: 'RT003', title: 'ERCP术后并发症风险评估模型', PI: '王海涛', status: '待审核', patientCount: 42, examCount: 56, startDate: '2026-06-01', endDate: '2027-05-31', progress: 0, institution: '南京市中心医院' },
-  { id: 'RT004', title: '超声内镜在胰腺疾病诊断中的应用', PI: '赵晓敏', status: '已完成', patientCount: 120, examCount: 180, startDate: '2025-06-01', endDate: '2026-05-31', progress: 100, institution: '北京市协和医院' },
+  { id: 'RT004', title: '超声检查在胰腺疾病诊断中的应用', PI: '赵晓敏', status: '已完成', patientCount: 120, examCount: 180, startDate: '2025-06-01', endDate: '2026-05-31', progress: 100, institution: '北京市协和医院' },
   { id: 'RT005', title: 'HP感染与胃癌发生相关性研究', PI: '刘伟东', status: '进行中', patientCount: 230, examCount: 460, startDate: '2025-09-01', endDate: '2026-08-31', progress: 62, institution: '广州市第一人医院' },
 ]
 
@@ -338,7 +338,7 @@ const DATA_EXTRACTIONS = [
 
 // 多中心协作
 const MULTI_CENTER_COLLABS = [
-  { id: 'MC001', name: '华东地区消化内镜联盟', members: 12, myRole: '参与单位', joinedDate: '2025-06-01', dataShared: 4521, examsIncluded: 8950, status: 'active', recentActivity: '2026-04-28' },
+  { id: 'MC001', name: '华东地区消化超声联盟', members: 12, myRole: '参与单位', joinedDate: '2025-06-01', dataShared: 4521, examsIncluded: 8950, status: 'active', recentActivity: '2026-04-28' },
   { id: 'MC002', name: '全国早期胃癌筛查网络', members: 45, myRole: '核心成员', joinedDate: '2024-01-01', dataShared: 23400, examsIncluded: 45000, status: 'active', recentActivity: '2026-04-29' },
   { id: 'MC003', name: '结肠早癌AI诊断多中心验证', members: 8, myRole: '牵头单位', joinedDate: '2025-09-01', dataShared: 1200, examsIncluded: 2400, status: 'active', recentActivity: '2026-04-27' },
   { id: 'MC004', name: 'HP规范化治疗研究协作组', members: 23, myRole: '参与单位', joinedDate: '2025-03-01', dataShared: 3200, examsIncluded: 6800, status: 'pending', recentActivity: '2026-04-20' },
@@ -611,7 +611,7 @@ function Tab2DataExtract() {
         <div style={s.cardTitle}><Database size={16} color="#3b82f6" />快速数据提取</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {[
-            { label: '按检查类型', desc: '胃镜/肠镜/超声内镜...', icon: FlaskConical, color: '#3b82f6' },
+            { label: '按检查类型', desc: '胃镜/肠镜/超声检查...', icon: FlaskConical, color: '#3b82f6' },
             { label: '按时间范围', desc: '自定义日期区间', icon: Clock, color: '#22c55e' },
             { label: '按诊断结果', desc: '阳性/阴性/息肉...', icon: FileText, color: '#f97316' },
             { label: '按患者特征', desc: '年龄/性别/病史...', icon: Users, color: '#8b5cf6' },
@@ -868,9 +868,9 @@ function Tab4Stats() {
   const examTypeStats = useMemo(() => [
     { name: '胃镜', value: 5258, color: '#3b82f6' },
     { name: '肠镜', value: 4669, color: '#22c55e' },
-    { name: '超声内镜', value: 1453, color: '#f97316' },
+    { name: '超声检查', value: 1453, color: '#f97316' },
     { name: 'ERCP', value: 593, color: '#8b5cf6' },
-    { name: '胶囊内镜', value: 856, color: '#14b8a6' },
+    { name: '胶囊超声', value: 856, color: '#14b8a6' },
   ], [])
 
   const monthlyTrend = [

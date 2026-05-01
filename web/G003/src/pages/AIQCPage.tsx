@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - AI智能质控中心页面（完整增强版）
+// G003 超声RIS系统 - AI智能质控中心页面（完整增强版）
 // 图像质量自动评分 · 22张图片标准检测 · 质控指标仪表盘 · 质控统计报表
 // ============================================================
 import React, { useState, useMemo, useCallback } from 'react'
@@ -200,7 +200,7 @@ const COLONOSCOPY_STANDARD: QCPhotoStandard = {
 }
 
 const EUS_STANDARD: QCPhotoStandard = {
-  examType: '超声内镜检查（EUS）',
+  examType: '超声超声检查（EUS）',
   totalRequired: 18,
   items: [
     { id: 'E01', name: '探查部位1', description: '超声探头探查位置', required: true, captured: false, quality: 'missing' },
@@ -329,7 +329,7 @@ const generateImageQCResults = (): ImageQCResult[] => {
 const aiModels: AIModel[] = [
   {
     id: 'model-1', name: 'CADe-PolypNet', version: 'v3.2.1', type: 'cade',
-    description: '息肉检测深度学习模型，基于ResNet50骨干网络训练，在内镜视频中实时检测可疑息肉病变',
+    description: '息肉检测深度学习模型，基于ResNet50骨干网络训练，在超声视频中实时检测可疑息肉病变',
     status: 'active', accuracy: 94.5, precision: 92.8, recall: 96.2, detections: 15420, lastUpdated: '2026-04-25',
   },
   {
@@ -349,17 +349,17 @@ const aiModels: AIModel[] = [
   },
   {
     id: 'model-5', name: 'ImageQC-Inspector', version: 'v2.3.0', type: 'imageqc',
-    description: '内镜图像质量评估模型，自动评估清晰度、亮度、覆盖度三项指标并给出综合评分',
+    description: '超声图像质量评估模型，自动评估清晰度、亮度、覆盖度三项指标并给出综合评分',
     status: 'active', accuracy: 92.1, precision: 89.7, recall: 94.5, detections: 45200, lastUpdated: '2026-04-28',
   },
   {
     id: 'model-6', name: 'Bleeding-Detector', version: 'v2.0.1', type: 'other',
-    description: '术中出血检测模型，实时监测内镜操作过程中的出血情况并及时预警',
+    description: '术中出血检测模型，实时监测超声操作过程中的出血情况并及时预警',
     status: 'training', accuracy: 89.1, precision: 86.7, recall: 91.5, detections: 4520, lastUpdated: '2026-04-28',
   },
   {
     id: 'model-7', name: 'Lesion-Segmentation', version: 'v1.5.3', type: 'other',
-    description: '病变区域分割模型，自动标注内镜图像中的可疑病变区域范围',
+    description: '病变区域分割模型，自动标注超声图像中的可疑病变区域范围',
     status: 'inactive', accuracy: 85.6, precision: 83.1, recall: 88.2, detections: 3210, lastUpdated: '2026-04-10',
   },
 ]
@@ -973,7 +973,7 @@ export default function AIQCPage() {
                 style={{ ...s.btnIcon, background: selectedExamType === 'eus' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'eus' ? '#fff' : '#475569' }}
                 onClick={() => setSelectedExamType('eus')}
               >
-                <Camera size={14} />超声内镜（18张）
+                <Camera size={14} />超声检查（18张）
               </button>
             </div>
 

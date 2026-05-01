@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 首页概览（增强版）
+// G004 超声管理系统 - 首页概览（增强版）
 // 快速操作 / 今日进度 / 快捷入口 / 专业仪表盘风格
 // ============================================================
 import { useState } from 'react'
@@ -408,16 +408,16 @@ const QUICK_LINKS = [
 const TODAY_PROGRESS = [
   { label: '今日检查', done: 38, total: 50, color: '#3b82f6' },
   { label: '已完成报告', done: 35, total: 38, color: '#22c55e' },
-  { label: '待洗消内镜', done: 6, total: 12, color: '#f97316' },
+  { label: '待洗消超声探头', done: 6, total: 12, color: '#f97316' },
   { label: '待写报告', done: 8, total: 15, color: '#ef4444' },
 ]
 
 // ===== 新增数据 =====
 // 临床动态
 const CLINICAL_FEEDS = [
-  { id: 1, type: 'urgent', icon: AlertCircle, iconBg: '#fef2f2', iconColor: '#ef4444', title: '危急值通报', desc: '患者李红霞，胃镜活检结果：高度异型增生', time: '10:32', badge: '紧急', badgeBg: '#fef2f2', badgeColor: '#ef4444' },
-  { id: 2, type: 'report', icon: FileText, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '检查报告完成', desc: '王建国 — 结肠镜检查（操作：赵主任）', time: '10:18', badge: '报告', badgeBg: '#eff6ff', badgeColor: '#3b82f6' },
-  { id: 3, type: 'disinfect', icon: Syringe, iconBg: '#f0fdfa', iconColor: '#14b8a6', title: '内镜洗消完成', desc: '胃镜 #3 洗消完成，可投入使用', time: '09:55', badge: '洗消', badgeBg: '#f0fdfa', badgeColor: '#14b8a6' },
+  { id: 1, type: 'urgent', icon: AlertCircle, iconBg: '#fef2f2', iconColor: '#ef4444', title: '危急值通报', desc: '患者李红霞，腹部超声活检结果：高度异型增生', time: '10:32', badge: '紧急', badgeBg: '#fef2f2', badgeColor: '#ef4444' },
+  { id: 2, type: 'report', icon: FileText, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '检查报告完成', desc: '王建国 — 浅表超声检查（操作：赵主任）', time: '10:18', badge: '报告', badgeBg: '#eff6ff', badgeColor: '#3b82f6' },
+  { id: 3, type: 'disinfect', icon: Syringe, iconBg: '#f0fdfa', iconColor: '#14b8a6', title: '超声探头洗消完成', desc: '腹部超声 #3 洗消完成，可投入使用', time: '09:55', badge: '洗消', badgeBg: '#f0fdfa', badgeColor: '#14b8a6' },
   { id: 4, type: 'appoint', icon: CalendarClock, iconBg: '#f5f3ff', iconColor: '#8b5cf6', title: '新增预约', desc: '张明 — 肠镜检查，预约时间 14:00', time: '09:40', badge: '预约', badgeBg: '#f5f3ff', badgeColor: '#8b5cf6' },
   { id: 5, type: 'critical', icon: HeartPulse, iconBg: '#fff7ed', iconColor: '#f97316', title: '麻醉复苏提醒', desc: '患者赵磊 — 丙泊酚麻醉复苏中，预计15分钟', time: '09:22', badge: '麻醉', badgeBg: '#fff7ed', badgeColor: '#f97316' },
 ]
@@ -425,7 +425,7 @@ const CLINICAL_FEEDS = [
 // 医生工作台
 const WORKBENCH_TASKS = [
   { icon: ClipboardCheck, title: '待写报告', count: 8, total: 15, bg: '#eff6ff', color: '#3b82f6', path: '/report-pending' },
-  { icon: Syringe, title: '待洗消内镜', count: 6, total: 12, bg: '#f0fdfa', color: '#14b8a6', path: '/disinfection' },
+  { icon: Syringe, title: '待洗消超声探头', count: 6, total: 12, bg: '#f0fdfa', color: '#14b8a6', path: '/disinfection' },
   { icon: AlertCircle, title: '危急值处理', count: 2, total: 5, bg: '#fef2f2', color: '#ef4444', path: '/critical-value' },
   { icon: CalendarClock, title: '今日预约', count: 12, total: 20, bg: '#f5f3ff', color: '#8b5cf6', path: '/appointments' },
   { icon: HeartPulse, title: '麻醉复苏', count: 3, total: 8, bg: '#fff7ed', color: '#f97316', path: '/recovery' },
@@ -442,19 +442,19 @@ const KPI_DATA = [
 
 // ===== 预警通知中心 =====
 const ALERT_NOTIFICATIONS = [
-  { id: 1, type: 'critical', icon: AlertOctagon, iconBg: '#fef2f2', iconColor: '#ef4444', title: '内镜洗消超时预警', desc: '胃镜 #2 洗消时间超过标准流程30分钟，需重新洗消', time: '10:45', badge: '危急', badgeBg: '#fef2f2', badgeColor: '#ef4444', level: 'critical' },
+  { id: 1, type: 'critical', icon: AlertOctagon, iconBg: '#fef2f2', iconColor: '#ef4444', title: '超声探头洗消超时预警', desc: '腹部超声 #2 洗消时间超过标准流程30分钟，需重新洗消', time: '10:45', badge: '危急', badgeBg: '#fef2f2', badgeColor: '#ef4444', level: 'critical' },
   { id: 2, type: 'warning', icon: AlertTriangle, iconBg: '#fff7ed', iconColor: '#f97316', title: '耗材库存不足', desc: '一次性活检钳库存仅剩 12 把，建议尽快补货', time: '09:30', badge: '警告', badgeBg: '#fff7ed', badgeColor: '#f97316', level: 'warning' },
-  { id: 3, type: 'info', icon: Info, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '设备维护提醒', desc: '电子胃镜 EG-2990I 累计使用时长达到 800 小时，需进行维护', time: '08:00', badge: '通知', badgeBg: '#eff6ff', badgeColor: '#3b82f6', level: 'info' },
-  { id: 4, type: 'warning', icon: BellRing, iconBg: '#fff7ed', iconColor: '#f97316', title: '患者随访逾期', desc: '患者王磊结肠镜复查逾期 7 天，请及时联系患者', time: '昨天', badge: '提醒', badgeBg: '#fff7ed', badgeColor: '#f97316', level: 'warning' },
+  { id: 3, type: 'info', icon: Info, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '设备维护提醒', desc: '电子腹部超声 EG-2990I 累计使用时长达到 800 小时，需进行维护', time: '08:00', badge: '通知', badgeBg: '#eff6ff', badgeColor: '#3b82f6', level: 'info' },
+  { id: 4, type: 'warning', icon: BellRing, iconBg: '#fff7ed', iconColor: '#f97316', title: '患者随访逾期', desc: '患者王磊浅表超声复查逾期 7 天，请及时联系患者', time: '昨天', badge: '提醒', badgeBg: '#fff7ed', badgeColor: '#f97316', level: 'warning' },
   { id: 5, type: 'info', icon: PackageSearch, iconBg: '#f5f3ff', iconColor: '#8b5cf6', title: '新耗材入库待验收', desc: '采购订单 PO-2026-0428 到达仓库，请及时验收', time: '昨天', badge: '信息', badgeBg: '#f5f3ff', badgeColor: '#8b5cf6', level: 'info' },
 ]
 
 // ===== 今日待办 =====
 const TODAY_TODOS = [
-  { id: 1, text: '完成患者张明结肠镜检查报告', tag: '报告', tagBg: '#eff6ff', tagColor: '#3b82f6', time: '09:00', done: true },
-  { id: 2, text: '审核患者李红霞胃镜活检申请单', tag: '审核', tagBg: '#f5f3ff', tagColor: '#8b5cf6', time: '10:00', done: false },
+  { id: 1, text: '完成患者张明浅表超声检查报告', tag: '报告', tagBg: '#eff6ff', tagColor: '#3b82f6', time: '09:00', done: true },
+  { id: 2, text: '审核患者李红霞腹部超声活检申请单', tag: '审核', tagBg: '#f5f3ff', tagColor: '#8b5cf6', time: '10:00', done: false },
   { id: 3, text: '参加科室疑难病例讨论会', tag: '会议', tagBg: '#fef2f2', tagColor: '#ef4444', time: '14:00', done: false },
-  { id: 4, text: '胃镜 #1 使用后洗消交接', tag: '洗消', tagBg: '#f0fdfa', tagColor: '#14b8a6', time: '11:30', done: false },
+  { id: 4, text: '腹部超声 #1 使用后洗消交接', tag: '洗消', tagBg: '#f0fdfa', tagColor: '#14b8a6', time: '11:30', done: false },
   { id: 5, text: '完成本周质量控制数据上报', tag: '质控', tagBg: '#fff7ed', tagColor: '#f97316', time: '16:00', done: false },
   { id: 6, text: '查看患者赵磊麻醉复苏情况', tag: '麻醉', tagBg: '#f0fdf4', tagColor: '#22c55e', time: '09:45', done: true },
 ]
@@ -495,7 +495,7 @@ export default function HomePage() {
       {/* 标题 */}
       <div style={s.header}>
         <div>
-          <h1 style={s.title}>内镜诊疗信息管理系统</h1>
+          <h1 style={s.title}>超声探头诊疗信息管理系统</h1>
           <p style={s.subtitle}>
             {new Date().toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric' })} · 您好，张建国医生
           </p>
@@ -859,7 +859,7 @@ export default function HomePage() {
           borderColor={s.green.color}
         />
         <IndicatorCard
-          label="胃镜平均拍照"
+          label="腹部超声平均拍照"
           value={stats.monthGastroscopyAvgPhotos}
           unit="张"
           borderColor={s.purple.color}

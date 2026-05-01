@@ -20,7 +20,7 @@ const roles: Role[] = [
   { id: 'R008', name: '数据上报员', desc: '仅可操作国家平台数据上报模块', userCount: 2, color: '#f0b429' },
 ]
 
-const modules = ['患者管理', '检查执行', '报告管理', '影像管理', '内镜设备', '洗消追溯', '手术管理', '质控管理', '统计报表', '系统设置']
+const modules = ['患者管理', '检查执行', '报告管理', '影像管理', '超声设备', '洗消追溯', '手术管理', '质控管理', '统计报表', '系统设置']
 const allPermissions: Permission[] = modules.flatMap(mod =>
   ['查看', '新增', '编辑', '删除', '导出'].map(act => ({
     id: `${mod}-${act}`, name: `${act}`, module: mod,
@@ -31,9 +31,9 @@ const allPermissions: Permission[] = modules.flatMap(mod =>
 const users: User[] = [
   { id: 'U001', name: '张明华', dept: '消化内科', role: '主治医师', status: 'active', lastLogin: '2026-04-30 09:12' },
   { id: 'U002', name: '李秀英', dept: '消化内科', role: '护士长', status: 'active', lastLogin: '2026-04-30 08:45' },
-  { id: 'U003', name: '王建国', dept: '内镜中心', role: '技师', status: 'active', lastLogin: '2026-04-29 17:30' },
+  { id: 'U003', name: '王建国', dept: '超声中心', role: '技师', status: 'active', lastLogin: '2026-04-29 17:30' },
   { id: 'U004', name: '陈晓梅', dept: '消化内科', role: '住院医师', status: 'inactive', lastLogin: '2026-04-20 10:00' },
-  { id: 'U005', name: '刘大力', dept: '内镜中心', role: '主治医师', status: 'active', lastLogin: '2026-04-30 10:30' },
+  { id: 'U005', name: '刘大力', dept: '超声中心', role: '主治医师', status: 'active', lastLogin: '2026-04-30 10:30' },
   { id: 'U006', name: '赵丽', dept: '医务科', role: '数据上报员', status: 'active', lastLogin: '2026-04-30 09:00' },
 ]
 

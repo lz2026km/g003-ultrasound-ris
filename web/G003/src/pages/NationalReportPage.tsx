@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 国家数据上报页面
+// G004 超声管理系统 - 国家数据上报页面
 // 上报录入/上报历史/省级平台/质控指标
 // ============================================================
 import { useState } from 'react'
@@ -518,7 +518,7 @@ export default function NationalReportPage() {
           <Upload size={18} color="#3b82f6" />
           新增上报数据
         </h3>
-        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>填写以下信息，提交至国家消化内镜质控中心平台</p>
+        <p style={{ fontSize: 13, color: '#64748b', margin: 0 }}>填写以下信息，提交至国家消化超声质控中心平台</p>
       </div>
 
       <div style={s.formGrid}>
@@ -606,7 +606,7 @@ export default function NationalReportPage() {
             value={formData.platform}
             onChange={e => handleInputChange('platform', e.target.value)}
           >
-            <option value="国家平台">国家平台（国家消化内镜质控中心）</option>
+            <option value="国家平台">国家平台（国家消化超声质控中心）</option>
             <option value="山东省平台">山东省平台</option>
             <option value="河南省平台">河南省平台</option>
             <option value="浙江省平台">浙江省平台</option>
@@ -843,7 +843,7 @@ export default function NationalReportPage() {
           质控指标分析
         </h3>
         <p style={{ fontSize: 13, color: '#64748b', margin: '4px 0 0 0' }}>
-          国家消化内镜质控中心关键指标监控
+          国家消化超声质控中心关键指标监控
         </p>
       </div>
 
@@ -1057,7 +1057,7 @@ export default function NationalReportPage() {
           国家数据上报
         </h1>
         <p style={s.subtitle}>
-          国家消化内镜质控中心数据上报 · 省级平台对接 · 质控指标监控
+          国家消化超声质控中心数据上报 · 省级平台对接 · 质控指标监控
         </p>
       </div>
 

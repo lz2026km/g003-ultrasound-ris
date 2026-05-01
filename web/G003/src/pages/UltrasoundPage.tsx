@@ -9,8 +9,8 @@ import {
   Activity, MapPin, Calendar, Wrench, AlertCircle, Clock,
   Package, AlertTriangle, CheckCircle, History
 } from 'lucide-react'
-import type { Endoscope, EndoscopeStatus } from '../types'
-import { initialEndoscopes } from '../data/initialData'
+import type { Endoscope, EquipmentStatus } from '../types'
+import { initialUltrasoundDevices } from '../data/initialData'
 
 // ---------- 使用记录类型 ----------
 interface UseRecord {
@@ -271,7 +271,7 @@ const s: Record<string, React.CSSProperties> = {
 }
 
 // ---------- 状态徽章样式 ----------
-const statusBadgeStyle = (status: EndoscopeStatus): React.CSSProperties => {
+const statusBadgeStyle = (status: EquipmentStatus): React.CSSProperties => {
   const base = s.statusBadgeLarge
   switch (status) {
     case '空闲': return { ...base, background: '#dcfce7', color: '#15803d' }
@@ -285,8 +285,8 @@ const statusBadgeStyle = (status: EndoscopeStatus): React.CSSProperties => {
 }
 
 // ---------- 工具函数 ----------
-const statusLabel = (status: EndoscopeStatus): string => {
-  const labels: Record<EndoscopeStatus, string> = {
+const statusLabel = (status: EquipmentStatus): string => {
+  const labels: Record<EquipmentStatus, string> = {
     '空闲': '空闲',
     '使用中': '使用中',
     '清洗中': '清洗中',
@@ -367,7 +367,7 @@ const generateExtraEndoscopes = (base: Endoscope[]): Endoscope[] => {
     { name: 'Boston超声超声设备', model: 'SU-9000', manufacturer: 'Boston Scientific', category: '超声超声设备' },
     { name: 'Cook气囊小肠镜', model: 'SB-900', manufacturer: 'Cook Medical', category: '其他' },
   ]
-  const statuses: EndoscopeStatus[] = ['空闲', '空闲', '空闲', '使用中', '清洗中', '消毒中', '维修中', '空闲']
+  const statuses: EquipmentStatus[] = ['空闲', '空闲', '空闲', '使用中', '清洗中', '消毒中', '维修中', '空闲']
   const locations = ['超声设备室1', '超声设备室2', '超声设备室3', '超声设备储存室', '超声设备室1', '超声设备室2']
 
   let idx = base.length + 1
@@ -400,10 +400,10 @@ const generateExtraEndoscopes = (base: Endoscope[]): Endoscope[] => {
 
 // ---------- 主组件 ----------
 export default function EndoscopePage() {
-  const baseEndoscopes = useMemo(() => initialEndoscopes, [])
+  const baseEndoscopes = useMemo(() => initialUltrasoundDevices, [])
   const [endoscopes, setEndoscopes] = useState<Endoscope[]>(() => generateExtraEndoscopes(baseEndoscopes))
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<EndoscopeStatus | ''>('')
+  const [statusFilter, setStatusFilter] = useState<EquipmentStatus | ''>('')
   const [page, setPage] = useState(1)
   const pageSize = 10
 
@@ -484,7 +484,7 @@ export default function EndoscopePage() {
           <div style={s.overviewStatInfo}>
             <div style={s.overviewStatValue}>{endoscopes.length}</div>
             <div style={s.overviewStatLabel}>设备总数</div>
-            <div style={s.overviewStatSub}>超声设备 {endoscopes.filter(e => ['超声检查','肠镜','支气管镜','心脏超声','超声超声设备'].includes(e.category)).length} 台</div>
+            <div style={s.overviewStatSub}>超声设备 {endoscopes.filter(e => ['超声检查','肠镜','肺部超声','心脏超声','超声超声设备'].includes(e.category)).length} 台</div>
           </div>
         </div>
         <div style={s.overviewStatCard}>
@@ -533,7 +533,7 @@ export default function EndoscopePage() {
         <select
           style={s.select}
           value={statusFilter}
-          onChange={e => { setStatusFilter(e.target.value as EndoscopeStatus | ''); setPage(1) }}
+          onChange={e => { setStatusFilter(e.target.value as EquipmentStatus | ''); setPage(1) }}
         >
           <option value="">全部状态</option>
           <option value="空闲">空闲</option>
@@ -690,7 +690,7 @@ export default function EndoscopePage() {
           <div style={s.modal}>
             {/* 详情弹窗 - 全生命周期视图 */}
             {modalMode === 'view' && viewingEndoscope && (() => {
-              const e = viewingEndoscope
+              const e = viewingUltrasoundDevice
               const days = getDaysInService(e.purchaseDate)
               const maintStatus = getMaintenanceStatus(e.nextMaintenanceDate)
               const warrantySt = getWarrantyStatus(e.warrantyEnd)
@@ -1031,7 +1031,7 @@ export default function EndoscopePage() {
                       >
                         <option value="超声检查">超声检查</option>
                         <option value="肠镜">肠镜</option>
-                        <option value="支气管镜">支气管镜</option>
+                        <option value="肺部超声">肺部超声</option>
                         <option value="心脏超声">心脏超声</option>
                         <option value="超声超声设备">超声超声设备</option>
                         <option value="其他">其他</option>

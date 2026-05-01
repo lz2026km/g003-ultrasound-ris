@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - 质量控制中心页面（完整版）
+// G003 超声RIS系统 - 质量控制中心页面（完整版）
 // 5项核心指标：报告及时率/图像达标率/退镜时间/洗消合格率/危急值上报率
 // ============================================================
 import React, { useState, useMemo } from 'react'
@@ -56,7 +56,7 @@ const INDICATORS: Indicator[] = [
       { name: '消化内科', value: 97.5, rank: 1 },
       { name: '胃肠外科', value: 95.8, rank: 2 },
       { name: '肝胆外科', value: 93.2, rank: 3 },
-      { name: '内镜中心', value: 91.6, rank: 4 },
+      { name: '超声中心', value: 91.6, rank: 4 },
       { name: 'VIP病区', value: 88.3, rank: 5 },
     ],
     description: '检查完成后24小时内出具报告的比例',
@@ -72,13 +72,13 @@ const INDICATORS: Indicator[] = [
     trend: generateTrend(85, 12),
     status: 'warning',
     deptRank: [
-      { name: '内镜中心', value: 95.2, rank: 1 },
+      { name: '超声中心', value: 95.2, rank: 1 },
       { name: '消化内科', value: 91.4, rank: 2 },
       { name: '胃肠外科', value: 88.7, rank: 3 },
       { name: '肝胆外科', value: 82.1, rank: 4 },
       { name: 'VIP病区', value: 76.5, rank: 5 },
     ],
-    description: '图像采集符合22张标准（胃镜22张/肠镜22张/超声内镜标准）的比例',
+    description: '图像采集符合22张标准（胃镜22张/肠镜22张/超声检查标准）的比例',
     suggestions: ['加强图片采集培训', '规范采集流程', '配置高质量摄像头'],
   },
   {
@@ -91,7 +91,7 @@ const INDICATORS: Indicator[] = [
     trend: generateTrend(74, 15),
     status: 'danger',
     deptRank: [
-      { name: '内镜中心', value: 92.8, rank: 1 },
+      { name: '超声中心', value: 92.8, rank: 1 },
       { name: '消化内科', value: 85.4, rank: 2 },
       { name: '胃肠外科', value: 76.2, rank: 3 },
       { name: '肝胆外科', value: 68.9, rank: 4 },
@@ -110,13 +110,13 @@ const INDICATORS: Indicator[] = [
     trend: generateTrend(98.5, 2),
     status: 'excellent',
     deptRank: [
-      { name: '内镜中心', value: 99.8, rank: 1 },
+      { name: '超声中心', value: 99.8, rank: 1 },
       { name: '消化内科', value: 99.5, rank: 2 },
       { name: '胃肠外科', value: 99.2, rank: 3 },
       { name: '肝胆外科', value: 98.9, rank: 4 },
       { name: 'VIP病区', value: 98.4, rank: 5 },
     ],
-    description: '内镜清洗消毒合格的比例',
+    description: '超声设备清洗消毒合格的比例',
     suggestions: ['继续保持', '定期维护设备', '加强日常监测'],
   },
   {
@@ -130,7 +130,7 @@ const INDICATORS: Indicator[] = [
     status: 'good',
     deptRank: [
       { name: '消化内科', value: 99.2, rank: 1 },
-      { name: '内镜中心', value: 98.5, rank: 2 },
+      { name: '超声中心', value: 98.5, rank: 2 },
       { name: '胃肠外科', value: 96.8, rank: 3 },
       { name: '肝胆外科', value: 94.2, rank: 4 },
       { name: 'VIP病区', value: 91.7, rank: 5 },
@@ -144,7 +144,7 @@ const ALL_DEPTS: DeptPerformance[] = [
   { dept: '消化内科', reportTimeliness: 97.5, imageQuality: 91.4, withdrawalTime: 85.4, disinfection: 99.5, criticalValue: 99.2, totalScore: 94.6 },
   { dept: '胃肠外科', reportTimeliness: 95.8, imageQuality: 88.7, withdrawalTime: 76.2, disinfection: 99.2, criticalValue: 96.8, totalScore: 91.3 },
   { dept: '肝胆外科', reportTimeliness: 93.2, imageQuality: 82.1, withdrawalTime: 68.9, disinfection: 98.9, criticalValue: 94.2, totalScore: 87.5 },
-  { dept: '内镜中心', reportTimeliness: 91.6, imageQuality: 95.2, withdrawalTime: 92.8, disinfection: 99.8, criticalValue: 98.5, totalScore: 95.6 },
+  { dept: '超声中心', reportTimeliness: 91.6, imageQuality: 95.2, withdrawalTime: 92.8, disinfection: 99.8, criticalValue: 98.5, totalScore: 95.6 },
   { dept: 'VIP病区', reportTimeliness: 88.3, imageQuality: 76.5, withdrawalTime: 61.3, disinfection: 98.4, criticalValue: 91.7, totalScore: 83.2 },
 ]
 

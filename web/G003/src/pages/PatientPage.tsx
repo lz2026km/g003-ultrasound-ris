@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 患者管理页面（增强版）
+// G004 超声管理系统 - 患者管理页面（增强版）
 // 全流程患者健康档案管理
 // ============================================================
 import { useState, useMemo } from 'react'
@@ -12,7 +12,7 @@ import {
   CalendarClock, UserCheck, Flag, Info
 } from 'lucide-react'
 import type { Patient, Gender, Appointment, EndoscopyExam } from '../types'
-import { initialPatients, initialAppointments, initialEndoscopyExams } from '../data/initialData'
+import { initialPatients, initialAppointments, initialUltrasoundExams } from '../data/initialData'
 
 // ---------- 样式定义 ----------
 const s: Record<string, React.CSSProperties> = {
@@ -388,7 +388,7 @@ const emptyPatient = (): PatientEx => ({
 // ---------- 模拟就诊历史数据 ----------
 const mockPatientHistory = (patientId: string): EndoscopyExam[] => {
   const today = new Date().toISOString().split('T')[0]
-  return initialEndoscopyExams.filter(e => e.patientId === patientId)
+  return initialUltrasoundExams.filter(e => e.patientId === patientId)
 }
 
 const mockPatientAppointments = (patientId: string): Appointment[] => {
@@ -562,9 +562,9 @@ export default function PatientPage() {
     if (appointmentConflict && appointmentConflict.startsWith('⚠️')) return
 
     const examItemNames: Record<string, string> = {
-      'EI001': '电子胃镜检查', 'EI002': '电子结肠镜检查', 'EI003': '胃镜下活检',
-      'EI004': '肠镜下息肉切除', 'EI005': '超声内镜检查', 'EI006': 'ERCP检查',
-      'EI007': '电子支气管镜检查', 'EI008': '胶囊内镜检查',
+      'EI001': '电子腹部超声检查', 'EI002': '电子浅表超声检查', 'EI003': '腹部超声下活检',
+      'EI004': '肠镜下息肉切除', 'EI005': '超声超声检查', 'EI006': 'ERCP检查',
+      'EI007': '电子肺部超声检查', 'EI008': '胶囊超声检查',
     }
     const doctorNames: Record<string, string> = {
       'U001': '张建国', 'U002': '李秀英', 'U003': '王海涛',
@@ -1516,14 +1516,14 @@ export default function PatientPage() {
                     <label style={s.label}>检查项目<span style={s.required}>*</span></label>
                     <select style={s.input} value={newAppointment.examItemId} onChange={e => handleAppointmentField('examItemId', e.target.value)}>
                       <option value="">请选择检查项目</option>
-                      <option value="EI001">电子胃镜检查</option>
-                      <option value="EI002">电子结肠镜检查</option>
-                      <option value="EI003">胃镜下活检</option>
+                      <option value="EI001">电子腹部超声检查</option>
+                      <option value="EI002">电子浅表超声检查</option>
+                      <option value="EI003">腹部超声下活检</option>
                       <option value="EI004">肠镜下息肉切除</option>
-                      <option value="EI005">超声内镜检查</option>
+                      <option value="EI005">超声超声检查</option>
                       <option value="EI006">ERCP检查</option>
-                      <option value="EI007">电子支气管镜检查</option>
-                      <option value="EI008">胶囊内镜检查</option>
+                      <option value="EI007">电子肺部超声检查</option>
+                      <option value="EI008">胶囊超声检查</option>
                     </select>
                   </div>
                   {/* 主诊医生 */}
@@ -1540,9 +1540,9 @@ export default function PatientPage() {
                     <label style={s.label}>检查室<span style={s.required}>*</span></label>
                     <select style={s.input} value={newAppointment.examRoom} onChange={e => handleAppointmentField('examRoom', e.target.value)}>
                       <option value="">请选择检查室</option>
-                      <option value="内镜室1">内镜室1</option>
-                      <option value="内镜室2">内镜室2</option>
-                      <option value="内镜室3">内镜室3</option>
+                      <option value="超声室1">超声室1</option>
+                      <option value="超声室2">超声室2</option>
+                      <option value="超声室3">超声室3</option>
                     </select>
                   </div>
                   {/* 预约日期 */}

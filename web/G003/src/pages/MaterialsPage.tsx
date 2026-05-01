@@ -318,7 +318,7 @@ const mockMaterials: Material[] = [
   { id: 'M025', code: 'BZ-004', name: '一次性手套', category: '包装类', spec: 'M码/100只', unit: '盒', stock: 45, alertLine: 30, expiryDate: '2028-12-31', supplier: '国产通用', status: '正常', price: 28, lastRestockDate: '2026-04-15' },
   { id: 'M026', code: 'BJ-010', name: '扩张球囊', category: '配件类', spec: 'B5-2C-4.0', unit: '个', stock: 7, alertLine: 8, expiryDate: '2027-01-15', supplier: 'Boston科学', status: '正常', price: 850, lastRestockDate: '2026-03-28' },
   { id: 'M027', code: 'YP-008', name: '阿托品注射液', category: '药品类', spec: '1ml:0.5mg', unit: '支', stock: 80, alertLine: 40, expiryDate: '2027-06-30', supplier: '天津金耀', status: '正常', price: 3.8, lastRestockDate: '2026-04-10' },
-  { id: 'M028', code: 'QJ-006', name: '内镜专用刷', category: '清洁类', spec: 'SB-1型', unit: '个', stock: 60, alertLine: 30, expiryDate: '2028-12-31', supplier: '3M中国', status: '正常', price: 12, lastRestockDate: '2026-04-05' },
+  { id: 'M028', code: 'QJ-006', name: '超声探头专用刷', category: '清洁类', spec: 'SB-1型', unit: '个', stock: 60, alertLine: 30, expiryDate: '2028-12-31', supplier: '3M中国', status: '正常', price: 12, lastRestockDate: '2026-04-05' },
   { id: 'M029', code: 'BZ-005', name: '纱布', category: '包装类', spec: '10×10cm/10片', unit: '包', stock: 120, alertLine: 50, expiryDate: '2028-06-30', supplier: '国产通用', status: '正常', price: 5, lastRestockDate: '2026-04-18' },
   { id: 'M030', code: 'BJ-011', name: '取石球囊', category: '配件类', spec: 'B5-2Q-3.0', unit: '个', stock: 4, alertLine: 6, expiryDate: '2027-03-10', supplier: 'Boston科学', status: '偏低', price: 720, lastRestockDate: '2026-03-01' },
   { id: 'M031', code: 'YP-009', name: '地西泮注射液', category: '药品类', spec: '2ml:10mg', unit: '支', stock: 40, alertLine: 25, expiryDate: '2026-10-31', supplier: '天津力生', status: '正常', price: 4.5, lastRestockDate: '2026-04-08' },
@@ -348,20 +348,20 @@ const mockMaterials: Material[] = [
 ];
 
 const mockUsageRecords: MaterialUsage[] = [
-  { id: 'UR001', materialId: 'M001', materialName: '活检钳', endoscopeId: 'EN001', endoscopeName: 'Olympus电子胃镜', patientId: 'P001', patientName: '王建国', examId: 'EX001', examType: '电子胃镜检查', usageDate: '2026-04-29', usageTime: '09:05', quantity: 1, operator: '赵晓敏', notes: '胃窦活检' },
-  { id: 'UR002', materialId: 'M001', materialName: '活检钳', endoscopeId: 'EN001', endoscopeName: 'Olympus电子胃镜', patientId: 'P002', patientName: '李秀芳', examId: 'EX002', examType: '电子胃镜检查', usageDate: '2026-04-29', usageTime: '09:35', quantity: 1, operator: '赵晓敏', notes: '胃体活检' },
-  { id: 'UR003', materialId: 'M003', materialName: '注射针', endoscopeId: 'EN001', endoscopeName: 'Olympus电子胃镜', patientId: 'P003', patientName: '张德明', examId: 'EX003', examType: '食管静脉曲张治疗', usageDate: '2026-04-29', usageTime: '10:30', quantity: 1, operator: '赵晓敏', notes: '静脉曲张注射' },
-  { id: 'UR004', materialId: 'M004', materialName: '止血夹', endoscopeId: 'EN001', endoscopeName: 'Olympus电子胃镜', patientId: 'P003', patientName: '张德明', examId: 'EX003', examType: '食管静脉曲张治疗', usageDate: '2026-04-29', usageTime: '10:45', quantity: 2, operator: '赵晓敏', notes: '止血夹闭' },
-  { id: 'UR005', materialId: 'M006', materialName: '利多卡因胶浆', endoscopeId: 'EN001', endoscopeName: 'Olympus电子胃镜', patientId: 'P004', patientName: '周丽娟', examId: 'EX004', examType: '电子胃镜检查', usageDate: '2026-04-28', usageTime: '14:00', quantity: 1, operator: '赵晓敏', notes: '术前局麻' },
+  { id: 'UR001', materialId: 'M001', materialName: '活检钳', endoscopeId: 'EN001', endoscopeName: 'Olympus电子腹部超声', patientId: 'P001', patientName: '王建国', examId: 'EX001', examType: '电子腹部超声检查', usageDate: '2026-04-29', usageTime: '09:05', quantity: 1, operator: '赵晓敏', notes: '胃窦活检' },
+  { id: 'UR002', materialId: 'M001', materialName: '活检钳', endoscopeId: 'EN001', endoscopeName: 'Olympus电子腹部超声', patientId: 'P002', patientName: '李秀芳', examId: 'EX002', examType: '电子腹部超声检查', usageDate: '2026-04-29', usageTime: '09:35', quantity: 1, operator: '赵晓敏', notes: '胃体活检' },
+  { id: 'UR003', materialId: 'M003', materialName: '注射针', endoscopeId: 'EN001', endoscopeName: 'Olympus电子腹部超声', patientId: 'P003', patientName: '张德明', examId: 'EX003', examType: '食管静脉曲张治疗', usageDate: '2026-04-29', usageTime: '10:30', quantity: 1, operator: '赵晓敏', notes: '静脉曲张注射' },
+  { id: 'UR004', materialId: 'M004', materialName: '止血夹', endoscopeId: 'EN001', endoscopeName: 'Olympus电子腹部超声', patientId: 'P003', patientName: '张德明', examId: 'EX003', examType: '食管静脉曲张治疗', usageDate: '2026-04-29', usageTime: '10:45', quantity: 2, operator: '赵晓敏', notes: '止血夹闭' },
+  { id: 'UR005', materialId: 'M006', materialName: '利多卡因胶浆', endoscopeId: 'EN001', endoscopeName: 'Olympus电子腹部超声', patientId: 'P004', patientName: '周丽娟', examId: 'EX004', examType: '电子腹部超声检查', usageDate: '2026-04-28', usageTime: '14:00', quantity: 1, operator: '赵晓敏', notes: '术前局麻' },
 ];
 
 // 申领单数据
 const mockRequisitions: Requisition[] = [
-  { id: 'REQ001', materialId: 'M004', materialName: '止血夹', category: '配件类', spec: 'HX-610-090', unit: '枚', quantity: 10, applicant: '张护士', applicantDept: '内镜中心', applyDate: '2026-04-28', reason: '库存告急，急需补充', status: '待审批' },
-  { id: 'REQ002', materialId: 'M002', materialName: '圈套器', category: '配件类', spec: 'SD-210U-1', unit: '个', quantity: 20, applicant: '李护士', applicantDept: '内镜中心', applyDate: '2026-04-27', reason: '库存偏低，需补充', status: '已通过' },
-  { id: 'REQ003', materialId: 'M015', materialName: '标签纸', category: '包装类', spec: '50×30mm', unit: '张', quantity: 2000, applicant: '王护士', applicantDept: '内镜中心', applyDate: '2026-04-26', reason: '库存告急，标签即将用完', status: '已入库', approver: '刘主任', approveDate: '2026-04-27', warehouseOps: { operator: '仓管员小张', inDate: '2026-04-28', actualQty: 2000 } },
+  { id: 'REQ001', materialId: 'M004', materialName: '止血夹', category: '配件类', spec: 'HX-610-090', unit: '枚', quantity: 10, applicant: '张护士', applicantDept: '超声中心', applyDate: '2026-04-28', reason: '库存告急，急需补充', status: '待审批' },
+  { id: 'REQ002', materialId: 'M002', materialName: '圈套器', category: '配件类', spec: 'SD-210U-1', unit: '个', quantity: 20, applicant: '李护士', applicantDept: '超声中心', applyDate: '2026-04-27', reason: '库存偏低，需补充', status: '已通过' },
+  { id: 'REQ003', materialId: 'M015', materialName: '标签纸', category: '包装类', spec: '50×30mm', unit: '张', quantity: 2000, applicant: '王护士', applicantDept: '超声中心', applyDate: '2026-04-26', reason: '库存告急，标签即将用完', status: '已入库', approver: '刘主任', approveDate: '2026-04-27', warehouseOps: { operator: '仓管员小张', inDate: '2026-04-28', actualQty: 2000 } },
   { id: 'REQ004', materialId: 'M007', materialName: '丙泊酚注射液', category: '药品类', spec: '20ml:0.2g', unit: '支', quantity: 50, applicant: '赵医生', applicantDept: '麻醉科', applyDate: '2026-04-29', reason: '麻醉用药库存不足', status: '待审批' },
-  { id: 'REQ005', materialId: 'M011', materialName: '邻苯二甲醛消毒剂', category: '清洁类', spec: '5L/桶', unit: '桶', quantity: 10, applicant: '孙护士', applicantDept: '内镜中心', applyDate: '2026-04-25', reason: '消毒剂库存偏低', status: '已拒绝', approver: '刘主任', approveDate: '2026-04-26', approveNote: '库存尚可，暂不采购' },
+  { id: 'REQ005', materialId: 'M011', materialName: '邻苯二甲醛消毒剂', category: '清洁类', spec: '5L/桶', unit: '桶', quantity: 10, applicant: '孙护士', applicantDept: '超声中心', applyDate: '2026-04-25', reason: '消毒剂库存偏低', status: '已拒绝', approver: '刘主任', approveDate: '2026-04-26', approveNote: '库存尚可，暂不采购' },
 ];
 
 // 入库记录数据
@@ -575,7 +575,7 @@ export default function MaterialsPage() {
       unit: mat?.unit || '',
       quantity: parseInt(requisitionForm.quantity),
       applicant: requisitionForm.applicant || '张护士',
-      applicantDept: '内镜中心',
+      applicantDept: '超声中心',
       applyDate: new Date().toISOString().split('T')[0],
       reason: requisitionForm.reason,
       status: '待审批',
@@ -720,10 +720,10 @@ export default function MaterialsPage() {
         <input style={s.searchInput} placeholder="搜索患者姓名或耗材名称..." />
         <select style={s.select}>
           <option value="">全部检查类型</option>
-          <option value="胃镜">胃镜</option>
+          <option value="腹部超声">腹部超声</option>
           <option value="肠镜">肠镜</option>
           <option value="ERCP">ERCP</option>
-          <option value="超声内镜">超声内镜</option>
+          <option value="超声超声探头">超声超声探头</option>
         </select>
       </div>
 
@@ -732,7 +732,7 @@ export default function MaterialsPage() {
           <tr>
             <th style={s.th}>日期时间</th>
             <th style={s.th}>耗材名称</th>
-            <th style={s.th}>关联内镜</th>
+            <th style={s.th}>关联超声探头</th>
             <th style={s.th}>患者姓名</th>
             <th style={s.th}>检查类型</th>
             <th style={s.th}>数量</th>

@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 统计分析页面
+// G004 超声管理系统 - 统计分析页面
 // 多图表数据展示 · 深度优化版
 // 新增：预测分析 | 医生绩效 | 同比环比 | 时段热力图 | SVG图表升级
 // ============================================================
@@ -727,7 +727,7 @@ export default function StatisticsPage() {
         >
           <option value="全部">全部科室</option>
           <option value="消化内科">消化内科</option>
-          <option value="内镜中心">内镜中心</option>
+          <option value="超声中心">超声中心</option>
         </select>
       </div>
 
@@ -923,7 +923,7 @@ export default function StatisticsPage() {
             borderColor={s.green.color}
           />
           <MonthCard
-            label="胃镜平均拍照"
+            label="腹部超声平均拍照"
             value={stats.monthGastroscopyAvgPhotos}
             unit="张"
             borderColor={s.purple.color}
@@ -991,7 +991,7 @@ export default function StatisticsPage() {
                 <PolarGrid stroke="#e2e8f0" />
                 <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#64748b' }} />
                 <Radar name="消化内科" dataKey="A" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.2} />
-                <Radar name="内镜中心" dataKey="B" stroke="#22c55e" fill="#22c55e" fillOpacity={0.2} />
+                <Radar name="超声中心" dataKey="B" stroke="#22c55e" fill="#22c55e" fillOpacity={0.2} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Tooltip {...tooltipStyle} />
               </RadarChart>
@@ -1019,7 +1019,7 @@ export default function StatisticsPage() {
       {/* 质控达标分析 */}
       <div style={s.qcRow}>
         <QCCard
-          title="胃镜拍照质控"
+          title="腹部超声拍照质控"
           value={stats.monthGastroscopyAvgPhotos}
           minValue={22}
           unit="张"
@@ -1341,7 +1341,7 @@ function OverallRateCard({ stats }: OverallRateCardProps) {
         </div>
         <div style={s.overallRateFooterItem}>
           <CheckCircle size={12} />
-          胃镜质控 {((stats.monthGastroscopyAvgPhotos / 22) * 100).toFixed(0)}%
+          腹部超声质控 {((stats.monthGastroscopyAvgPhotos / 22) * 100).toFixed(0)}%
         </div>
         <div style={s.overallRateFooterItem}>
           <CheckCircle size={12} />
@@ -1388,7 +1388,7 @@ function YoYMoMCompare({ stats }: YoYMoMCompareProps) {
       borderColor: s.teal.color,
     },
     {
-      label: '胃镜平均拍照',
+      label: '腹部超声平均拍照',
       current: stats.monthGastroscopyAvgPhotos,
       yoy: 4.1,
       mom: 2.3,
@@ -1812,7 +1812,7 @@ function SVGUpgradeSection({ stats }: SVGUpgradeSectionProps) {
       unit: '%',
     },
     {
-      label: '胃镜质控达标',
+      label: '腹部超声质控达标',
       value: (stats.monthGastroscopyAvgPhotos / 22) * 100,
       max: 100,
       color: '#8b5cf6',

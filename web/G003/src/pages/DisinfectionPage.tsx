@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - 洗消追溯管理页面
+// G004 超声管理系统 - 洗消追溯管理页面
 // 洗消流程记录+各步骤时间线展示+追溯查询
 // ============================================================
 import { useState, useMemo } from 'react'
@@ -11,7 +11,7 @@ import {
   QrCode, BarChart3, ScanLine, TrendingUp, Activity
 } from 'lucide-react'
 import type { DisinfectionRecord, DisinfectionStatus } from '../types'
-import { initialDisinfectionRecords, initialEndoscopes, initialPatients } from '../data/initialData'
+import { initialDisinfectionRecords, initialUltrasoundDevices, initialPatients } from '../data/initialData'
 
 // ---------- 样式定义 ----------
 const s: Record<string, React.CSSProperties> = {
@@ -405,12 +405,12 @@ const generateExtraDisinfectionRecords = (base: DisinfectionRecord[]): Disinfect
   if (base.length >= 30) return base.slice(0, 30)
   const extra: DisinfectionRecord[] = []
   const endoscopes = [
-    { id: 'EN001', name: 'Olympus电子胃镜', code: 'GIF-H290' },
-    { id: 'EN002', name: 'Olympus电子胃镜(备用)', code: 'GIF-H260' },
-    { id: 'EN003', name: 'Olympus电子结肠镜', code: 'CF-H290I' },
-    { id: 'EN004', name: 'Olympus电子结肠镜(细径)', code: 'PCF-H290I' },
-    { id: 'EN005', name: 'Olympus电子十二指肠镜', code: 'TJF-260V' },
-    { id: 'EN006', name: 'Olympus电子支气管镜', code: 'BF-H290' },
+    { id: 'EN001', name: 'Olympus电子腹部超声', code: 'GIF-H290' },
+    { id: 'EN002', name: 'Olympus电子腹部超声(备用)', code: 'GIF-H260' },
+    { id: 'EN003', name: 'Olympus电子浅表超声', code: 'CF-H290I' },
+    { id: 'EN004', name: 'Olympus电子浅表超声(细径)', code: 'PCF-H290I' },
+    { id: 'EN005', name: 'Olympus电子介入超声', code: 'TJF-260V' },
+    { id: 'EN006', name: 'Olympus电子肺部超声', code: 'BF-H290' },
   ]
   const persons = ['王海涛', '李娜', '张伟', '刘洋', '陈静']
   const results: DisinfectionRecord['finalResult'][] = ['合格', '合格', '合格', '合格', '合格', '合格', '合格', '合格', '不合格', '待复检']
@@ -458,7 +458,7 @@ const generateExtraDisinfectionRecords = (base: DisinfectionRecord[]): Disinfect
       dryingEndTime,
       dryingResult: status === '已完成' ? '合格' : '待复检',
       storageTime,
-      storageLocation: '内镜储存柜' + (((idx - 1) % 3) + 1),
+      storageLocation: '超声探头储存柜' + (((idx - 1) % 3) + 1),
       storagePerson: cleaningPerson,
       expirationDate: new Date(new Date(storageTime).getTime() + 7 * 86400000).toISOString().split('T')[0],
       finalResult,
@@ -473,7 +473,7 @@ const generateExtraDisinfectionRecords = (base: DisinfectionRecord[]): Disinfect
 // ---------- 主组件 ----------
 export default function DisinfectionPage() {
   const baseRecords = useMemo(() => initialDisinfectionRecords, [])
-  const [endoscopes] = useState(initialEndoscopes)
+  const [endoscopes] = useState(initialUltrasoundDevices)
   const [patients] = useState(initialPatients)
   const [records, setRecords] = useState<DisinfectionRecord[]>(() => generateExtraDisinfectionRecords(baseRecords))
 
@@ -582,7 +582,7 @@ export default function DisinfectionPage() {
           (r.relatedPatientName?.toLowerCase().includes(kw) ?? false)
         if (!matchSearch) return false
       }
-      // 内镜筛选
+      // 超声探头筛选
       if (filterEndoscope && r.endoscopeId !== filterEndoscope) return false
       // 状态筛选
       if (filterStatus && r.status !== filterStatus) return false
@@ -621,7 +621,7 @@ export default function DisinfectionPage() {
   // 新增洗消记录
   const handleAddRecord = () => {
     if (!newRecord.endoscopeId) {
-      alert('请选择内镜')
+      alert('请选择超声探头')
       return
     }
     const endoscope = endoscopes.find(e => e.id === newRecord.endoscopeId)
@@ -747,7 +747,7 @@ export default function DisinfectionPage() {
           <Search size={14} color="#94a3b8" />
           <input
             style={s.searchInput}
-            placeholder="搜索内镜/患者/记录号..."
+            placeholder="搜索超声探头/患者/记录号..."
             value={searchKeyword}
             onChange={e => { setSearchKeyword(e.target.value); handleFilterChange() }}
           />
@@ -770,7 +770,7 @@ export default function DisinfectionPage() {
         <button
           style={s.scanBtn}
           onClick={handleScanSearch}
-          title="输入记录编号/内镜编号后按回车或点击此按钮追溯"
+          title="输入记录编号/探头编号后按回车或点击此按钮追溯"
         >
           <QrCode size={14} /> 扫码追溯
         </button>
@@ -779,7 +779,7 @@ export default function DisinfectionPage() {
           value={filterEndoscope}
           onChange={e => { setFilterEndoscope(e.target.value); handleFilterChange() }}
         >
-          <option value="">全部内镜</option>
+          <option value="">全部超声探头</option>
           {endoscopes.map(e => (
             <option key={e.id} value={e.id}>{e.name} ({e.code})</option>
           ))}
@@ -852,7 +852,7 @@ export default function DisinfectionPage() {
             <thead>
               <tr>
                 <th style={s.th}>记录编号</th>
-                <th style={s.th}>内镜信息</th>
+                <th style={s.th}>超声探头信息</th>
                 <th style={s.th}>流程类型</th>
                 <th style={s.th}>当前状态</th>
                 <th style={s.th}>清洗结果</th>
@@ -1000,11 +1000,11 @@ export default function DisinfectionPage() {
               {/* 基本信息 */}
               <div style={s.detailGrid}>
                 <div style={s.detailCard}>
-                  <div style={s.detailLabel}>内镜名称</div>
+                  <div style={s.detailLabel}>超声探头名称</div>
                   <div style={s.detailValue}>{detailModal.record.endoscopeName}</div>
                 </div>
                 <div style={s.detailCard}>
-                  <div style={s.detailLabel}>内镜编号</div>
+                  <div style={s.detailLabel}>探头编号</div>
                   <div style={s.detailValue}>{detailModal.record.endoscopeCode}</div>
                 </div>
                 <div style={s.detailCard}>
@@ -1370,13 +1370,13 @@ export default function DisinfectionPage() {
             <div style={s.modalBody}>
               <div style={s.formGrid}>
                 <div style={s.formGroup}>
-                  <label style={s.formLabel}>内镜设备 *</label>
+                  <label style={s.formLabel}>超声设备 *</label>
                   <select
                     style={s.formInput}
                     value={newRecord.endoscopeId}
                     onChange={e => setNewRecord({ ...newRecord, endoscopeId: e.target.value })}
                   >
-                    <option value="">请选择内镜</option>
+                    <option value="">请选择超声探头</option>
                     {endoscopes.map(e => (
                       <option key={e.id} value={e.id}>
                         {e.name} ({e.code})

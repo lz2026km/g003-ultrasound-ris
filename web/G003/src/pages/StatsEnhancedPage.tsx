@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 增强统计分析页面
+// G004 超声管理系统 - 增强统计分析页面
 // 多维度数据统计与可视化分析
 // ============================================================
 import { useState } from 'react'
@@ -29,11 +29,11 @@ const MONTHLY_EXAM_DATA = [
 ]
 
 const EXAM_TYPE_DISTRIBUTION = [
-  { name: '胃镜', value: 5258, color: '#3b82f6' },
+  { name: '腹部超声', value: 5258, color: '#3b82f6' },
   { name: '肠镜', value: 4669, color: '#22c55e' },
-  { name: '超声内镜', value: 1453, color: '#f97316' },
+  { name: '超声超声探头', value: 1453, color: '#f97316' },
   { name: 'ERCP', value: 593, color: '#8b5cf6' },
-  { name: '胶囊内镜', value: 856, color: '#14b8a6' },
+  { name: '胶囊超声', value: 856, color: '#14b8a6' },
 ]
 
 const DOCTOR_RANKING = [
@@ -75,16 +75,16 @@ const COMPLICATION_DETAILS = [
   { patient: '李某某', type: '出血', handling: '止血钳止血+输血', result: '痊愈', date: '2026-04-15' },
   { patient: '王某某', type: '穿孔', handling: '急诊手术修补', result: '痊愈', date: '2026-04-08' },
   { patient: '张某某', type: '感染', handling: '抗生素治疗', result: '好转', date: '2026-03-28' },
-  { patient: '赵某某', type: '出血', handling: '内镜下止血', result: '痊愈', date: '2026-03-15' },
+  { patient: '赵某某', type: '出血', handling: '超声探头下止血', result: '痊愈', date: '2026-03-15' },
   { patient: '刘某某', type: '其他', handling: '对症处理', result: '痊愈', date: '2026-03-05' },
 ]
 
 const INCOME_DATA = [
-  { type: '胃镜', income: 2629000, cost: 1577400, profit: 1051600 },
+  { type: '腹部超声', income: 2629000, cost: 1577400, profit: 1051600 },
   { type: '肠镜', income: 2334500, cost: 1400700, profit: 933800 },
-  { type: '超声内镜', income: 1089750, cost: 653850, profit: 435900 },
+  { type: '超声超声探头', income: 1089750, cost: 653850, profit: 435900 },
   { type: 'ERCP', income: 592000, cost: 355200, profit: 236800 },
-  { type: '胶囊内镜', income: 684800, cost: 410880, profit: 273920 },
+  { type: '胶囊超声', income: 684800, cost: 410880, profit: 273920 },
 ]
 
 const INCOME_TREND = [
@@ -119,12 +119,12 @@ const WEEKDAY_VS_WEEKEND = [
 ]
 
 const EQUIPMENT_DATA = [
-  { name: '胃镜 GF-260', usage: 1856, faults: 3, repairCost: 15000, usageRate: 92.8 },
+  { name: '腹部超声 GF-260', usage: 1856, faults: 3, repairCost: 15000, usageRate: 92.8 },
   { name: '肠镜 CF-260', usage: 1624, faults: 2, repairCost: 12000, usageRate: 88.5 },
-  { name: '超声内镜 EU-ME2', usage: 486, faults: 1, repairCost: 25000, usageRate: 78.2 },
-  { name: '十二指肠镜 JF-260', usage: 298, faults: 4, repairCost: 35000, usageRate: 65.4 },
-  { name: '胶囊内镜M6', usage: 245, faults: 0, repairCost: 0, usageRate: 72.8 },
-  { name: 'ERCP十二指肠镜', usage: 186, faults: 2, repairCost: 28000, usageRate: 58.6 },
+  { name: '超声超声探头 EU-ME2', usage: 486, faults: 1, repairCost: 25000, usageRate: 78.2 },
+  { name: '介入超声 JF-260', usage: 298, faults: 4, repairCost: 35000, usageRate: 65.4 },
+  { name: '胶囊超声M6', usage: 245, faults: 0, repairCost: 0, usageRate: 72.8 },
+  { name: 'ERCP介入超声', usage: 186, faults: 2, repairCost: 28000, usageRate: 58.6 },
 ]
 
 const KPI_DATA = [
@@ -928,7 +928,7 @@ const Tab6EquipmentAnalysis = () => (
   <div>
     <div style={s.chartRowEqual}>
       <div style={s.chartCard}>
-        <div style={s.chartTitle}><Microscope size={16} color="#14b8a6" />内镜设备使用率对比</div>
+        <div style={s.chartTitle}><Microscope size={16} color="#14b8a6" />超声设备使用率对比</div>
         <BarChartSVG
           data={{
             labels: EQUIPMENT_DATA.map(d => d.name.split(' ')[0]),

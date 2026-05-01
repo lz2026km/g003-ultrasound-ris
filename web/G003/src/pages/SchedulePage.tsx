@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - 排班管理增强页面
+// G004 超声管理系统 - 排班管理增强页面
 // 功能：班次管理 + 冲突检测 + 排班统计 + 排班模板 + 请假/替班 + 导出
 // ============================================================
 import { useState, useMemo, useRef } from 'react'
@@ -857,7 +857,7 @@ export default function SchedulePage() {
       <div style={s.pageHeader}>
         <div>
           <h2 style={s.title}>医生排班管理</h2>
-          <div style={s.subtitle}>管理内镜中心医生出诊排班与诊室资源分配 · 支持模板、请假、替班功能</div>
+          <div style={s.subtitle}>管理超声中心医生出诊排班与诊室资源分配 · 支持模板、请假、替班功能</div>
         </div>
         <div style={{ display: 'flex', gap: 8 }}>
           <button style={s.btnSecondary} onClick={handleExport}>

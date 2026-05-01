@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 会诊管理页面
+// G003 超声RIS系统 - 会诊管理页面
 // KPI概览 / 4Tab切换 / MDT管理 / 30条演示数据
 // ============================================================
 import { useState } from 'react'
@@ -338,7 +338,7 @@ const CONSULTATION_DATA = [
     patient: '张伟',
     age: 45,
     gender: '男',
-    type: '超声内镜',
+    type: '超声检查',
     consultType: '胰腺占位定性',
     doctor: '孙丽华',
     dept: '胰腺外科',
@@ -423,7 +423,7 @@ const CONSULTATION_DATA = [
     patient: '马晓东',
     age: 48,
     gender: '男',
-    type: '超声内镜',
+    type: '超声检查',
     consultType: '胃肠道间质瘤评估',
     doctor: '李志伟',
     dept: '肿瘤内科',
@@ -491,7 +491,7 @@ const CONSULTATION_DATA = [
     patient: '徐志强',
     age: 35,
     gender: '男',
-    type: '胶囊内镜',
+    type: '胶囊超声',
     consultType: '小肠出血定位',
     doctor: '王秀英',
     dept: '消化内科',
@@ -542,7 +542,7 @@ const CONSULTATION_DATA = [
     patient: '曹德旺',
     age: 63,
     gender: '男',
-    type: '超声内镜',
+    type: '超声检查',
     consultType: '纵隔淋巴结定性',
     doctor: '吴亚军',
     dept: '胸外科',
@@ -593,7 +593,7 @@ const CONSULTATION_DATA = [
     patient: '何小燕',
     age: 33,
     gender: '女',
-    type: '胶囊内镜',
+    type: '胶囊超声',
     consultType: '小肠克罗恩评估',
     doctor: '王秀英',
     dept: '消化内科',
@@ -678,7 +678,7 @@ const CONSULTATION_DATA = [
     patient: '蒋新民',
     age: 70,
     gender: '男',
-    type: '超声内镜',
+    type: '超声检查',
     consultType: '胰腺囊性病变定性',
     doctor: '孙丽华',
     dept: '胰腺外科',
@@ -720,7 +720,7 @@ const CONSULTATION_DATA = [
     status: 'completed',
     priority: 'urgent',
     date: '2026-04-20',
-    description: '胃窦癌伴幽门狭窄，内镜无法通过，CT示胃壁增厚，浆膜面模糊，周围淋巴结转移',
+    description: '胃窦癌伴幽门狭窄，超声无法通过，CT示胃壁增厚，浆膜面模糊，周围淋巴结转移',
     slides: 10,
     mdtTeam: '胃癌MDT',
   },
@@ -780,7 +780,7 @@ const CONSULTATION_DATA = [
     patient: '贺建军',
     age: 72,
     gender: '男',
-    type: '超声内镜',
+    type: '超声检查',
     consultType: '胃癌新辅助治疗后评估',
     doctor: '张明远',
     dept: '肿瘤内科',
@@ -948,9 +948,9 @@ const getTypeColor = (type: string) => {
   switch (type) {
     case '胃镜': return '#2563eb'
     case '肠镜': return '#16a34a'
-    case '超声内镜': return '#ea580c'
+    case '超声检查': return '#ea580c'
     case 'ERCP': return '#7c3aed'
-    case '胶囊内镜': return '#0d9488'
+    case '胶囊超声': return '#0d9488'
     case '小肠镜': return '#0891b2'
     default: return '#64748b'
   }

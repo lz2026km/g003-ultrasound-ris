@@ -1,7 +1,7 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜中心叫号系统页面
-// 功能：内镜中心叫号大屏（竞品对标：卫软信息叫号模块）
+// G003 超声中心叫号系统页面
+// 功能：超声中心叫号大屏（竞品对标：卫软信息叫号模块）
 // ============================================================
 import { useState } from 'react'
 import {
@@ -371,7 +371,7 @@ export default function QueueCallPage() {
         <div style={s.header}>
           <div style={s.headerTitle}>
             <Speaker size={36} />
-            内镜中心叫号系统
+            超声中心叫号系统
           </div>
           <div style={s.headerSubtitle}> endoscopy Center Queue Call System</div>
         </div>
@@ -530,7 +530,7 @@ export default function QueueCallPage() {
           marginTop: 16,
           padding: 12,
         }}>
-          内镜中心叫号系统 v1.0 | 请保持网络连接通畅
+          超声中心叫号系统 v1.0 | 请保持网络连接通畅
         </div>
       </div>
     </div>

@@ -140,15 +140,15 @@ const educationData: EducationItem[] = [
   },
   {
     id: 'E003',
-    title: '胃镜检查前准备与配合要点',
+    title: '腹部超声检查前准备与配合要点',
     category: '检查须知',
     type: 'PDF',
-    summary: '胃镜检查准备事项、清肠方法及检查后护理',
-    content: '胃镜检查前需禁食8-12小时，禁水4小时。如有高血压可少量水服药。检查后咽喉部会有轻微不适，1-2小时后可进食温凉流质。本PDF详细说明无痛胃镜的麻醉配合要点。',
+    summary: '腹部超声检查准备事项、清肠方法及检查后护理',
+    content: '腹部超声检查前需禁食8-12小时，禁水4小时。如有高血压可少量水服药。检查后咽喉部会有轻微不适，1-2小时后可进食温凉流质。本PDF详细说明无痛腹部超声的麻醉配合要点。',
     views: 1856,
     publishDate: '2026-04-08',
     author: '消化内科',
-    tags: ['胃镜', '内镜', '检查准备'],
+    tags: ['腹部超声', '超声探头', '检查准备'],
     pdfPages: 6
   },
   // 术前准备 (3条)
@@ -375,7 +375,7 @@ const examData: ExamRecord[] = [
 const questionBankData: Question[] = [
   { id: 'Q001', type: '单选', question: 'CT检查前，以下哪项不需要特别准备？', options: ['去除金属物品', '空腹4-6小时', '穿着宽松衣物', '签署知情同意书'], correctAnswer: '穿着宽松衣物', explanation: 'CT检查前需去除金属物品、腹部检查需空腹、需签署知情同意书，穿着并非关键。', difficulty: '简单', category: '检查须知' },
   { id: 'Q002', type: '单选', question: '下列哪项是MRI检查的禁忌症？', options: ['骨折', '心脏起搏器植入', '肝囊肿', '腰椎间盘突出'], correctAnswer: '心脏起搏器植入', explanation: 'MRI产生的强磁场会干扰心脏起搏器工作，因此是绝对禁忌症。', difficulty: '中等', category: '检查须知' },
-  { id: 'Q003', type: '判断', question: '胃镜检查前需要禁食8-12小时，禁水4小时。', options: ['正确', '错误'], correctAnswer: '正确', explanation: '胃镜检查前禁食8-12小时、禁水4小时是为了保证检查视野清晰，减少呕吐误吸风险。', difficulty: '简单', category: '检查须知' },
+  { id: 'Q003', type: '判断', question: '腹部超声检查前需要禁食8-12小时，禁水4小时。', options: ['正确', '错误'], correctAnswer: '正确', explanation: '腹部超声检查前禁食8-12小时、禁水4小时是为了保证检查视野清晰，减少呕吐误吸风险。', difficulty: '简单', category: '检查须知' },
   { id: 'Q004', type: '多选', question: '术前抗凝药物（如阿司匹林）需要停用，以下说法正确的有？', options: ['需术前7天停用', '华法林不需停用', '停药期间需评估血栓风险', '所有抗凝药都需停用'], correctAnswer: ['需术前7天停用', '停药期间需评估血栓风险'], explanation: '阿司匹林等抗血小板药物需术前7天停用，华法林等抗凝药需根据情况决定是否停用或用低分子肝素替代。', difficulty: '困难', category: '术前准备' },
   { id: 'Q005', type: '单选', question: '术后镇痛管理的多模式镇痛不包括以下哪项？', options: ['NSAIDs药物', '阿片类药物', '单一用药', '非药物镇痛'], correctAnswer: '单一用药', explanation: '多模式镇痛强调联合使用不同作用机制的镇痛药物和方法，以达到协同镇痛、减少单一用药副作用的目的。', difficulty: '中等', category: '术后护理' },
   { id: 'Q006', type: '判断', question: '术后早期活动有助于预防深静脉血栓形成。', options: ['正确', '错误'], correctAnswer: '正确', explanation: '术后早期活动可促进血液循环，减少深静脉血栓（DVT）的风险，是术后快速康复（ERAS）的重要组成部分。', difficulty: '简单', category: '术后护理' },

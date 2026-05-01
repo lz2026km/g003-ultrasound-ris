@@ -1,13 +1,13 @@
 // ============================================================
-// G004 内镜管理系统 - 类型定义
-// 内镜信息系统标准架构
+// G003 超声RIS系统 - 类型定义
+// 超声信息系统标准架构
 // ============================================================
 
 // ---------- 基础枚举 ----------
 export type Gender = '男' | '女' | '其他';
 export type ExamStatus = '待预约' | '已预约' | '检查中' | '已完成' | '已取消' | '检查异常';
 export type ReportStatus = '未开始' | '书写中' | '待审核' | '已审核' | '已打印' | '已发布';
-export type EndoscopeStatus = '空闲' | '使用中' | '清洗中' | '消毒中' | '维修中' | '已报废';
+export type EquipmentStatus = '空闲' | '使用中' | '维护中' | '维修中' | '已报废';
 export type DisinfectionStatus = '待清洗' | '清洗中' | '消毒中' | '干燥中' | '已完成' | '异常';
 export type DisinfectionResult = '合格' | '不合格' | '待复检';
 export type QCCheckStatus = '待检查' | '合格' | '不合格' | '已整改';
@@ -48,7 +48,7 @@ export interface ExamItem {
   id: string;
   code: string;
   name: string;
-  category: '胃镜' | '肠镜' | '支气管镜' | '喉镜' | '膀胱镜' | 'ERCP' | '超声内镜' | '其他';
+  category: '腹部超声' | '浅表器官超声' | '心血管超声' | '妇产科超声' | '介入超声' | '其他超声';
   fee: number;
   duration: number;             // 预计时长(分钟)
   preparationInstructions: string; // 检查前准备
@@ -75,7 +75,7 @@ export interface Appointment {
 }
 
 // ---------- 检查（检查执行） ----------
-export interface EndoscopyExam {
+export interface UltrasoundExam {
   id: string;
   appointmentId: string;
   patientId: string;
@@ -89,16 +89,15 @@ export interface EndoscopyExam {
   nurseId: string;
   nurseName: string;
   examRoom: string;
-  endoscopeId?: string;         // 使用的内镜
+  deviceId?: string;         // 使用的超声设备
   examDate: string;
   examTime: string;
   arrivalTime?: string;          // 到达时间
   startTime?: string;           // 开始时间
   endTime?: string;             // 结束时间
   status: ExamStatus;
-  // 质控要求（胃镜≥22张图，退镜≥6分钟）
+  // 质控要求
   photoCount?: number;          // 拍照数量
-  withdrawalTime?: number;      // 退镜时间(分钟)
   // 检查所见
   findings: string;
   // 活检
@@ -114,33 +113,33 @@ export interface EndoscopyExam {
   imageCount: number;
 }
 
-// ---------- 内镜设备 ----------
-export interface Endoscope {
+// ---------- 超声设备 ----------
+export interface UltrasoundDevice {
   id: string;
   code: string;                 // 设备编号
   name: string;
   model: string;                // 型号
   manufacturer: string;         // 厂商
-  category: '胃镜' | '肠镜' | '支气管镜' | '十二指肠镜' | '超声内镜' | '其他';
+  category: '腹部超声' | '浅表器官超声' | '心血管超声' | '妇产科超声' | '介入超声' | '其他';
   purchaseDate: string;
   warrantyEnd: string;
-  status: EndoscopeStatus;
+  status: EquipmentStatus;
   currentPatientId?: string;
   totalUseCount: number;        // 累计使用次数
   lastMaintenanceDate?: string;
   nextMaintenanceDate?: string;
   location: string;             // 所在位置
-  channelCount: number;         // 管道数
+  probeType: string;            // 探头类型
   imageSensor: string;          // 图像传感器
 }
 
 // ---------- 洗消记录 ----------
 export interface DisinfectionRecord {
   id: string;
-  endoscopeId: string;
-  endoscopeName: string;
-  endoscopeCode: string;
-  processType: '手工清洗' | '机洗' | 'EOG灭菌' | '高温高压灭菌';
+  deviceId: string;
+  deviceName: string;
+  deviceCode: string;
+  processType: '手工清洗' | '机洗' | '高温高压灭菌';
   // 各流程步骤时间
   collectionTime?: string;       // 回收时间
   cleaningStartTime?: string;
@@ -179,7 +178,7 @@ export interface DisinfectionRecord {
 }
 
 // ---------- 检查报告 ----------
-export interface EndoscopyReport {
+export interface UltrasoundReport {
   id: string;
   examId: string;
   patientId: string;
@@ -234,7 +233,7 @@ export interface EndoscopyReport {
 export interface ReportTemplate {
   id: string;
   name: string;
-  category: '胃镜' | '肠镜' | '支气管镜' | '其他';
+  category: '腹部超声' | '浅表器官超声' | '心血管超声' | '妇产科超声' | '介入超声' | '其他';
   content: string;
   createdBy: string;
   usageCount: number;
@@ -259,14 +258,10 @@ export interface QCCheck {
   checkType: '日常质控' | '月度质控' | '季度质控' | '专项质控';
   examinerId: string;
   examinerName: string;
-  // 胃镜质控（≥22张图）
-  gastroscopyPhotoCount?: number;
-  gastroscopyMinPhotos?: number;
-  gastroscopyPhotoPass?: boolean;
-  // 肠镜质控（退镜≥6分钟）
-  colonoscopyWithdrawalTime?: number;
-  colonoscopyMinWithdrawal?: number;
-  colonoscopyWithdrawalPass?: boolean;
+  // 超声质控
+  ultrasoundPhotoCount?: number;
+  ultrasoundMinPhotos?: number;
+  ultrasoundPhotoPass?: boolean;
   // 其他质控项
   disinfectionComplianceRate?: number; // 洗消合规率
   reportCompletionRate?: number;        // 报告完成率
@@ -289,8 +284,7 @@ export interface StatisticsData {
   // 本月统计
   monthExamCount: number;
   monthReportCompletionRate: number;
-  monthGastroscopyAvgPhotos: number;
-  monthColonoscopyAvgWithdrawal: number;
+  monthUltrasoundAvgPhotos: number;
   monthDisinfectionPassRate: number;
   monthCriticalValueCount: number;
   // 趋势数据（近7天）
@@ -377,7 +371,7 @@ export interface CriticalValue {
 export interface DisinfectionProcess {
   id: string;
   name: string;
-  category: '胃镜' | '肠镜' | '支气管镜' | '通用';
+  category: '腹部超声' | '浅表器官超声' | '心血管超声' | '妇产科超声' | '通用';
   steps: DisinfectionStep[];
   isDefault: boolean;
   isActive: boolean;

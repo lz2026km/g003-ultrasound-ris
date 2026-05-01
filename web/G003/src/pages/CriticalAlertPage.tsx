@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - 危机预警看板
+// G004 超声管理系统 - 危机预警看板
 // 四级预警：红色(Ⅰ级)/橙色(Ⅱ级)/黄色(Ⅲ级)/蓝色(Ⅳ级）
 // 超时预警 + 实时响应监控
 // ============================================================
@@ -50,35 +50,35 @@ const alertRecords: AlertRecord[] = [
   { id: 'CA002', level: '红色(Ⅰ级)', type: '患者安全', title: '麻醉后呼吸抑制', department: '麻醉科', reporter: '王芳', occurTime: '2026-04-30 06:42', responseTime: 2, status: '已化解', description: '全麻后出现短暂呼吸抑制，已气管插管处理' },
   { id: 'CA003', level: '红色(Ⅰ级)', type: '感染暴发', title: '疑似院内感染聚集', department: '感染科', reporter: '张伟', occurTime: '2026-04-30 05:30', responseTime: 5, status: '升级处理', description: 'ICU 3天内出现5例耐药菌感染' },
   { id: 'CA004', level: '红色(Ⅰ级)', type: '设备故障', title: 'DSA设备突然宕机', department: '放射科', reporter: '赵军', occurTime: '2026-04-29 22:10', responseTime: 8, status: '已化解', description: '数字减影血管机故障无法曝光，已切换备用设备' },
-  { id: 'CA005', level: '红色(Ⅰ级)', type: '患者安全', title: '内镜检查中患者心脏骤停', department: '心内科', reporter: '陈静', occurTime: '2026-04-29 18:55', responseTime: 1, status: '处置中', description: '胃镜检查中突发室颤，已电除颤心肺复苏' },
+  { id: 'CA005', level: '红色(Ⅰ级)', type: '患者安全', title: '超声检查中患者心脏骤停', department: '心内科', reporter: '陈静', occurTime: '2026-04-29 18:55', responseTime: 1, status: '处置中', description: '胃超声检查中突发室颤，已电除颤心肺复苏' },
   { id: 'CA006', level: '橙色(Ⅱ级)', type: '信息系统', title: 'PACS影像存储系统故障', department: '信息中心', reporter: '刘强', occurTime: '2026-04-30 08:20', responseTime: 12, status: '处置中', description: 'PACS服务器存储阵列降级，部分影像无法调取' },
   { id: 'CA007', level: '橙色(Ⅱ级)', type: '药品耗材', title: '急救药品阿托品库存为零', department: '药剂科', reporter: '周敏', occurTime: '2026-04-30 08:05', responseTime: 15, status: '已化解', description: '急诊药房阿托品已用完，已紧急调配' },
-  { id: 'CA008', level: '橙色(Ⅱ级)', type: '设备故障', title: '内镜清洗消毒机故障', department: '供应室', reporter: '吴磊', occurTime: '2026-04-30 07:50', responseTime: 20, status: '处置中', description: '清洗机无法升温，200条内镜积压待清洗' },
+  { id: 'CA008', level: '橙色(Ⅱ级)', type: '设备故障', title: '超声清洗消毒机故障', department: '供应室', reporter: '吴磊', occurTime: '2026-04-30 07:50', responseTime: 20, status: '处置中', description: '清洗机无法升温，200条内镜积压待清洗' },
   { id: 'CA009', level: '橙色(Ⅱ级)', type: '患者安全', title: '患者跌倒导致股骨骨折', department: '骨科', reporter: '孙丽', occurTime: '2026-04-30 07:30', responseTime: 10, status: '已化解', description: '老年患者如厕时跌倒，已行急诊手术' },
   { id: 'CA010', level: '橙色(Ⅱ级)', type: '信息系统', title: 'His系统全面卡顿', department: '信息中心', reporter: '郑浩', occurTime: '2026-04-30 07:15', responseTime: 25, status: '已化解', description: '医生站、护士站系统响应超时超过5分钟' },
   { id: 'CA011', level: '橙色(Ⅱ级)', type: '感染暴发', title: '胃镜室幽门螺杆菌聚集性感染', department: '消化内科', reporter: '马琳', occurTime: '2026-04-29 16:00', responseTime: 30, status: '升级处理', description: '1周内3例患者胃镜后出现HP感染' },
   { id: 'CA012', level: '橙色(Ⅱ级)', type: '药品耗材', title: '麻醉用药丙泊酚告急', department: '麻醉科', reporter: '黄蓉', occurTime: '2026-04-29 14:20', responseTime: 18, status: '已化解', description: '手术室丙泊酚剩余不足2日用量' },
   { id: 'CA013', level: '黄色(Ⅲ级)', type: '设备故障', title: '电子肠镜图像偏暗', department: '消化内科', reporter: '杨洋', occurTime: '2026-04-30 09:10', responseTime: 35, status: '处置中', description: '奥林巴斯CF-HQ290肠镜光源衰减' },
-  { id: 'CA014', level: '黄色(Ⅲ级)', type: '信息系统', title: '叫号系统无法正常运行', department: '门诊部', reporter: '徐鹏', occurTime: '2026-04-30 08:45', responseTime: 40, status: '已化解', description: '内镜中心叫号屏全黑，已重启服务器' },
-  { id: 'CA015', level: '黄色(Ⅲ级)', type: '患者安全', title: '门诊患者错过检查预约', department: '内镜中心', reporter: '高峰', occurTime: '2026-04-30 08:30', responseTime: 22, status: '已化解', description: '患者因短信未收到而错过胃镜检查' },
-  { id: 'CA016', level: '黄色(Ⅲ级)', type: '药品耗材', title: '检查试剂lugol碘液即将过期', department: '内镜中心', reporter: '何雪', occurTime: '2026-04-30 08:15', responseTime: 45, status: '已化解', description: '现有lugol碘液效期至2026-05-05' },
-  { id: 'CA017', level: '黄色(Ⅲ级)', type: '设备故障', title: '内镜追溯系统读取器故障', department: '信息科', reporter: '林青', occurTime: '2026-04-30 07:55', responseTime: 50, status: '处置中', description: '追溯系统RFID读取成功率低于60%' },
+  { id: 'CA014', level: '黄色(Ⅲ级)', type: '信息系统', title: '叫号系统无法正常运行', department: '门诊部', reporter: '徐鹏', occurTime: '2026-04-30 08:45', responseTime: 40, status: '已化解', description: '超声中心叫号屏全黑，已重启服务器' },
+  { id: 'CA015', level: '黄色(Ⅲ级)', type: '患者安全', title: '门诊患者错过检查预约', department: '超声中心', reporter: '高峰', occurTime: '2026-04-30 08:30', responseTime: 22, status: '已化解', description: '患者因短信未收到而错过胃超声检查' },
+  { id: 'CA016', level: '黄色(Ⅲ级)', type: '药品耗材', title: '检查试剂lugol碘液即将过期', department: '超声中心', reporter: '何雪', occurTime: '2026-04-30 08:15', responseTime: 45, status: '已化解', description: '现有lugol碘液效期至2026-05-05' },
+  { id: 'CA017', level: '黄色(Ⅲ级)', type: '设备故障', title: '超声追溯系统读取器故障', department: '信息科', reporter: '林青', occurTime: '2026-04-30 07:55', responseTime: 50, status: '处置中', description: '追溯系统RFID读取成功率低于60%' },
   { id: 'CA018', level: '黄色(Ⅲ级)', type: '信息系统', title: '电子病历加载缓慢', department: '医务科', reporter: '邓超', occurTime: '2026-04-30 07:40', responseTime: 28, status: '已化解', description: 'EMR系统部分模块响应超过10秒' },
   { id: 'CA019', level: '黄色(Ⅲ级)', type: '患者安全', title: '老年患者留置针滑脱', department: '消化内科', reporter: '方芳', occurTime: '2026-04-30 07:25', responseTime: 15, status: '已化解', description: '86岁患者自行拔除静脉留置针' },
   { id: 'CA020', level: '黄色(Ⅲ级)', type: '感染暴发', title: '支气管镜检查后发热患者增多', department: '呼吸科', reporter: '曹文', occurTime: '2026-04-29 15:00', responseTime: 55, status: '待处置', description: '1周内支气管镜检查后发热患者增加40%' },
-  { id: 'CA021', level: '黄色(Ⅲ级)', type: '设备故障', title: '内镜送气泵异响', department: '内镜中心', reporter: '田雨', occurTime: '2026-04-29 14:30', responseTime: 60, status: '待处置', description: '气泵运行时噪音超过65分贝' },
-  { id: 'CA022', level: '蓝色(Ⅳ级)', type: '信息系统', title: '科室电脑系统时间偏差', department: '内镜中心', reporter: '贺敏', occurTime: '2026-04-30 09:30', responseTime: 70, status: '已化解', description: '3台电脑时间偏差超过2分钟' },
-  { id: 'CA023', level: '蓝色(Ⅳ级)', type: '药品耗材', title: '耦合剂库存不足预警', department: '内镜中心', reporter: '秦浩', occurTime: '2026-04-30 09:15', responseTime: 80, status: '已化解', description: 'B超耦合剂剩余不足1周用量' },
-  { id: 'CA024', level: '蓝色(Ⅳ级)', type: '设备故障', title: '候诊区空调出风不均', department: '后勤部', reporter: '蒋琳', occurTime: '2026-04-30 08:50', responseTime: 90, status: '处置中', description: '内镜中心候诊区3个出风口堵塞' },
+  { id: 'CA021', level: '黄色(Ⅲ级)', type: '设备故障', title: '超声送气泵异响', department: '超声中心', reporter: '田雨', occurTime: '2026-04-29 14:30', responseTime: 60, status: '待处置', description: '气泵运行时噪音超过65分贝' },
+  { id: 'CA022', level: '蓝色(Ⅳ级)', type: '信息系统', title: '科室电脑系统时间偏差', department: '超声中心', reporter: '贺敏', occurTime: '2026-04-30 09:30', responseTime: 70, status: '已化解', description: '3台电脑时间偏差超过2分钟' },
+  { id: 'CA023', level: '蓝色(Ⅳ级)', type: '药品耗材', title: '耦合剂库存不足预警', department: '超声中心', reporter: '秦浩', occurTime: '2026-04-30 09:15', responseTime: 80, status: '已化解', description: 'B超耦合剂剩余不足1周用量' },
+  { id: 'CA024', level: '蓝色(Ⅳ级)', type: '设备故障', title: '候诊区空调出风不均', department: '后勤部', reporter: '蒋琳', occurTime: '2026-04-30 08:50', responseTime: 90, status: '处置中', description: '超声中心候诊区3个出风口堵塞' },
   { id: 'CA025', level: '蓝色(Ⅳ级)', type: '信息系统', title: '预约平台短信模板异常', department: '信息中心', reporter: '沈娟', occurTime: '2026-04-30 08:35', responseTime: 65, status: '已化解', description: '患者收到预约确认短信内容显示乱码' },
-  { id: 'CA026', level: '蓝色(Ⅳ级)', type: '药品耗材', title: '检查床单库存偏低', department: '内镜中心', reporter: '许刚', occurTime: '2026-04-30 08:20', responseTime: 100, status: '已化解', description: '一次性床单剩余不足200张' },
-  { id: 'CA027', level: '蓝色(Ⅳ级)', type: '设备故障', title: '空气净化器滤网需更换', department: '后勤部', reporter: '章武', occurTime: '2026-04-30 07:45', responseTime: 120, status: '待处置', description: '内镜室2台净化器滤网堵塞报警' },
+  { id: 'CA026', level: '蓝色(Ⅳ级)', type: '药品耗材', title: '检查床单库存偏低', department: '超声中心', reporter: '许刚', occurTime: '2026-04-30 08:20', responseTime: 100, status: '已化解', description: '一次性床单剩余不足200张' },
+  { id: 'CA027', level: '蓝色(Ⅳ级)', type: '设备故障', title: '空气净化器滤网需更换', department: '后勤部', reporter: '章武', occurTime: '2026-04-30 07:45', responseTime: 120, status: '待处置', description: '超声室2台净化器滤网堵塞报警' },
   { id: 'CA028', level: '蓝色(Ⅳ级)', type: '患者安全', title: '患者隐私信息在屏幕上泄露', department: '信息科', reporter: '梁文', occurTime: '2026-04-29 17:00', responseTime: 45, status: '已化解', description: '候诊屏显示患者全名及检查项目' },
   { id: 'CA029', level: '蓝色(Ⅳ级)', type: '信息系统', title: '移动查房系统网络延迟', department: '护理部', reporter: '杜梅', occurTime: '2026-04-29 16:30', responseTime: 85, status: '已化解', description: '平板电脑连接内网延迟超过3秒' },
   { id: 'CA030', level: '蓝色(Ⅳ级)', type: '药品耗材', title: '手消毒液即将到期', department: '院感科', reporter: '钱伟', occurTime: '2026-04-29 15:45', responseTime: 110, status: '已化解', description: '多款手消毒液效期在2周内到期' },
-  { id: 'CA031', level: '红色(Ⅰ级)', type: '患者安全', title: '内镜逆行胰胆管造影术后胰腺炎', department: '消化内科', reporter: '姜涛', occurTime: '2026-04-28 20:00', responseTime: 4, status: '处置中', description: 'ERCP术后患者出现重症胰腺炎' },
-  { id: 'CA032', level: '橙色(Ⅱ级)', type: '设备故障', title: '内镜室UPS供电切换报警', department: '后勤部', reporter: '汤丽', occurTime: '2026-04-28 19:15', responseTime: 18, status: '已化解', description: '市电中断后UPS切换延迟超过预期' },
-  { id: 'CA033', level: '黄色(Ⅲ级)', type: '感染暴发', title: '软式内镜戊二醛浓度监测异常', department: '院感科', reporter: '龙飞', occurTime: '2026-04-28 14:00', responseTime: 48, status: '待处置', description: '2批次内镜消毒液浓度低于标准值' },
+  { id: 'CA031', level: '红色(Ⅰ级)', type: '患者安全', title: '超声逆行胰胆管造影术后胰腺炎', department: '消化内科', reporter: '姜涛', occurTime: '2026-04-28 20:00', responseTime: 4, status: '处置中', description: 'ERCP术后患者出现重症胰腺炎' },
+  { id: 'CA032', level: '橙色(Ⅱ级)', type: '设备故障', title: '超声室UPS供电切换报警', department: '后勤部', reporter: '汤丽', occurTime: '2026-04-28 19:15', responseTime: 18, status: '已化解', description: '市电中断后UPS切换延迟超过预期' },
+  { id: 'CA033', level: '黄色(Ⅲ级)', type: '感染暴发', title: '软式超声戊二醛浓度监测异常', department: '院感科', reporter: '龙飞', occurTime: '2026-04-28 14:00', responseTime: 48, status: '待处置', description: '2批次超声消毒液浓度低于标准值' },
   { id: 'CA034', level: '蓝色(Ⅳ级)', type: '信息系统', title: '科研数据备份延迟', department: '信息中心', reporter: '石磊', occurTime: '2026-04-28 10:00', responseTime: 150, status: '已化解', description: '备份任务执行时间超过24小时未完成' },
   { id: 'CA035', level: '橙色(Ⅱ级)', type: '患者安全', title: '门急诊患者药物过敏性休克', department: '急诊科', reporter: '万鹏', occurTime: '2026-04-27 22:30', responseTime: 6, status: '已化解', description: '患者输注头孢时出现过敏性休克' },
 ];
@@ -503,7 +503,7 @@ export default function CriticalAlertPage() {
             {/* 各部门预警数量 */}
             <div style={s.card}>
               <div style={s.cardTitle}><FileText size={14} color="#64748b" />各部门预警数量</div>
-              {(['消化内科', '信息中心', '麻醉科', '内镜中心', '感染科', '急诊科', '骨科', '呼吸科', '药剂科', '后勤部'] as const).map(dept => {
+              {(['消化内科', '信息中心', '麻醉科', '超声中心', '感染科', '急诊科', '骨科', '呼吸科', '药剂科', '后勤部'] as const).map(dept => {
                 const count = alertRecords.filter(a => a.department === dept).length;
                 return <BarItem key={dept} label={dept} value={count} max={Math.max(...[5, 4, 3, 3, 2, 2, 1, 1, 1, 1])} color="#1a3a5c" />;
               })}

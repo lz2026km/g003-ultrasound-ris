@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - 今日检查工作台
+// G003 超声RIS系统 - 今日检查工作台
 // 卡片列表 + 状态流程
 // ============================================================
 import type { LucideIcon } from 'lucide-react';
@@ -8,7 +8,7 @@ import {
   Calendar, Clock, User, Stethoscope, CheckCircle,
   Circle, AlertCircle, ChevronRight, Filter, RefreshCw
 } from 'lucide-react'
-import { initialAppointments, initialEndoscopyExams } from '../data/initialData'
+import { initialAppointments, initialUltrasoundExams } from '../data/initialData'
 import type { Appointment, AppointmentStatus } from '../types'
 
 // ---------- 样式 ----------
@@ -238,7 +238,7 @@ export default function WorklistPage() {
 
   // 已完成的检查
   const todayExams = useMemo(() => {
-    return initialEndoscopyExams.filter(exam => exam.examDate === today)
+    return initialUltrasoundExams.filter(exam => exam.examDate === today)
   }, [])
 
   // 状态统计
@@ -431,7 +431,7 @@ function WorklistCard({ appointment }: WorklistCardProps) {
   const genderColor = GENDER_COLORS[appointment.patientId.startsWith('P00') && parseInt(appointment.patientId.slice(3)) % 2 === 0 ? '女' : '男']
 
   // 获取关联检查信息
-  const relatedExam = initialEndoscopyExams.find(ex => ex.appointmentId === appointment.id)
+  const relatedExam = initialUltrasoundExams.find(ex => ex.appointmentId === appointment.id)
 
   return (
     <div style={s.card}>

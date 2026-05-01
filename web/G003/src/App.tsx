@@ -7,8 +7,8 @@ export const useNav = () => useContext(NavigateCtx)
 import {
   LayoutDashboard, Users, CalendarClock, Activity, FileText, Microscope,
   ShieldCheck, BarChart3, ClipboardCheck, BookOpen, Shield, ListChecks,
-  Menu, X, Stethoscope, LogOut, Bell, Package, Scissors, ShieldAlert, AlertTriangle,
-  Camera, UserCheck, AlertCircle, Video, GraduationCap, UsersRound, Database,
+  Menu, X, Stethoscope, LogOut, Bell, Package, ShieldAlert, AlertTriangle,
+  Camera, UserCheck, AlertCircle, GraduationCap, UsersRound, Database,
   Scan, Heart, Thermometer, Droplets
 } from 'lucide-react'
 
@@ -31,7 +31,6 @@ const CriticalValuePage = lazy(() => import('./pages/CriticalValuePage'))
 const CriticalAlertPage = lazy(() => import('./pages/CriticalAlertPage'))
 const MaterialsPage = lazy(() => import('./pages/MaterialsPage'))
 const FollowUpPage = lazy(() => import('./pages/FollowUpPage'))
-const SurgeryPage = lazy(() => import('./pages/SurgeryPage'))
 const AuthorityPage = lazy(() => import('./pages/AuthorityPage'))
 const DashboardPage = lazy(() => import('./pages/DashboardPage'))
 const ImagePage = lazy(() => import('./pages/ImagePage'))
@@ -39,14 +38,11 @@ const EducationPage = lazy(() => import('./pages/EducationPage'))
 const TemplatePage = lazy(() => import('./pages/TemplatePage'))
 const NursingPage = lazy(() => import('./pages/NursingPage'))
 const PreOpPage = lazy(() => import('./pages/PreOpPage'))
-const SurgeryLivePage = lazy(() => import('./pages/SurgeryLivePage'))
 const AIQCPage = lazy(() => import('./pages/AIQCPage'))
-const CancerScreenPage = lazy(() => import('./pages/CancerScreenPage'))
 const StatsEnhancedPage = lazy(() => import('./pages/StatsEnhancedPage'))
 const DisinfectionTracePage = lazy(() => import('./pages/DisinfectionTracePage'))
 const ConsultationPage = lazy(() => import('./pages/ConsultationPage'))
 const InfectionPage = lazy(() => import('./pages/InfectionPage'))
-const SurgeryRecordPage = lazy(() => import('./pages/SurgeryRecordPage'))
 const NationalReportPage = lazy(() => import('./pages/NationalReportPage'))
 const InsuranceAuditPage = lazy(() => import('./pages/InsuranceAuditPage'))
 const ResearchPage = lazy(() => import('./pages/ResearchPage'))
@@ -200,14 +196,6 @@ const NAV_ITEMS = [
     ],
   },
   {
-    section: '手术与示教',
-    items: [
-      { path: '/surgery', icon: Scissors, label: '手术预约' },
-      { path: '/surgery-live', icon: Camera, label: '手术示教' },
-      { path: '/surgery-records', icon: Video, label: '手术录像管理' },
-    ],
-  },
-  {
     section: '质量与安全',
     items: [
       { path: '/ai-qc', icon: BarChart3, label: 'AI质控中心' },
@@ -230,7 +218,6 @@ const NAV_ITEMS = [
       { path: '/materials', icon: Package, label: '耗材管理' },
       { path: '/equipment-lifecycle', icon: Microscope, label: '设备全生命周期' },
       { path: '/followup', icon: Activity, label: '随访管理' },
-      { path: '/cancer-screen', icon: AlertTriangle, label: '早癌筛查' },
       { path: '/national-report', icon: ShieldAlert, label: '国家数据上报' },
       { path: '/data-report', icon: Database, label: '数据上报中心' },
       { path: '/insurance-audit', icon: ShieldCheck, label: '医保审核' },
@@ -366,7 +353,6 @@ function AppShell() {
             <Route path="/audit" element={<AuditPage />} />
             <Route path="/materials" element={<MaterialsPage />} />
             <Route path="/followup" element={<FollowUpPage />} />
-            <Route path="/surgery" element={<SurgeryPage />} />
             <Route path="/authority" element={<AuthorityPage />} />
             <Route path="/dashboard" element={<DashboardPage />} />
             <Route path="/images" element={<ImagePage />} />
@@ -374,14 +360,11 @@ function AppShell() {
             <Route path="/nursing" element={<NursingPage />} />
             <Route path="/preop" element={<PreOpPage />} />
             <Route path="/education" element={<EducationPage />} />
-            <Route path="/cancer-screen" element={<CancerScreenPage />} />
             <Route path="/ai-qc" element={<AIQCPage />} />
             <Route path="/stats-enhanced" element={<StatsEnhancedPage />} />
-            <Route path="/surgery-live" element={<SurgeryLivePage />} />
             <Route path="/disinfection-trace" element={<DisinfectionTracePage />} />
             <Route path="/consultation" element={<ConsultationPage />} />
             <Route path="/infection" element={<InfectionPage />} />
-            <Route path="/surgery-records" element={<SurgeryRecordPage />} />
             <Route path="/national-report" element={<NationalReportPage />} />
             <Route path="/insurance-audit" element={<InsuranceAuditPage />} />
             <Route path="/dicom" element={<DicomViewerPage />} />

@@ -1,6 +1,6 @@
 // ============================================================
-// G004 内镜管理系统 - 洗消追溯增强页面
-// 超越美迪康基础版：全流程追溯+设备管理+质控预警+RFID+生物监测+内镜患者关联
+// G004 超声管理系统 - 洗消追溯增强页面
+// 超越美迪康基础版：全流程追溯+设备管理+质控预警+RFID+生物监测+超声患者关联
 // ============================================================
 import { useState, useMemo } from 'react'
 import {
@@ -30,7 +30,7 @@ interface RFIDScan {
   scanLocation: string
   operator: string
   tagId: string
-  endoscopeId: string
+  ultrasoundDeviceId: string
   result: 'success' | 'fail'
 }
 
@@ -60,7 +60,7 @@ interface CleaningStaffRecord {
 
 interface BiologicalMonitoringRecord {
   id: string
-  endoscopeId: string
+  ultrasoundDeviceId: string
   testTime: string
   testType: '培养法' | 'PCR法' | '快速检测'
   testResult: 'negative' | 'positive' | 'pending'
@@ -70,9 +70,9 @@ interface BiologicalMonitoringRecord {
   conclusion: string
 }
 
-interface EndoscopePatientLink {
+interface DevicePatientLink {
   id: string
-  endoscopeId: string
+  ultrasoundDeviceId: string
   patientName: string
   patientId: string
   procedureType: string
@@ -99,8 +99,8 @@ interface AirCultureRecord {
 
 interface DisinfectionRecord {
   id: string
-  endoscopeId: string
-  endoscopeModel: string
+  ultrasoundDeviceId: string
+  ultrasoundDeviceModel: string
   patientName: string
   procedureType: string
   startTime: string
@@ -111,13 +111,13 @@ interface DisinfectionRecord {
   rfidScans: RFIDScan[]
   disinfectantRecords: DisinfectantRecord[]
   biologicalMonitoring?: BiologicalMonitoringRecord
-  endoscopePatientLink?: EndoscopePatientLink
+  ultrasoundDevicePatientLink?: DevicePatientLink
   airCulture?: AirCultureRecord
 }
 
-interface EndoscopeUsage {
+interface DeviceUsage {
   id: string
-  endoscopeId: string
+  ultrasoundDeviceId: string
   model: string
   patientName: string
   checkType: string
@@ -152,7 +152,7 @@ interface MaintenanceRecord {
 interface QualityAlert {
   id: string
   alertTime: string
-  endoscopeId: string
+  ultrasoundDeviceId: string
   alertType: 'concentration' | 'time' | 'equipment' | 'missing' | 'biological' | 'rfid'
   detail: string
   handleStatus: 'pending' | 'processing' | 'resolved'
@@ -173,15 +173,15 @@ const generateDisinfectionRecords = (): DisinfectionRecord[] => {
 
   const records: DisinfectionRecord[] = []
   const operators = ['张伟', '李娜', '王芳', '刘洋', '陈静', '赵鹏', '孙磊']
-  const endoscopeModels = ['Olympus CF-HQ290', 'Fujifilm EC-601WM', 'Pentax ED-3490TK', 'Boston Scientific 38032', 'Olympus GIF-H290', 'Fujifilm EC-601WM2']
+  const ultrasoundDeviceModels = ['Olympus CF-HQ290', 'Fujifilm EC-601WM', 'Pentax ED-3490TK', 'Boston Scientific 38032', 'Olympus GIF-H290', 'Fujifilm EC-601WM2']
   const patients = ['王建国', '李秀英', '张德明', '刘玉兰', '陈志强', '杨桂花', '赵文博', '吴晓燕', '周伟平', '郑美华', '孙立新', '朱红梅', '马文涛', '胡丽娜', '郭永强']
-  const procedures = ['胃镜检查', '结肠镜检查', '十二指肠镜', '支气管镜', '超声内镜', 'ERCP', 'EUS']
+  const procedures = ['腹部超声检查', '浅表超声检查', '介入超声', '肺部超声', '超声超声探头', 'ERCP', 'EUS']
   const disinfectantNames = ['戊二醛 2%', '过氧乙酸 0.2%', '邻苯二甲醛 0.55%', '次氯酸钠 5%']
 
   for (let i = 0; i < 60; i++) {
     const baseTime = new Date(2026, 3, 28 - Math.floor(i / 8), 8 + (i % 12), 30 - (i % 30))
-    const endoscopeModel = endoscopeModels[i % endoscopeModels.length]
-    const endoscopeId = `ES-${String(100 + (i % 12)).padStart(4, '0')}`
+    const ultrasoundDeviceModel = ultrasoundDeviceModels[i % ultrasoundDeviceModels.length]
+    const ultrasoundDeviceId = `ES-${String(100 + (i % 12)).padStart(4, '0')}`
 
     const steps: DisinfectionStep[] = stepsTemplate.map((step, idx) => {
       const stepTime = new Date(baseTime.getTime() + idx * 20 * 60000)
@@ -208,9 +208,9 @@ const generateDisinfectionRecords = (): DisinfectionRecord[] => {
 
     // RFID扫描记录
     const rfidScans: RFIDScan[] = [
-      { scanTime: steps[0].timestamp, scanLocation: '内镜室1', operator: operators[0], tagId: `RFID-${endoscopeId}-${i}-01`, endoscopeId, result: 'success' },
-      { scanTime: steps[3].timestamp, scanLocation: '清洗区入口', operator: operators[1], tagId: `RFID-${endoscopeId}-${i}-02`, endoscopeId, result: 'success' },
-      { scanTime: steps[7].timestamp, scanLocation: '储存柜', operator: operators[2], tagId: `RFID-${endoscopeId}-${i}-03`, endoscopeId, result: 'success' },
+      { scanTime: steps[0].timestamp, scanLocation: '超声室1', operator: operators[0], tagId: `RFID-${ultrasoundDeviceId}-${i}-01`, ultrasoundDeviceId, result: 'success' },
+      { scanTime: steps[3].timestamp, scanLocation: '清洗区入口', operator: operators[1], tagId: `RFID-${ultrasoundDeviceId}-${i}-02`, ultrasoundDeviceId, result: 'success' },
+      { scanTime: steps[7].timestamp, scanLocation: '储存柜', operator: operators[2], tagId: `RFID-${ultrasoundDeviceId}-${i}-03`, ultrasoundDeviceId, result: 'success' },
     ]
 
     // 消毒液浓度记录
@@ -232,7 +232,7 @@ const generateDisinfectionRecords = (): DisinfectionRecord[] => {
     // 生物监测记录 (每5条有1条)
     const biologicalMonitoring: BiologicalMonitoringRecord | undefined = i % 5 === 0 ? {
       id: `BIO-${2000 + i}`,
-      endoscopeId,
+      ultrasoundDeviceId,
       testTime: new Date(baseTime.getTime() + stepsTemplate.length * 20 * 60000 + 30 * 60000).toLocaleString('zh-CN'),
       testType: i % 3 === 0 ? '培养法' : i % 3 === 1 ? 'PCR法' : '快速检测',
       testResult: i % 12 === 0 ? 'pending' : 'negative',
@@ -242,16 +242,16 @@ const generateDisinfectionRecords = (): DisinfectionRecord[] => {
       conclusion: i % 12 === 0 ? '待发布' : '合格',
     } : undefined
 
-    // 内镜-患者关联
-    const endoscopePatientLink: EndoscopePatientLink = {
+    // 超声探头-患者关联
+    const ultrasoundDevicePatientLink: DevicePatientLink = {
       id: `EPL-${3000 + i}`,
-      endoscopeId,
+      ultrasoundDeviceId,
       patientName: patients[i % patients.length],
       patientId: `P${String(1000 + i).padStart(5, '0')}`,
       procedureType: procedures[i % procedures.length],
       procedureTime: baseTime.toLocaleString('zh-CN'),
       doctor: operators[i % operators.length],
-      room: `内镜室${(i % 3) + 1}`,
+      room: `超声室${(i % 3) + 1}`,
       previousPatientName: i > 0 ? patients[(i - 1) % patients.length] : undefined,
       previousPatientId: i > 0 ? `P${String(999 + i).padStart(5, '0')}` : undefined,
       previousProcedureTime: i > 0 ? new Date(baseTime.getTime() - 2 * 3600000).toLocaleString('zh-CN') : undefined,
@@ -273,8 +273,8 @@ const generateDisinfectionRecords = (): DisinfectionRecord[] => {
 
     records.push({
       id: `DTR-${String(1000 + i).padStart(5, '0')}`,
-      endoscopeId,
-      endoscopeModel,
+      ultrasoundDeviceId,
+      ultrasoundDeviceModel,
       patientName: patients[i % patients.length],
       procedureType: procedures[i % procedures.length],
       startTime: baseTime.toLocaleString('zh-CN'),
@@ -285,25 +285,25 @@ const generateDisinfectionRecords = (): DisinfectionRecord[] => {
       rfidScans,
       disinfectantRecords,
       biologicalMonitoring,
-      endoscopePatientLink,
+      ultrasoundDevicePatientLink,
       airCulture,
     })
   }
   return records
 }
 
-const generateEndoscopeUsage = (): EndoscopeUsage[] => {
-  const usage: EndoscopeUsage[] = []
+const generateDeviceUsage = (): DeviceUsage[] => {
+  const usage: DeviceUsage[] = []
   const models = ['Olympus CF-HQ290', 'Fujifilm EC-601WM', 'Pentax ED-3490TK', 'Boston Scientific 38032']
   const patients = ['王建国', '李秀英', '张德明', '刘玉兰', '陈志强', '杨桂花', '赵文博', '吴晓燕', '周伟平', '郑美华', '孙立新', '朱红梅', '马文涛', '胡丽娜', '郭永强', '林晓峰', '何秀英', '高建国', '罗玉兰', '谢志明']
-  const checkTypes = ['胃镜检查', '结肠镜检查', '十二指肠镜', '支气管镜', '超声内镜', 'ERCP', 'EUS']
-  const statuses: EndoscopeUsage['status'][] = ['in_use', 'pending', 'cleaning', 'ready', 'maintenance']
+  const checkTypes = ['腹部超声检查', '浅表超声检查', '介入超声', '肺部超声', '超声超声探头', 'ERCP', 'EUS']
+  const statuses: DeviceUsage['status'][] = ['in_use', 'pending', 'cleaning', 'ready', 'maintenance']
 
   for (let i = 0; i < 20; i++) {
     const baseTime = new Date(2026, 3, 28, 8 + i, 30)
     usage.push({
       id: `EU-${String(2000 + i).padStart(5, '0')}`,
-      endoscopeId: `ES-${String(100 + (i % 12)).padStart(4, '0')}`,
+      ultrasoundDeviceId: `ES-${String(100 + (i % 12)).padStart(4, '0')}`,
       model: models[i % models.length],
       patientName: patients[i],
       checkType: checkTypes[i % checkTypes.length],
@@ -345,7 +345,7 @@ const generateMaintenanceRecords = (): MaintenanceRecord[] => {
 
 const generateQualityAlerts = (): QualityAlert[] => {
   const alerts: QualityAlert[] = []
-  const endoscopeIds = ['ES-0100', 'ES-0103', 'ES-0105', 'ES-0107', 'ES-0109', 'ES-0111']
+  const ultrasoundDeviceIds = ['ES-0100', 'ES-0103', 'ES-0105', 'ES-0107', 'ES-0109', 'ES-0111']
   const alertTypes: QualityAlert['alertType'][] = ['concentration', 'time', 'equipment', 'missing', 'biological', 'rfid']
   const alertTypeNames: Record<string, string> = {
     concentration: '浓度不达标',
@@ -360,8 +360,8 @@ const generateQualityAlerts = (): QualityAlert[] => {
     time: '高水平消毒时间18分钟低于标准20分钟',
     equipment: '洗消机2号高温灭菌模块异常',
     missing: '2026-04-26 14:30预处理记录缺失',
-    biological: '内镜ES-0107生物监测培养阳性',
-    rfid: '内镜ES-0103在清洗区入口RFID扫描失败',
+    biological: '超声探头ES-0107生物监测培养阳性',
+    rfid: '超声探头ES-0103在清洗区入口RFID扫描失败',
   }
   const handleStatuses: QualityAlert['handleStatus'][] = ['pending', 'processing', 'resolved']
 
@@ -369,7 +369,7 @@ const generateQualityAlerts = (): QualityAlert[] => {
     alerts.push({
       id: `QA-${String(4000 + i).padStart(5, '0')}`,
       alertTime: new Date(2026, 3, 28, 8 + Math.floor(i / 2), 30 + (i % 3) * 10).toLocaleString('zh-CN'),
-      endoscopeId: endoscopeIds[i % endoscopeIds.length],
+      ultrasoundDeviceId: ultrasoundDeviceIds[i % ultrasoundDeviceIds.length],
       alertType: alertTypes[i % alertTypes.length],
       detail: details[alertTypes[i % alertTypes.length]],
       handleStatus: handleStatuses[i % handleStatuses.length],
@@ -379,11 +379,11 @@ const generateQualityAlerts = (): QualityAlert[] => {
 }
 
 const generateCleaningStaff = (): CleaningStaffRecord[] => [
-  { id: 'CS-001', name: '张伟', certificateNo: 'CSS-2024-001', certificateType: '内镜清洗消毒证', issueDate: '2024-03-15', expireDate: '2027-03-14', lastTrainingDate: '2026-03-10', status: 'valid' },
-  { id: 'CS-002', name: '李娜', certificateNo: 'CSS-2023-015', certificateType: '内镜清洗消毒证', issueDate: '2023-06-20', expireDate: '2026-06-19', lastTrainingDate: '2026-02-28', status: 'expired' },
-  { id: 'CS-003', name: '王芳', certificateNo: 'CSS-2025-008', certificateType: '内镜清洗消毒证', issueDate: '2025-01-10', expireDate: '2028-01-09', lastTrainingDate: '2026-04-05', status: 'valid' },
-  { id: 'CS-004', name: '刘洋', certificateNo: 'CSS-2024-022', certificateType: '内镜清洗消毒证', issueDate: '2024-08-01', expireDate: '2027-07-31', lastTrainingDate: '2026-03-20', status: 'valid' },
-  { id: 'CS-005', name: '陈静', certificateNo: 'CSS-2025-011', certificateType: '内镜清洗消毒证', issueDate: '2025-04-22', expireDate: '2028-04-21', lastTrainingDate: '2026-04-12', status: 'training' },
+  { id: 'CS-001', name: '张伟', certificateNo: 'CSS-2024-001', certificateType: '超声清洗消毒证', issueDate: '2024-03-15', expireDate: '2027-03-14', lastTrainingDate: '2026-03-10', status: 'valid' },
+  { id: 'CS-002', name: '李娜', certificateNo: 'CSS-2023-015', certificateType: '超声清洗消毒证', issueDate: '2023-06-20', expireDate: '2026-06-19', lastTrainingDate: '2026-02-28', status: 'expired' },
+  { id: 'CS-003', name: '王芳', certificateNo: 'CSS-2025-008', certificateType: '超声清洗消毒证', issueDate: '2025-01-10', expireDate: '2028-01-09', lastTrainingDate: '2026-04-05', status: 'valid' },
+  { id: 'CS-004', name: '刘洋', certificateNo: 'CSS-2024-022', certificateType: '超声清洗消毒证', issueDate: '2024-08-01', expireDate: '2027-07-31', lastTrainingDate: '2026-03-20', status: 'valid' },
+  { id: 'CS-005', name: '陈静', certificateNo: 'CSS-2025-011', certificateType: '超声清洗消毒证', issueDate: '2025-04-22', expireDate: '2028-04-21', lastTrainingDate: '2026-04-12', status: 'training' },
 ]
 
 // ---------- 样式定义 ----------
@@ -671,7 +671,7 @@ export default function DisinfectionTracePage() {
   const [activeTab, setActiveTab] = useState<'trace' | 'usage' | 'equipment' | 'alert' | 'staff'>('trace')
 
   const disinfectionRecords = useMemo(() => generateDisinfectionRecords(), [])
-  const endoscopeUsage = useMemo(() => generateEndoscopeUsage(), [])
+  const ultrasoundDeviceUsage = useMemo(() => generateDeviceUsage(), [])
   const equipment = useMemo(() => generateEquipment(), [])
   const maintenanceRecords = useMemo(() => generateMaintenanceRecords(), [])
   const qualityAlerts = useMemo(() => generateQualityAlerts(), [])
@@ -682,23 +682,23 @@ export default function DisinfectionTracePage() {
       const recordDate = new Date(r.startTime)
       const startOk = !filterDateStart || recordDate >= new Date(filterDateStart)
       const endOk = !filterDateEnd || recordDate <= new Date(filterDateEnd + 'T23:59:59')
-      const endoscopeOk = !filterEndoscope || r.endoscopeId.includes(filterEndoscope)
+      const ultrasoundDeviceOk = !filterEndoscope || r.ultrasoundDeviceId.includes(filterEndoscope)
       const typeOk = filterType === 'all' || r.procedureType.includes(filterType)
       const statusOk = filterStatus === 'all' || r.finalResult === filterStatus
-      return startOk && endOk && endoscopeOk && typeOk && statusOk
+      return startOk && endOk && ultrasoundDeviceOk && typeOk && statusOk
     })
   }, [disinfectionRecords, filterDateStart, filterDateEnd, filterEndoscope, filterType, filterStatus])
 
   const rankData = useMemo(() => {
     const counts: Record<string, number> = {}
-    endoscopeUsage.forEach(u => {
-      counts[u.endoscopeId] = (counts[u.endoscopeId] || 0) + u.useCount
+    ultrasoundDeviceUsage.forEach(u => {
+      counts[u.ultrasoundDeviceId] = (counts[u.ultrasoundDeviceId] || 0) + u.useCount
     })
     return Object.entries(counts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 8)
       .map(([id, count]) => ({ id, count }))
-  }, [endoscopeUsage])
+  }, [ultrasoundDeviceUsage])
 
   const maxCount = rankData[0]?.count || 1
 
@@ -728,7 +728,7 @@ export default function DisinfectionTracePage() {
         <div style={s.titleRow}>
           <div>
             <div style={s.title}>洗消追溯增强系统</div>
-            <div style={s.subtitle}>超越美迪康基础版 · 全流程追溯管理 · RFID追踪 · 生物监测 · 内镜患者关联</div>
+            <div style={s.subtitle}>超越美迪康基础版 · 全流程追溯管理 · RFID追踪 · 生物监测 · 超声患者关联</div>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button style={s.btn}>
@@ -773,7 +773,7 @@ export default function DisinfectionTracePage() {
       <div style={{ display: 'flex', gap: 4, marginBottom: 16 }}>
         {([
           { key: 'trace', label: '洗消流程追溯', icon: Search },
-          { key: 'usage', label: '内镜使用追踪', icon: Activity },
+          { key: 'usage', label: '超声使用追踪', icon: Activity },
           { key: 'equipment', label: '洗消设备管理', icon: Wrench },
           { key: 'staff', label: '洗消人员资质', icon: User },
           { key: 'alert', label: '质控预警', icon: AlertCircle },
@@ -805,7 +805,7 @@ export default function DisinfectionTracePage() {
                 <input type="date" value={filterDateEnd} onChange={e => setFilterDateEnd(e.target.value)} style={{ ...s.filterInput, marginTop: 6 }} />
               </div>
               <div style={s.filterGroup}>
-                <div style={s.filterLabel}>内镜编号</div>
+                <div style={s.filterLabel}>探头编号</div>
                 <input
                   type="text"
                   placeholder="如 ES-0100"
@@ -818,11 +818,11 @@ export default function DisinfectionTracePage() {
                 <div style={s.filterLabel}>洗消类型</div>
                 <select value={filterType} onChange={e => setFilterType(e.target.value)} style={s.filterSelect}>
                   <option value="all">全部类型</option>
-                  <option value="胃镜">胃镜检查</option>
-                  <option value="结肠镜">结肠镜检查</option>
-                  <option value="十二指肠">十二指肠镜</option>
-                  <option value="支气管">支气管镜</option>
-                  <option value="超声">超声内镜</option>
+                  <option value="腹部超声">腹部超声检查</option>
+                  <option value="浅表超声">浅表超声检查</option>
+                  <option value="十二指肠">介入超声</option>
+                  <option value="支气管">肺部超声</option>
+                  <option value="超声">超声超声探头</option>
                 </select>
               </div>
               <div style={s.filterGroup}>
@@ -878,7 +878,7 @@ export default function DisinfectionTracePage() {
                   <div style={s.recordHeader}>
                     <div style={s.recordInfo}>
                       <div style={s.recordId}>
-                        {record.endoscopeId}
+                        {record.ultrasoundDeviceId}
                         {record.finalResult === 'abnormal' && (
                           <span style={{ ...s.badge, background: '#fee2e2', color: '#dc2626', marginLeft: 8, fontSize: 10 }}>
                             <AlertTriangle size={10} /> 异常
@@ -890,7 +890,7 @@ export default function DisinfectionTracePage() {
                           </span>
                         )}
                       </div>
-                      <div style={s.recordModel}>{record.endoscopeModel}</div>
+                      <div style={s.recordModel}>{record.ultrasoundDeviceModel}</div>
                       <div style={s.recordMeta}>
                         <span>{record.patientName}</span>
                         <span>{record.procedureType}</span>
@@ -1049,35 +1049,35 @@ export default function DisinfectionTracePage() {
                         </div>
                       )}
 
-                      {/* 内镜-患者关联 */}
-                      {record.endoscopePatientLink && (
+                      {/* 超声探头-患者关联 */}
+                      {record.ultrasoundDevicePatientLink && (
                         <div style={s.patientLinkCard}>
                           <div style={s.patientLinkTitle}>
-                            <Layers size={12} /> 内镜-患者追溯关联
+                            <Layers size={12} /> 超声探头-患者追溯关联
                           </div>
                           <div style={s.patientLinkRow}>
                             <div style={{ flex: 1 }}>
                               <div style={{ fontSize: 11, color: '#92400e', fontWeight: 600 }}>本次使用</div>
-                              <div style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c' }}>{record.endoscopePatientLink.patientName}</div>
-                              <div style={{ fontSize: 10, color: '#64748b' }}>{record.endoscopePatientLink.patientId} · {record.endoscopePatientLink.procedureType}</div>
-                              <div style={{ fontSize: 10, color: '#64748b' }}>{record.endoscopePatientLink.procedureTime} · {record.endoscopePatientLink.doctor} · {record.endoscopePatientLink.room}</div>
+                              <div style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c' }}>{record.ultrasoundDevicePatientLink.patientName}</div>
+                              <div style={{ fontSize: 10, color: '#64748b' }}>{record.ultrasoundDevicePatientLink.patientId} · {record.ultrasoundDevicePatientLink.procedureType}</div>
+                              <div style={{ fontSize: 10, color: '#64748b' }}>{record.ultrasoundDevicePatientLink.procedureTime} · {record.ultrasoundDevicePatientLink.doctor} · {record.ultrasoundDevicePatientLink.room}</div>
                             </div>
                           </div>
-                          {record.endoscopePatientLink.previousPatientName && (
+                          {record.ultrasoundDevicePatientLink.previousPatientName && (
                             <>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8, margin: '8px 0' }}>
                                 <ArrowRight size={14} style={s.arrowIcon} />
-                                <span style={{ fontSize: 11, color: '#d97706', fontWeight: 600 }}>前一位患者（内镜复用追溯）</span>
+                                <span style={{ fontSize: 11, color: '#d97706', fontWeight: 600 }}>前一位患者（超声探头复用追溯）</span>
                               </div>
                               <div style={s.patientLinkRow}>
                                 <div style={{ flex: 1 }}>
                                   <div style={{ fontSize: 11, color: '#92400e', fontWeight: 600 }}>上次使用</div>
-                                  <div style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c' }}>{record.endoscopePatientLink.previousPatientName}</div>
-                                  <div style={{ fontSize: 10, color: '#64748b' }}>{record.endoscopePatientLink.previousPatientId}</div>
-                                  <div style={{ fontSize: 10, color: '#64748b' }}>{record.endoscopePatientLink.previousProcedureTime}</div>
+                                  <div style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c' }}>{record.ultrasoundDevicePatientLink.previousPatientName}</div>
+                                  <div style={{ fontSize: 10, color: '#64748b' }}>{record.ultrasoundDevicePatientLink.previousPatientId}</div>
+                                  <div style={{ fontSize: 10, color: '#64748b' }}>{record.ultrasoundDevicePatientLink.previousProcedureTime}</div>
                                 </div>
-                                {record.endoscopePatientLink.bioResult && (
-                                  <StatusBadge status={record.endoscopePatientLink.bioResult} type="bio" />
+                                {record.ultrasoundDevicePatientLink.bioResult && (
+                                  <StatusBadge status={record.ultrasoundDevicePatientLink.bioResult} type="bio" />
                                 )}
                               </div>
                             </>
@@ -1131,12 +1131,12 @@ export default function DisinfectionTracePage() {
         </div>
       )}
 
-      {/* ===== 功能区2：内镜使用追踪 ===== */}
+      {/* ===== 功能区2：超声使用追踪 ===== */}
       {activeTab === 'usage' && (
         <div style={s.section}>
           <div style={{ ...s.sectionTitle, justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Activity size={16} /> 内镜使用追踪</div>
-            <div style={{ fontSize: 12, color: '#64748b' }}>共 {endoscopeUsage.length} 条记录</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}><Activity size={16} /> 超声使用追踪</div>
+            <div style={{ fontSize: 12, color: '#64748b' }}>共 {ultrasoundDeviceUsage.length} 条记录</div>
           </div>
 
           <div style={{ display: 'flex', gap: 16 }}>
@@ -1145,7 +1145,7 @@ export default function DisinfectionTracePage() {
               <table style={s.table}>
                 <thead>
                   <tr>
-                    <th style={s.th}>内镜编号</th>
+                    <th style={s.th}>探头编号</th>
                     <th style={s.th}>型号</th>
                     <th style={s.th}>患者姓名</th>
                     <th style={s.th}>检查类型</th>
@@ -1155,9 +1155,9 @@ export default function DisinfectionTracePage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {endoscopeUsage.map(row => (
+                  {ultrasoundDeviceUsage.map(row => (
                     <tr key={row.id}>
-                      <td style={{ ...s.td, fontWeight: 600, color: '#1a3a5c' }}>{row.endoscopeId}</td>
+                      <td style={{ ...s.td, fontWeight: 600, color: '#1a3a5c' }}>{row.ultrasoundDeviceId}</td>
                       <td style={s.td}>{row.model}</td>
                       <td style={s.td}>{row.patientName}</td>
                       <td style={s.td}>{row.checkType}</td>
@@ -1286,7 +1286,7 @@ export default function DisinfectionTracePage() {
           <div style={s.infoAlert}>
             <ShieldCheck size={16} color="#0369a1" />
             <span style={{ fontSize: 13, color: '#0c4a6e' }}>
-              根据《内镜清洗消毒技术规范》，从事内镜洗消工作的人员必须持证上岗，并定期参加培训。请确保所有人员证书在有效期内。
+              根据《超声探头清洗消毒技术规范》，从事超声探头洗消工作的人员必须持证上岗，并定期参加培训。请确保所有人员证书在有效期内。
             </span>
           </div>
 
@@ -1358,7 +1358,7 @@ export default function DisinfectionTracePage() {
           {qualityAlerts.map(alert => (
             <div key={alert.id} style={s.alertRow}>
               <div style={s.alertTime}>{alert.alertTime}</div>
-              <div style={s.alertEndoscope}>{alert.endoscopeId}</div>
+              <div style={s.alertEndoscope}>{alert.ultrasoundDeviceId}</div>
               <div style={s.alertType}>
                 <StatusBadge status={alert.alertType} type="alert" />
               </div>

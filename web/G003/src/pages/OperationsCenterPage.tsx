@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 运营指挥中心大屏
+// G004 超声管理系统 - 运营指挥中心大屏
 // 科室主任/院长驾驶舱 - 竞品对标：东软BI决策支持 + 卫软主任查询统计工作站
 // ============================================================
 import { useState, useEffect } from 'react'
@@ -710,7 +710,7 @@ export default function OperationsCenterPage() {
           <Monitor size={32} color="#3b82f6" />
           <div>
             <h1 style={s.headerText}>运营指挥中心</h1>
-            <p style={s.headerSub}>消化内镜中心 | 实时数据监控</p>
+            <p style={s.headerSub}>消化超声中心 | 实时数据监控</p>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
@@ -937,7 +937,7 @@ export default function OperationsCenterPage() {
           <span style={{ fontSize: 12, color: '#94a3b8' }}>数据更新: {new Date().toLocaleTimeString('zh-CN')}</span>
         </div>
         <div style={{ fontSize: 12, color: '#64748b' }}>
-          G004 内镜管理系统 v2.0 | 运营指挥中心
+          G004 超声管理系统 v2.0 | 运营指挥中心
         </div>
       </div>
     </div>

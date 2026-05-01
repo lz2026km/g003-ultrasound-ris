@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - 报告管理页面
+// G003 超声RIS系统 - 报告管理页面
 // DICOM浏览器 + 报告列表 + 模板管理
 // ============================================================
 import { useState, useMemo } from 'react'
@@ -10,8 +10,8 @@ import {
   Download, Upload, EyeOff, Maximize2, Clock, User, Stethoscope,
   Clipboard, FileBarChart, Palette, Save, ArrowLeft
 } from 'lucide-react'
-import type { EndoscopyReport, ReportStatus, ReportTemplate } from '../types'
-import { initialEndoscopyReports, initialReportTemplates } from '../data/initialData'
+import type { UltrasoundReport, ReportStatus, ReportTemplate } from '../types'
+import { initialUltrasoundReports, initialReportTemplates } from '../data/initialData'
 
 // ---------- 样式定义 ----------
 const s: Record<string, React.CSSProperties> = {
@@ -331,7 +331,7 @@ const getStatusBadge = (status: ReportStatus) => {
 
 // ---------- 主组件 ----------
 export default function ReportPage() {
-  const [reports, setReports] = useState<EndoscopyReport[]>(initialEndoscopyReports)
+  const [reports, setReports] = useState<UltrasoundReport[]>(initialUltrasoundReports)
   const [templates, setTemplates] = useState<ReportTemplate[]>(initialReportTemplates)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<ReportStatus | ''>('')
@@ -341,9 +341,9 @@ export default function ReportPage() {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const [selectedReport, setSelectedReport] = useState<EndoscopyReport | null>(null)
-  const [viewReport, setViewReport] = useState<EndoscopyReport | null>(null)
-  const [reviewReport, setReviewReport] = useState<EndoscopyReport | null>(null)
+  const [selectedReport, setSelectedReport] = useState<UltrasoundReport | null>(null)
+  const [viewReport, setViewReport] = useState<UltrasoundReport | null>(null)
+  const [reviewReport, setReviewReport] = useState<UltrasoundReport | null>(null)
   const [reviewSuggestion, setReviewSuggestion] = useState('')
   const [reviewAction, setReviewAction] = useState<'approve' | 'reject' | null>(null)
 
@@ -390,15 +390,15 @@ export default function ReportPage() {
     setSearch(''); setStatusFilter(''); setExamTypeFilter(''); setDateFrom(''); setDateTo(''); setPage(1)
   }
 
-  const selectReport = (r: EndoscopyReport) => {
+  const selectReport = (r: UltrasoundReport) => {
     setSelectedReport(r)
     const thumbs = generateDicomThumbs(r.imageUrls?.length || 8)
     setDicomImages(thumbs)
     setSelectedDicomIdx(0)
   }
 
-  const openView = (r: EndoscopyReport) => setViewReport(r)
-  const openReview = (r: EndoscopyReport) => {
+  const openView = (r: UltrasoundReport) => setViewReport(r)
+  const openReview = (r: UltrasoundReport) => {
     setReviewReport(r); setReviewSuggestion(''); setReviewAction(null)
   }
   const closeModal = () => {
@@ -419,7 +419,7 @@ export default function ReportPage() {
     closeModal()
   }
 
-  const handlePrint = (r: EndoscopyReport) => {
+  const handlePrint = (r: UltrasoundReport) => {
     setReports(prev => prev.map(report =>
       report.id === r.id
         ? { ...report, status: '已打印', printedTime: new Date().toLocaleString('zh-CN'), updatedTime: new Date().toLocaleString('zh-CN') }
@@ -427,7 +427,7 @@ export default function ReportPage() {
     ))
   }
 
-  const handlePublish = (r: EndoscopyReport) => {
+  const handlePublish = (r: UltrasoundReport) => {
     setReports(prev => prev.map(report =>
       report.id === r.id
         ? { ...report, status: '已发布', publishedTime: new Date().toLocaleString('zh-CN'), updatedTime: new Date().toLocaleString('zh-CN') }
@@ -635,7 +635,7 @@ export default function ReportPage() {
                   <option value="肠镜">肠镜</option>
                   <option value="支气管镜">支气管镜</option>
                   <option value="ERCP">ERCP</option>
-                  <option value="超声内镜">超声内镜</option>
+                  <option value="超声检查">超声检查</option>
                 </select>
               </div>
               <button style={s.btnIcon} onClick={resetFilters} title="重置">

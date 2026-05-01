@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 报告书写页面（专业增强版）
+// G003 超声RIS系统 - 报告书写页面（专业增强版）
 // ============================================================
 import { useState, useMemo, useEffect, useRef } from 'react'
 import {
@@ -12,8 +12,8 @@ import {
   Camera, Upload, RotateCcw, ShieldCheck, Flag, BookOpen,
   Pill, Scissors, Activity, FileWarning
 } from 'lucide-react'
-import type { EndoscopyReport, ReportTemplate, ReportStatus, Gender } from '../types'
-import { initialEndoscopyReports, initialReportTemplates, initialEndoscopyExams } from '../data/initialData'
+import type { UltrasoundReport, ReportTemplate, ReportStatus, Gender } from '../types'
+import { initialUltrasoundReports, initialReportTemplates, initialUltrasoundExams } from '../data/initialData'
 
 // ---------- 常量 ----------
 const GASTROSCOPY_MIN_PHOTOS = 22
@@ -91,7 +91,7 @@ const STRUCTURED_TEMPLATES: { type: ReportTemplateType; label: string; icon: str
     icon: '🔪',
     description: '手术操作详细记录模板',
     sections: [
-      { title: '手术名称', placeholder: '如：内镜下息肉切除术（EMR）' },
+      { title: '手术名称', placeholder: '如：超声下息肉切除术（EMR）' },
       { title: '术前诊断', placeholder: '结肠多发息肉' },
       { title: '手术步骤', placeholder: '1. 黏膜下注射...\n2. 切开...\n3. 剥离...\n4. 止血...' },
       { title: '术后诊断', placeholder: '结肠多发息肉（已切除）' },
@@ -136,7 +136,7 @@ const COMMON_PHRASES: { category: string; phrases: string[] }[] = [
       '黏膜充血水肿，血管纹理模糊',
       '可见白色念珠菌样白斑',
       '黏膜粗糙，碘染色阳性',
-      '管腔狭窄，内镜不能通过',
+      '管腔狭窄，超声不能通过',
     ],
   },
   {
@@ -209,7 +209,7 @@ const AI_CONTENT: Record<string, { findings: string; conclusion: string }> = {
 }
 
 // ========== 新增：质量评分标准 ==========
-const QUALITY_CRITERIA: { key: string; label: string; weight: number; check: (r: Partial<EndoscopyReport>, imgs: ReportImage[]) => { score: number; detail: string } }[] = [
+const QUALITY_CRITERIA: { key: string; label: string; weight: number; check: (r: Partial<UltrasoundReport>, imgs: ReportImage[]) => { score: number; detail: string } }[] = [
   {
     key: 'completeness',
     label: '完整性',
@@ -986,7 +986,7 @@ const biopsyStatusColor = (status: BiopsySite['status']): string => {
 }
 
 // ---------- 空报告 ----------
-const emptyReport = (exam?: typeof initialEndoscopyExams[0]): Partial<EndoscopyReport> => {
+const emptyReport = (exam?: typeof initialUltrasoundExams[0]): Partial<UltrasoundReport> => {
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
   return {
     examId: exam?.id || '',
@@ -1020,7 +1020,7 @@ const emptyReport = (exam?: typeof initialEndoscopyExams[0]): Partial<EndoscopyR
 }
 
 // ---------- 模板变量替换 ----------
-const replaceTemplateVars = (text: string, report: Partial<EndoscopyReport>): string => {
+const replaceTemplateVars = (text: string, report: Partial<UltrasoundReport>): string => {
   const now = new Date().toISOString().slice(0, 10)
   return text
     .replace(/\{\{patientName\}\}/g, report.patientName || '')
@@ -1043,23 +1043,23 @@ interface ReportImage {
 
 // ---------- 主组件 ----------
 export default function ReportWritePage() {
-  const [reports, setReports] = (useState as any)<EndoscopyReport[]>(initialEndoscopyReports)
+  const [reports, setReports] = (useState as any)<UltrasoundReport[]>(initialUltrasoundReports)
   const [templates] = (useState as any)<ReportTemplate[]>(initialReportTemplates)
-  const [exams] = useState(typeof initialEndoscopyExams !== 'undefined' ? initialEndoscopyExams : [])
+  const [exams] = useState(typeof initialUltrasoundExams !== 'undefined' ? initialUltrasoundExams : [])
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = (useState as any)<ReportStatus | ''>('')
   const [page, setPage] = useState(1)
   const pageSize = 8
 
   const [modalMode, setModalMode] = (useState as any)<'view' | 'edit' | 'new' | null>(null)
-  const [editingReport, setEditingReport] = useState<Partial<EndoscopyReport>>(emptyReport())
+  const [editingReport, setEditingReport] = useState<Partial<UltrasoundReport>>(emptyReport())
   const [selectedTemplate, setSelectedTemplate] = (useState as any)<ReportTemplate | null>(null)
   const [selectedStructTemplate, setSelectedStructTemplate] = (useState as any)<(typeof STRUCTURED_TEMPLATES)[0] | null>(null)
   const [formErrors, setFormErrors] = (useState as any)<string[]>([])
   const [submitSuccess, setSubmitSuccess] = useState(false)
 
   // 关联的检查信息
-  const [linkedExam, setLinkedExam] = (useState as any)<typeof initialEndoscopyExams[0] | null>(null)
+  const [linkedExam, setLinkedExam] = (useState as any)<typeof initialUltrasoundExams[0] | null>(null)
 
   // 多标签页
   const [activeTab, setActiveTab] = useState('basic')
@@ -1167,7 +1167,7 @@ export default function ReportWritePage() {
   }
 
   // 从列表打开编辑
-  const openEdit = (r: EndoscopyReport) => {
+  const openEdit = (r: UltrasoundReport) => {
     setEditingReport({ ...r })
     setSelectedTemplate(templates.find(t => t.id === r.templateId) || null)
     setLinkedExam(null)
@@ -1191,7 +1191,7 @@ export default function ReportWritePage() {
   }
 
   // 从列表打开查看
-  const openView = (r: EndoscopyReport) => {
+  const openView = (r: UltrasoundReport) => {
     setEditingReport({ ...r })
     setSelectedTemplate(templates.find(t => t.id === r.templateId) || null)
     setModalMode('view')
@@ -1243,7 +1243,7 @@ export default function ReportWritePage() {
   }
 
   // 字段更新
-  const handleField = (field: keyof Partial<EndoscopyReport>, value: string | number | boolean | string[]) => {
+  const handleField = (field: keyof Partial<UltrasoundReport>, value: string | number | boolean | string[]) => {
     setEditingReport(prev => ({ ...prev, [field]: value, updatedTime: new Date().toISOString().slice(0, 16).replace('T', ' ') }))
   }
 
@@ -1363,7 +1363,7 @@ export default function ReportWritePage() {
   }
 
   // 校验
-  const validateReport = (r: Partial<EndoscopyReport>): string[] => {
+  const validateReport = (r: Partial<UltrasoundReport>): string[] => {
     const errs: string[] = []
     if (!(r.patientName ?? "").trim()) errs.push('患者姓名不能为空')
     if (!(r.examItemName ?? "").trim()) errs.push('检查项目不能为空')
@@ -1380,9 +1380,9 @@ export default function ReportWritePage() {
     const finalImages = reportImages.map(img => img.url)
     if (modalMode === 'new') {
       const id = 'RPT' + Date.now().toString().slice(-6)
-      setReports((prev: EndoscopyReport[]) => [{ ...editingReport, id, status: '书写中', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
+      setReports((prev: UltrasoundReport[]) => [{ ...editingReport, id, status: '书写中', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
     } else {
-      setReports((prev: EndoscopyReport[]) => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: r.status === '未开始' ? '书写中' : r.status, updatedTime: now } as EndoscopyReport : r))
+      setReports((prev: UltrasoundReport[]) => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: r.status === '未开始' ? '书写中' : r.status, updatedTime: now } as UltrasoundReport : r))
     }
     setFormErrors([])
     setSubmitSuccess(true)
@@ -1397,9 +1397,9 @@ export default function ReportWritePage() {
     const finalImages = reportImages.map(img => img.url)
     if (modalMode === 'new') {
       const id = 'RPT' + Date.now().toString().slice(-6)
-      setReports((prev: EndoscopyReport[]) => [{ ...editingReport, id, status: '待审核', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
+      setReports((prev: UltrasoundReport[]) => [{ ...editingReport, id, status: '待审核', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
     } else {
-      setReports((prev: EndoscopyReport[]) => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: '待审核', updatedTime: now } as EndoscopyReport : r))
+      setReports((prev: UltrasoundReport[]) => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: '待审核', updatedTime: now } as UltrasoundReport : r))
     }
     setEditingReport(prev => ({ ...prev, status: '待审核' }))
     closeModal()
@@ -1409,14 +1409,14 @@ export default function ReportWritePage() {
   const handleAuditReport = () => {
     if (!auditDoctorName.trim()) return
     const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
-    setReports((prev: EndoscopyReport[]) => prev.map(r => r.id === editingReport.id ? {
+    setReports((prev: UltrasoundReport[]) => prev.map(r => r.id === editingReport.id ? {
       ...r,
       status: '已审核',
       auditDoctorId: 'U002',
       auditDoctorName: auditDoctorName,
       auditTime: now,
       auditSuggestion: auditSuggestion,
-    } as EndoscopyReport : r))
+    } as UltrasoundReport : r))
     setEditingReport(prev => ({ ...prev, status: '已审核', auditDoctorId: 'U002', auditDoctorName: auditDoctorName, auditTime: now, auditSuggestion }))
     setShowAuditModal(false)
     setFormErrors([])
@@ -1947,7 +1947,7 @@ export default function ReportWritePage() {
                           {/* 图片采集 */}
                           <div style={s.formSection}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
-                              <div style={{ ...s.formSectionTitle, marginBottom: 0 }}><Camera size={13} /> 内镜图像采集</div>
+                              <div style={{ ...s.formSectionTitle, marginBottom: 0 }}><Camera size={13} /> 超声图像采集</div>
                               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                                 {/* 图片质控提示 */}
                                 <div style={{
@@ -2751,8 +2751,8 @@ export default function ReportWritePage() {
             </div>
             <div style={s.printContent}>
               {/* 打印头部 */}
-              <div style={s.printHospitalName}>上海市第一人民医院内镜中心</div>
-              <div style={s.printReportTitle}>内镜检查报告</div>
+              <div style={s.printHospitalName}>上海市第一人民医院超声中心</div>
+              <div style={s.printReportTitle}>超声检查报告</div>
 
               {/* 患者信息 */}
               <div style={s.printInfoGrid}>
@@ -2819,7 +2819,7 @@ export default function ReportWritePage() {
               </div>
 
               <div style={s.printFooter}>
-                本报告仅供临床参考，如有问题请及时联系内镜中心 | 报告生成时间：{editingReport.createdTime}
+                本报告仅供临床参考，如有问题请及时联系超声中心 | 报告生成时间：{editingReport.createdTime}
               </div>
             </div>
           </div>

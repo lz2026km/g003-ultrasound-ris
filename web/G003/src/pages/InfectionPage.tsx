@@ -1,5 +1,5 @@
 // ============================================================
-// G004 内镜管理系统 - 感染管理页面
+// G004 超声管理系统 - 感染管理页面
 // KPI指标 + 5个Tab + 职业暴露管理 + 环境监测 + 40条演示数据
 // ============================================================
 import { useState } from 'react'
@@ -55,7 +55,7 @@ interface EnvironmentMonitor {
   location: string
   locationType: '洗消间' | '操作间' | '储藏间' | '更衣室' | '走廊'
   sampleDate: string
-  sampleType: '空气' | '物表' | '内镜' | '手部' | '消毒液'
+  sampleType: '空气' | '物表' | '超声探头' | '手部' | '消毒液'
   targetGerm: string
   result: '合格' | '不合格' | '待复查'
   colonyCount: string
@@ -81,62 +81,62 @@ interface DisinfectionMonitor {
 
 // ---------- 演示数据 (40条) ----------
 const generateInfectionCases = (): InfectionCase[] => [
-  { id: 'INF001', patientName: '王建国', patientId: 'P20240001', endoscope: 'GIF-HQ290(1号)', procedure: '胃镜检查', infectionType: 'HBV感染', severity: '轻症', confirmedDate: '2024-01-15', department: '消化内科', doctor: '李明华', status: '治愈', outcomes: '完全康复', notes: '既往乙肝小三阳，本次急性发作' },
-  { id: 'INF002', patientName: '张丽华', patientId: 'P20240002', endoscope: 'CF-HQ290L(2号)', procedure: '结肠镜检查', infectionType: '艰难梭菌感染', severity: '中等', confirmedDate: '2024-01-18', department: '肛肠外科', doctor: '赵文博', status: '治愈', outcomes: '抗生素治疗有效', notes: '肠镜后3天出现腹泻' },
+  { id: 'INF001', patientName: '王建国', patientId: 'P20240001', endoscope: 'GIF-HQ290(1号)', procedure: '腹部超声检查', infectionType: 'HBV感染', severity: '轻症', confirmedDate: '2024-01-15', department: '消化内科', doctor: '李明华', status: '治愈', outcomes: '完全康复', notes: '既往乙肝小三阳，本次急性发作' },
+  { id: 'INF002', patientName: '张丽华', patientId: 'P20240002', endoscope: 'CF-HQ290L(2号)', procedure: '浅表超声检查', infectionType: '艰难梭菌感染', severity: '中等', confirmedDate: '2024-01-18', department: '肛肠外科', doctor: '赵文博', status: '治愈', outcomes: '抗生素治疗有效', notes: '肠镜后3天出现腹泻' },
   { id: 'INF003', patientName: '李志刚', patientId: 'P20240003', endoscope: 'GIF-HQ290(1号)', procedure: 'ERCP', infectionType: '胆道感染', severity: '重症', confirmedDate: '2024-01-22', department: '肝胆外科', doctor: '孙立群', status: '确诊', outcomes: '抗感染治疗中', notes: '术后发热，WBC升高' },
-  { id: 'INF004', patientName: '陈秀英', patientId: 'P20240004', endoscope: 'BF-1TQ290(3号)', procedure: '支气管镜检查', infectionType: '肺部感染', severity: '中等', confirmedDate: '2024-02-05', department: '呼吸内科', doctor: '周晓峰', status: '治愈', outcomes: '抗生素治疗有效', notes: '术后低热2天' },
-  { id: 'INF005', patientName: '刘德明', patientId: 'P20240005', endoscope: 'GIF-HQ290(1号)', procedure: '胃镜+活检', infectionType: 'HP感染', severity: '轻症', confirmedDate: '2024-02-10', department: '消化内科', doctor: '李明华', status: '治愈', outcomes: '根除治疗成功', notes: 'HP阳性，病理证实' },
-  { id: 'INF006', patientName: '赵雪梅', patientId: 'P20240006', endoscope: 'CF-HQ290L(2号)', procedure: '结肠镜检查', infectionType: '院内获得性肺炎', severity: '危重', confirmedDate: '2024-02-14', department: 'ICU', doctor: '张志远', status: '死亡', outcomes: '多器官功能衰竭', notes: '基础疾病：COPD' },
-  { id: 'INF007', patientName: '孙伟东', patientId: 'P20240007', endoscope: 'JF-TF260(4号)', procedure: '十二指肠镜检查', infectionType: '十二指肠穿孔继发感染', severity: '重症', confirmedDate: '2024-02-20', department: '消化内科', doctor: '王建华', status: '治愈', outcomes: '保守治疗成功', notes: '检查后腹痛，影像学证实' },
-  { id: 'INF008', patientName: '周桂芳', patientId: 'P20240008', endoscope: 'GIF-HQ290(1号)', procedure: '胃镜止血术', infectionType: '食管穿孔', severity: '中等', confirmedDate: '2024-03-01', department: '消化内科', doctor: '李明华', status: '治愈', outcomes: '内镜下夹闭成功', notes: '操作相关并发症' },
+  { id: 'INF004', patientName: '陈秀英', patientId: 'P20240004', endoscope: 'BF-1TQ290(3号)', procedure: '肺部超声检查', infectionType: '肺部感染', severity: '中等', confirmedDate: '2024-02-05', department: '呼吸内科', doctor: '周晓峰', status: '治愈', outcomes: '抗生素治疗有效', notes: '术后低热2天' },
+  { id: 'INF005', patientName: '刘德明', patientId: 'P20240005', endoscope: 'GIF-HQ290(1号)', procedure: '腹部超声+活检', infectionType: 'HP感染', severity: '轻症', confirmedDate: '2024-02-10', department: '消化内科', doctor: '李明华', status: '治愈', outcomes: '根除治疗成功', notes: 'HP阳性，病理证实' },
+  { id: 'INF006', patientName: '赵雪梅', patientId: 'P20240006', endoscope: 'CF-HQ290L(2号)', procedure: '浅表超声检查', infectionType: '院内获得性肺炎', severity: '危重', confirmedDate: '2024-02-14', department: 'ICU', doctor: '张志远', status: '死亡', outcomes: '多器官功能衰竭', notes: '基础疾病：COPD' },
+  { id: 'INF007', patientName: '孙伟东', patientId: 'P20240007', endoscope: 'JF-TF260(4号)', procedure: '介入超声检查', infectionType: '十二指肠穿孔继发感染', severity: '重症', confirmedDate: '2024-02-20', department: '消化内科', doctor: '王建华', status: '治愈', outcomes: '保守治疗成功', notes: '检查后腹痛，影像学证实' },
+  { id: 'INF008', patientName: '周桂芳', patientId: 'P20240008', endoscope: 'GIF-HQ290(1号)', procedure: '腹部超声止血术', infectionType: '食管穿孔', severity: '中等', confirmedDate: '2024-03-01', department: '消化内科', doctor: '李明华', status: '治愈', outcomes: '超声探头下夹闭成功', notes: '操作相关并发症' },
   { id: 'INF009', patientName: '吴强', patientId: 'P20240009', endoscope: 'BF-1TQ290(3号)', procedure: 'EBUS-TBNA', infectionType: '纵隔感染', severity: '中等', confirmedDate: '2024-03-08', department: '呼吸内科', doctor: '周晓峰', status: '确诊', outcomes: '抗感染治疗中', notes: '穿刺后纵隔气肿继发' },
   { id: 'INF010', patientName: '郑小红', patientId: 'P20240010', endoscope: 'CF-HQ290L(2号)', procedure: 'EMR', infectionType: '术后感染', severity: '轻症', confirmedDate: '2024-03-12', department: '肛肠外科', doctor: '赵文博', status: '治愈', outcomes: '抗生素治愈', notes: '术后2天切口红肿' },
-  { id: 'INF011', patientName: '黄文军', patientId: 'P20240011', endoscope: 'GIF-HQ290(1号)', procedure: '胃镜检查', infectionType: 'HCV感染', severity: '轻症', confirmedDate: '2024-03-18', department: '消化内科', doctor: '孙立群', status: '治愈', outcomes: 'DAAs治疗中', notes: '既往输血史' },
+  { id: 'INF011', patientName: '黄文军', patientId: 'P20240011', endoscope: 'GIF-HQ290(1号)', procedure: '腹部超声检查', infectionType: 'HCV感染', severity: '轻症', confirmedDate: '2024-03-18', department: '消化内科', doctor: '孙立群', status: '治愈', outcomes: 'DAAs治疗中', notes: '既往输血史' },
   { id: 'INF012', patientName: '林婉如', patientId: 'P20240012', endoscope: 'JF-TF260(4号)', procedure: 'ERCP+EST', infectionType: '急性胰腺炎', severity: '重症', confirmedDate: '2024-03-25', department: '肝胆外科', doctor: '王建华', status: '治愈', outcomes: '保守治疗成功', notes: '术后淀粉酶升高' },
   { id: 'INF013', patientName: '徐海军', patientId: 'P20240013', endoscope: 'BF-1TQ290(3号)', procedure: '气管镜检查', infectionType: '铜绿假单胞菌感染', severity: '中等', confirmedDate: '2024-04-02', department: '呼吸内科', doctor: '周晓峰', status: '确诊', outcomes: '抗感染治疗中', notes: '痰培养阳性' },
-  { id: 'INF014', patientName: '马秀兰', patientId: 'P20240014', endoscope: 'CF-HQ290L(2号)', procedure: '结肠镜检查', infectionType: '腹膜炎', severity: '重症', confirmedDate: '2024-04-08', department: '普外科', doctor: '张志远', status: '治愈', outcomes: '手术治疗后康复', notes: '肠穿孔后继发' },
-  { id: 'INF015', patientName: '杨志远', patientId: 'P20240015', endoscope: 'GIF-HQ290(1号)', procedure: '胃镜+息肉切除', infectionType: '菌血症', severity: '中等', confirmedDate: '2024-04-15', department: '消化内科', doctor: '李明华', status: '治愈', outcomes: '血培养转阴', notes: '术后寒战高热' },
+  { id: 'INF014', patientName: '马秀兰', patientId: 'P20240014', endoscope: 'CF-HQ290L(2号)', procedure: '浅表超声检查', infectionType: '腹膜炎', severity: '重症', confirmedDate: '2024-04-08', department: '普外科', doctor: '张志远', status: '治愈', outcomes: '手术治疗后康复', notes: '肠穿孔后继发' },
+  { id: 'INF015', patientName: '杨志远', patientId: 'P20240015', endoscope: 'GIF-HQ290(1号)', procedure: '腹部超声+息肉切除', infectionType: '菌血症', severity: '中等', confirmedDate: '2024-04-15', department: '消化内科', doctor: '李明华', status: '治愈', outcomes: '血培养转阴', notes: '术后寒战高热' },
   { id: 'INF016', patientName: '胡建军', patientId: 'P20240016', endoscope: 'JF-TF260(4号)', procedure: '小肠镜检查', infectionType: '小肠穿孔', severity: '危重', confirmedDate: '2024-04-20', department: '消化内科', doctor: '孙立群', status: '死亡', outcomes: '感染性休克', notes: '基础疾病：Crohn病' },
-  { id: 'INF017', patientName: '朱爱玲', patientId: 'P20240017', endoscope: 'CF-HQ290L(2号)', procedure: '结肠镜检查', infectionType: '乙状结肠穿孔', severity: '中等', confirmedDate: '2024-04-25', department: '肛肠外科', doctor: '赵文博', status: '治愈', outcomes: '保守治疗成功', notes: '高龄患者，基础状况差' },
-  { id: 'INF018', patientName: '曾繁荣', patientId: 'P20240018', endoscope: 'GIF-HQ290(1号)', procedure: '胃镜检查', infectionType: 'HIV感染', severity: '轻症', confirmedDate: '2024-05-03', department: '感染科', doctor: '王建华', status: '确诊', outcomes: 'ART治疗中', notes: '术前筛查发现' },
+  { id: 'INF017', patientName: '朱爱玲', patientId: 'P20240017', endoscope: 'CF-HQ290L(2号)', procedure: '浅表超声检查', infectionType: '乙状结肠穿孔', severity: '中等', confirmedDate: '2024-04-25', department: '肛肠外科', doctor: '赵文博', status: '治愈', outcomes: '保守治疗成功', notes: '高龄患者，基础状况差' },
+  { id: 'INF018', patientName: '曾繁荣', patientId: 'P20240018', endoscope: 'GIF-HQ290(1号)', procedure: '腹部超声检查', infectionType: 'HIV感染', severity: '轻症', confirmedDate: '2024-05-03', department: '感染科', doctor: '王建华', status: '确诊', outcomes: 'ART治疗中', notes: '术前筛查发现' },
   { id: 'INF019', patientName: '韩志鹏', patientId: 'P20240019', endoscope: 'BF-1TQ290(3号)', procedure: '胸腔镜检查', infectionType: '脓胸', severity: '重症', confirmedDate: '2024-05-10', department: '胸外科', doctor: '周晓峰', status: '治愈', outcomes: '引流+抗感染治愈', notes: '肺大疱继发感染' },
-  { id: 'INF020', patientName: '冯桂英', patientId: 'P20240020', endoscope: 'CF-HQ290L(2号)', procedure: '结肠镜+EMR', infectionType: '盆腔脓肿', severity: '中等', confirmedDate: '2024-05-15', department: '肛肠外科', doctor: '赵文博', status: '治愈', outcomes: '穿刺引流后康复', notes: '术后持续发热' },
+  { id: 'INF020', patientName: '冯桂英', patientId: 'P20240020', endoscope: 'CF-HQ290L(2号)', procedure: '浅表超声+EMR', infectionType: '盆腔脓肿', severity: '中等', confirmedDate: '2024-05-15', department: '肛肠外科', doctor: '赵文博', status: '治愈', outcomes: '穿刺引流后康复', notes: '术后持续发热' },
 ]
 
 const generateOccupationalExposures = (): OccupationalExposure[] => [
-  { id: 'EXP001', staffName: '张晓燕', staffId: 'S20240001', department: '内镜中心', exposureType: '针刺伤', sourcePatient: 'P20240018(HIV+)', exposureDate: '2024-01-08', exposureRoute: '静脉穿刺', severity: '重度', immediateAction: '挤压冲洗，碘伏消毒', reporter: '李明华', reportDate: '2024-01-08', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '待复查' },
-  { id: 'EXP002', staffName: '王丽娟', staffId: 'S20240002', department: '内镜中心', exposureType: '血液接触', sourcePatient: 'P20240001(HBV)', exposureDate: '2024-01-15', exposureRoute: '皮肤破损处', severity: '中度', immediateAction: '大量清水冲洗', reporter: '赵文博', reportDate: '2024-01-15', status: '已完成', hbvResult: '阳性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP003', staffName: '李秀英', staffId: 'S20240003', department: '洗消部', exposureType: '锐器伤', sourcePatient: '复用内镜活检孔道', exposureDate: '2024-01-22', exposureRoute: '内镜清洗时', severity: '轻度', immediateAction: '流动水冲洗，酒精消毒', reporter: '孙立群', reportDate: '2024-01-22', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP004', staffName: '陈建国', staffId: 'S20240004', department: '内镜中心', exposureType: '体液接触', sourcePatient: 'P20240006(HCV)', exposureDate: '2024-02-03', exposureRoute: '面颊部溅入', severity: '中度', immediateAction: '生理盐水冲洗', reporter: '周晓峰', reportDate: '2024-02-03', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP005', staffName: '刘建军', staffId: 'S20240005', department: '内镜中心', exposureType: '黏膜暴露', sourcePatient: 'P20240011(HIV+)', exposureDate: '2024-02-10', exposureRoute: '胃镜操作时', severity: '重度', immediateAction: '大量生理盐水冲洗', reporter: '李明华', reportDate: '2024-02-10', status: '随访中', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性(4周)' },
+  { id: 'EXP001', staffName: '张晓燕', staffId: 'S20240001', department: '超声中心', exposureType: '针刺伤', sourcePatient: 'P20240018(HIV+)', exposureDate: '2024-01-08', exposureRoute: '静脉穿刺', severity: '重度', immediateAction: '挤压冲洗，碘伏消毒', reporter: '李明华', reportDate: '2024-01-08', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '待复查' },
+  { id: 'EXP002', staffName: '王丽娟', staffId: 'S20240002', department: '超声中心', exposureType: '血液接触', sourcePatient: 'P20240001(HBV)', exposureDate: '2024-01-15', exposureRoute: '皮肤破损处', severity: '中度', immediateAction: '大量清水冲洗', reporter: '赵文博', reportDate: '2024-01-15', status: '已完成', hbvResult: '阳性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP003', staffName: '李秀英', staffId: 'S20240003', department: '洗消部', exposureType: '锐器伤', sourcePatient: '复用超声探头活检孔道', exposureDate: '2024-01-22', exposureRoute: '超声探头清洗时', severity: '轻度', immediateAction: '流动水冲洗，酒精消毒', reporter: '孙立群', reportDate: '2024-01-22', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP004', staffName: '陈建国', staffId: 'S20240004', department: '超声中心', exposureType: '体液接触', sourcePatient: 'P20240006(HCV)', exposureDate: '2024-02-03', exposureRoute: '面颊部溅入', severity: '中度', immediateAction: '生理盐水冲洗', reporter: '周晓峰', reportDate: '2024-02-03', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP005', staffName: '刘建军', staffId: 'S20240005', department: '超声中心', exposureType: '黏膜暴露', sourcePatient: 'P20240011(HIV+)', exposureDate: '2024-02-10', exposureRoute: '腹部超声操作时', severity: '重度', immediateAction: '大量生理盐水冲洗', reporter: '李明华', reportDate: '2024-02-10', status: '随访中', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性(4周)' },
   { id: 'EXP006', staffName: '赵志刚', staffId: 'S20240006', department: '洗消部', exposureType: '针刺伤', sourcePatient: '复用穿刺针', exposureDate: '2024-02-18', exposureRoute: '器械预处理', severity: '轻度', immediateAction: '挤压出血，碘伏消毒', reporter: '王建华', reportDate: '2024-02-18', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP007', staffName: '孙红梅', staffId: 'S20240007', department: '内镜中心', exposureType: '血液接触', sourcePatient: 'P20240003(HBV)', exposureDate: '2024-03-05', exposureRoute: '术中喷溅', severity: '中度', immediateAction: '流动水冲洗', reporter: '赵文博', reportDate: '2024-03-05', status: '已完成', hbvResult: '阳性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP008', staffName: '周晓丽', staffId: 'S20240008', department: '内镜中心', exposureType: '锐器伤', sourcePatient: '活检钳', exposureDate: '2024-03-12', exposureRoute: '病理标本处理', severity: '轻度', immediateAction: '流动水冲洗，酒精消毒', reporter: '孙立群', reportDate: '2024-03-12', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP009', staffName: '吴海燕', staffId: 'S20240009', department: '洗消部', exposureType: '体液接触', sourcePatient: 'P20240009(多重耐药)', exposureDate: '2024-03-20', exposureRoute: '内镜表面接触', severity: '中度', immediateAction: '含氯消毒液擦拭', reporter: '周晓峰', reportDate: '2024-03-20', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP010', staffName: '郑金凤', staffId: 'S20240010', department: '内镜中心', exposureType: '针刺伤', sourcePatient: '麻醉针', exposureDate: '2024-03-28', exposureRoute: '静脉穿刺', severity: '轻度', immediateAction: '挤压冲洗，碘伏消毒', reporter: '李明华', reportDate: '2024-03-28', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP011', staffName: '黄志强', staffId: 'S20240011', department: '内镜中心', exposureType: '黏膜暴露', sourcePatient: 'P20240018(HIV+)', exposureDate: '2024-04-05', exposureRoute: 'ERCP操作', severity: '重度', immediateAction: '大量生理盐水冲洗眼结膜', reporter: '王建华', reportDate: '2024-04-05', status: '异常', hbvResult: '阴性', hcvResult: '阴性', hivResult: '待确认' },
+  { id: 'EXP007', staffName: '孙红梅', staffId: 'S20240007', department: '超声中心', exposureType: '血液接触', sourcePatient: 'P20240003(HBV)', exposureDate: '2024-03-05', exposureRoute: '术中喷溅', severity: '中度', immediateAction: '流动水冲洗', reporter: '赵文博', reportDate: '2024-03-05', status: '已完成', hbvResult: '阳性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP008', staffName: '周晓丽', staffId: 'S20240008', department: '超声中心', exposureType: '锐器伤', sourcePatient: '活检钳', exposureDate: '2024-03-12', exposureRoute: '病理标本处理', severity: '轻度', immediateAction: '流动水冲洗，酒精消毒', reporter: '孙立群', reportDate: '2024-03-12', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP009', staffName: '吴海燕', staffId: 'S20240009', department: '洗消部', exposureType: '体液接触', sourcePatient: 'P20240009(多重耐药)', exposureDate: '2024-03-20', exposureRoute: '超声探头表面接触', severity: '中度', immediateAction: '含氯消毒液擦拭', reporter: '周晓峰', reportDate: '2024-03-20', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP010', staffName: '郑金凤', staffId: 'S20240010', department: '超声中心', exposureType: '针刺伤', sourcePatient: '麻醉针', exposureDate: '2024-03-28', exposureRoute: '静脉穿刺', severity: '轻度', immediateAction: '挤压冲洗，碘伏消毒', reporter: '李明华', reportDate: '2024-03-28', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP011', staffName: '黄志强', staffId: 'S20240011', department: '超声中心', exposureType: '黏膜暴露', sourcePatient: 'P20240018(HIV+)', exposureDate: '2024-04-05', exposureRoute: 'ERCP操作', severity: '重度', immediateAction: '大量生理盐水冲洗眼结膜', reporter: '王建华', reportDate: '2024-04-05', status: '异常', hbvResult: '阴性', hcvResult: '阴性', hivResult: '待确认' },
   { id: 'EXP012', staffName: '林晓东', staffId: 'S20240012', department: '洗消部', exposureType: '锐器伤', sourcePatient: '注射器针头', exposureDate: '2024-04-12', exposureRoute: '废物处理', severity: '轻度', immediateAction: '流动水冲洗', reporter: '赵文博', reportDate: '2024-04-12', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP013', staffName: '徐秀兰', staffId: 'S20240013', department: '内镜中心', exposureType: '血液接触', sourcePatient: 'P20240014(HBV)', exposureDate: '2024-04-20', exposureRoute: '操作台面', severity: '中度', immediateAction: '含氯消毒剂擦拭', reporter: '孙立群', reportDate: '2024-04-20', status: '已完成', hbvResult: '阳性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP014', staffName: '马建军', staffId: 'S20240014', department: '内镜中心', exposureType: '针刺伤', sourcePatient: '内镜活检通道', exposureDate: '2024-04-28', exposureRoute: '内镜清洗', severity: '轻度', immediateAction: '挤压冲洗，碘伏消毒', reporter: '周晓峰', reportDate: '2024-04-28', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
-  { id: 'EXP015', staffName: '杨爱华', staffId: 'S20240015', department: '洗消部', exposureType: '体液接触', sourcePatient: 'P20240019(耐甲氧西林葡萄球菌)', exposureDate: '2024-05-05', exposureRoute: '内镜吸引', severity: '中度', immediateAction: '流动水冲洗，75%酒精消毒', reporter: '李明华', reportDate: '2024-05-05', status: '随访中', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP013', staffName: '徐秀兰', staffId: 'S20240013', department: '超声中心', exposureType: '血液接触', sourcePatient: 'P20240014(HBV)', exposureDate: '2024-04-20', exposureRoute: '操作台面', severity: '中度', immediateAction: '含氯消毒剂擦拭', reporter: '孙立群', reportDate: '2024-04-20', status: '已完成', hbvResult: '阳性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP014', staffName: '马建军', staffId: 'S20240014', department: '超声中心', exposureType: '针刺伤', sourcePatient: '超声探头活检通道', exposureDate: '2024-04-28', exposureRoute: '超声探头清洗', severity: '轻度', immediateAction: '挤压冲洗，碘伏消毒', reporter: '周晓峰', reportDate: '2024-04-28', status: '已完成', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
+  { id: 'EXP015', staffName: '杨爱华', staffId: 'S20240015', department: '洗消部', exposureType: '体液接触', sourcePatient: 'P20240019(耐甲氧西林葡萄球菌)', exposureDate: '2024-05-05', exposureRoute: '超声探头吸引', severity: '中度', immediateAction: '流动水冲洗，75%酒精消毒', reporter: '李明华', reportDate: '2024-05-05', status: '随访中', hbvResult: '阴性', hcvResult: '阴性', hivResult: '阴性' },
 ]
 
 const generateEnvironmentMonitors = (): EnvironmentMonitor[] => [
   { id: 'EM001', location: '洗消间A区', locationType: '洗消间', sampleDate: '2024-01-05', sampleType: '空气', targetGerm: '菌落总数', result: '合格', colonyCount: '120CFU/m³', standard: '≤200CFU/m³', tester: '张晓燕', remarks: '' },
   { id: 'EM002', location: '洗消间A区', locationType: '洗消间', sampleDate: '2024-01-05', sampleType: '物表', targetGerm: '菌落总数', result: '合格', colonyCount: '8CFU/cm²', standard: '≤10CFU/cm²', tester: '张晓燕', remarks: '' },
-  { id: 'EM003', location: '内镜1储存柜', locationType: '储藏间', sampleDate: '2024-01-10', sampleType: '内镜', targetGerm: '菌落总数', result: '合格', colonyCount: '0CFU/件', standard: '≤5CFU/件', tester: '王丽娟', remarks: '高水平消毒后储存' },
+  { id: 'EM003', location: '超声探头1储存柜', locationType: '储藏间', sampleDate: '2024-01-10', sampleType: '超声探头', targetGerm: '菌落总数', result: '合格', colonyCount: '0CFU/件', standard: '≤5CFU/件', tester: '王丽娟', remarks: '高水平消毒后储存' },
   { id: 'EM004', location: '操作间1', locationType: '操作间', sampleDate: '2024-01-15', sampleType: '空气', targetGerm: '菌落总数', result: '合格', colonyCount: '150CFU/m³', standard: '≤200CFU/m³', tester: '李秀英', remarks: '' },
   { id: 'EM005', location: '更衣室', locationType: '更衣室', sampleDate: '2024-01-20', sampleType: '手部', targetGerm: '金黄色葡萄球菌', result: '合格', colonyCount: '0CFU', standard: '不得检出', tester: '陈建国', remarks: '' },
   { id: 'EM006', location: '洗消间B区', locationType: '洗消间', sampleDate: '2024-02-01', sampleType: '消毒液', targetGerm: '有效氯含量', result: '合格', colonyCount: '450mg/L', standard: '400-500mg/L', tester: '刘建军', remarks: '浓度正常' },
-  { id: 'EM007', location: '内镜2储存柜', locationType: '储藏间', sampleDate: '2024-02-05', sampleType: '内镜', targetGerm: '菌落总数', result: '不合格', colonyCount: '18CFU/件', standard: '≤5CFU/件', tester: '赵志刚', remarks: '储存超期，已重新消毒' },
+  { id: 'EM007', location: '超声探头2储存柜', locationType: '储藏间', sampleDate: '2024-02-05', sampleType: '超声探头', targetGerm: '菌落总数', result: '不合格', colonyCount: '18CFU/件', standard: '≤5CFU/件', tester: '赵志刚', remarks: '储存超期，已重新消毒' },
   { id: 'EM008', location: '走廊', locationType: '走廊', sampleDate: '2024-02-10', sampleType: '空气', targetGerm: '菌落总数', result: '合格', colonyCount: '180CFU/m³', standard: '≤400CFU/m³', tester: '孙红梅', remarks: '' },
   { id: 'EM009', location: '操作间2', locationType: '操作间', sampleDate: '2024-02-15', sampleType: '物表', targetGerm: '菌落总数', result: '合格', colonyCount: '5CFU/cm²', standard: '≤10CFU/cm²', tester: '周晓丽', remarks: '' },
-  { id: 'EM010', location: '洗消间A区', locationType: '洗消间', sampleDate: '2024-03-01', sampleType: '内镜', targetGerm: ' HBV表面抗原', result: '合格', colonyCount: '阴性', standard: '阴性', tester: '吴海燕', remarks: '' },
-  { id: 'EM011', location: '内镜3储存柜', locationType: '储藏间', sampleDate: '2024-03-05', sampleType: '内镜', targetGerm: '菌落总数', result: '待复查', colonyCount: '12CFU/件', standard: '≤5CFU/件', tester: '郑金凤', remarks: '3天后复查' },
+  { id: 'EM010', location: '洗消间A区', locationType: '洗消间', sampleDate: '2024-03-01', sampleType: '超声探头', targetGerm: ' HBV表面抗原', result: '合格', colonyCount: '阴性', standard: '阴性', tester: '吴海燕', remarks: '' },
+  { id: 'EM011', location: '超声探头3储存柜', locationType: '储藏间', sampleDate: '2024-03-05', sampleType: '超声探头', targetGerm: '菌落总数', result: '待复查', colonyCount: '12CFU/件', standard: '≤5CFU/件', tester: '郑金凤', remarks: '3天后复查' },
   { id: 'EM012', location: '更衣室', locationType: '更衣室', sampleDate: '2024-03-10', sampleType: '手部', targetGerm: '菌落总数', result: '合格', colonyCount: '3CFU', standard: '≤10CFU', tester: '黄志强', remarks: '' },
   { id: 'EM013', location: '洗消间B区', locationType: '洗消间', sampleDate: '2024-03-15', sampleType: '消毒液', targetGerm: '过氧乙酸浓度', result: '合格', colonyCount: '1800mg/L', standard: '1500-2000mg/L', tester: '林晓东', remarks: '' },
   { id: 'EM014', location: '操作间1', locationType: '操作间', sampleDate: '2024-04-01', sampleType: '空气', targetGerm: '菌落总数', result: '合格', colonyCount: '165CFU/m³', standard: '≤200CFU/m³', tester: '徐秀兰', remarks: '' },
-  { id: 'EM015', location: '内镜1储存柜', locationType: '储藏间', sampleDate: '2024-04-05', sampleType: '内镜', targetGerm: '菌落总数', result: '合格', colonyCount: '2CFU/件', standard: '≤5CFU/件', tester: '马建军', remarks: '复查合格' },
+  { id: 'EM015', location: '超声探头1储存柜', locationType: '储藏间', sampleDate: '2024-04-05', sampleType: '超声探头', targetGerm: '菌落总数', result: '合格', colonyCount: '2CFU/件', standard: '≤5CFU/件', tester: '马建军', remarks: '复查合格' },
 ]
 
 // ---------- KPI 数据 ----------
@@ -696,7 +696,7 @@ export default function InfectionPage() {
                 <th style={s.th}>病例号</th>
                 <th style={s.th}>患者姓名</th>
                 <th style={s.th}>患者ID</th>
-                <th style={s.th}>使用内镜</th>
+                <th style={s.th}>使用超声探头</th>
                 <th style={s.th}>操作项目</th>
                 <th style={s.th}>感染类型</th>
                 <th style={s.th}>严重程度</th>
@@ -976,7 +976,7 @@ export default function InfectionPage() {
               <div style={s.monitorUnit}>目标 100%</div>
             </div>
             <div style={{ ...s.monitorCard, borderTopColor: '#d97706' }}>
-              <div style={s.monitorTitle}>内镜监测合格率</div>
+              <div style={s.monitorTitle}>超声探头监测合格率</div>
               <div style={{ ...s.monitorValue, color: '#d97706' }}>85.7%</div>
               <div style={s.monitorUnit}>本月1处超标</div>
             </div>
@@ -1075,7 +1075,7 @@ export default function InfectionPage() {
           <div style={s.toolbar}>
             <div style={s.searchBox}>
               <Search size={16} color="#94a3b8" />
-              <input style={s.searchInput} placeholder="搜索内镜编号/名称..." />
+              <input style={s.searchInput} placeholder="搜索探头编号/名称..." />
             </div>
             <select style={s.select}>
               <option>全部类型</option>
@@ -1119,7 +1119,7 @@ export default function InfectionPage() {
           <div style={{ ...s.chartCard, marginBottom: 16 }}>
             <div style={s.chartTitle}>
               <Droplets size={16} color="#1d4ed8" />
-              内镜洗消流程监控
+              超声探头洗消流程监控
             </div>
             <div style={{ display: 'flex', gap: 16, marginTop: 12 }}>
               {[
@@ -1148,8 +1148,8 @@ export default function InfectionPage() {
             <thead>
               <tr>
                 <th style={s.th}>记录编号</th>
-                <th style={s.th}>内镜编号</th>
-                <th style={s.th}>内镜名称</th>
+                <th style={s.th}>探头编号</th>
+                <th style={s.th}>超声探头名称</th>
                 <th style={s.th}>处理日期</th>
                 <th style={s.th}>处理类型</th>
                 <th style={s.th}>消毒剂</th>
@@ -1332,7 +1332,7 @@ export default function InfectionPage() {
                 <>
                   <div style={s.detailItem}><span style={s.detailLabel}>患者姓名</span><span style={s.detailValue}>{selectedItem.patientName}</span></div>
                   <div style={s.detailItem}><span style={s.detailLabel}>患者ID</span><span style={s.detailValue}>{selectedItem.patientId}</span></div>
-                  <div style={s.detailItem}><span style={s.detailLabel}>使用内镜</span><span style={s.detailValue}>{selectedItem.endoscope}</span></div>
+                  <div style={s.detailItem}><span style={s.detailLabel}>使用超声探头</span><span style={s.detailValue}>{selectedItem.endoscope}</span></div>
                   <div style={s.detailItem}><span style={s.detailLabel}>操作项目</span><span style={s.detailValue}>{selectedItem.procedure}</span></div>
                   <div style={s.detailItem}><span style={s.detailLabel}>感染类型</span><span style={s.detailValue}>{selectedItem.infectionType}</span></div>
                   <div style={s.detailItem}><span style={s.detailLabel}>严重程度</span><span style={s.detailValue}>{selectedItem.severity}</span></div>

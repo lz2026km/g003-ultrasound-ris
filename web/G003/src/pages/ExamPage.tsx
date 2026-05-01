@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G004 内镜管理系统 - 检查执行工作台（大幅增强版）
+// G003 超声RIS系统 - 检查执行工作台（大幅增强版）
 // 包含：检查执行全流程管理、检查室管理、图像采集、医嘱管理、检查小结
 // ============================================================
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -13,7 +13,7 @@ import {
   Radio, DoorOpen, SprayCan, Settings, ChevronRight,
   Eye, ThumbsUp, ThumbsDown, Copy, X
 } from 'lucide-react'
-import { initialAppointments, initialEndoscopyExams, initialExamRooms } from '../data/initialData'
+import { initialAppointments, initialUltrasoundExams, initialExamRooms } from '../data/initialData'
 import type { EndoscopyExam } from '../types'
 
 // ---------- 类型定义 ----------
@@ -759,7 +759,7 @@ const EXAM_PHASES: { phase: ExamPhase; label: string; icon: string }[] = [
   { phase: '候诊', label: '候诊等待', icon: '⏳' },
   { phase: '入室', label: '进入诊室', icon: '🚪' },
   { phase: '麻醉', label: '麻醉/镇静', icon: '💉' },
-  { phase: '检查', label: '内镜检查', icon: '🔍' },
+  { phase: '检查', label: '超声检查', icon: '🔍' },
   { phase: '复苏', label: '术后复苏', icon: '🛏️' },
   { phase: '报告', label: '报告书写', icon: '📝' },
   { phase: '离院', label: '患者离院', icon: '🏥' },
@@ -1578,7 +1578,7 @@ export default function ExamPage() {
     switch (status) {
       case '已接诊': return '护士签到，患者进入诊室'
       case '检查准备中': return '患者准备，麻醉评估'
-      case '检查中': return '正在进行内镜检查'
+      case '检查中': return '正在进行超声检查'
       case '复苏中': return '检查结束，患者复苏'
       case '报告待写': return '等待书写检查报告'
       case '已完成': return '检查已完成'

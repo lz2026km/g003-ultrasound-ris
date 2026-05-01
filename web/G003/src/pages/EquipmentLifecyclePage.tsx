@@ -6,17 +6,17 @@ import {
 
 // ===== 演示数据：设备全生命周期数据 =====
 const mockDevices = [
-  { id: 'EQ001', name: '电子胃镜 GIF-H290', model: 'Olympus GIF-H290', serial: 'SN2021H290001', vendor: '奥林巴斯', purchaseDate: '2021-03-15', dept: '胃镜室', status: '在用', useCount: 4821, lastUse: '2026-04-30', nextMaint: '2026-05-15', lifeMonth: 58, deptRate: 87, totalCost: 168000, maintCost: 12500, spareCost: 3200 },
-  { id: 'EQ002', name: '电子结肠镜 CF-H290I', model: 'Olympus CF-H290I', serial: 'SN2021H290002', vendor: '奥林巴斯', purchaseDate: '2021-03-15', dept: '肠镜室', status: '在用', useCount: 3890, lastUse: '2026-04-30', nextMaint: '2026-06-01', lifeMonth: 58, deptRate: 72, totalCost: 185000, maintCost: 9800, spareCost: 2800 },
-  { id: 'EQ003', name: '超声内镜 EU-ME2', model: 'Olympus EU-ME2', serial: 'SN2022UME2001', vendor: '奥林巴斯', purchaseDate: '2022-07-20', dept: '超声内镜室', status: '维保中', useCount: 1245, lastUse: '2026-04-28', nextMaint: '2026-05-01', lifeMonth: 46, deptRate: 45, totalCost: 320000, maintCost: 8500, spareCost: 1500 },
-  { id: 'EQ004', name: '电子胃镜 EG-2990I', model: 'Pentax EG-2990I', serial: 'SN2020EG990003', vendor: '宾得', purchaseDate: '2020-11-08', dept: '胃镜室', status: '在用', useCount: 6234, lastUse: '2026-04-30', nextMaint: '2026-05-20', lifeMonth: 70, deptRate: 95, totalCost: 145000, maintCost: 18200, spareCost: 5600 },
-  { id: 'EQ005', name: '十二指肠镜 JF-260V', model: 'Olympus JF-260V', serial: 'SN2019JF260004', vendor: '奥林巴斯', purchaseDate: '2019-06-01', dept: 'ERCP室', status: '在用', useCount: 8920, lastUse: '2026-04-29', nextMaint: '2026-05-05', lifeMonth: 82, deptRate: 88, totalCost: 198000, maintCost: 24600, spareCost: 7800 },
-  { id: 'EQ006', name: '电子结肠镜 PCF-H290I', model: 'Olympus PCF-H290I', serial: 'SN2021H290005', vendor: '奥林巴斯', purchaseDate: '2021-08-22', dept: '肠镜室', status: '空闲', useCount: 3201, lastUse: '2026-04-25', nextMaint: '2026-06-15', lifeMonth: 56, deptRate: 58, totalCost: 175000, maintCost: 7200, spareCost: 2100 },
-  { id: 'EQ007', name: '胶囊内镜系统 MiroCam', model: 'MiroCam MC-1000', serial: 'SN2023MC100001', vendor: 'Intravo', purchaseDate: '2023-02-14', dept: '胶囊内镜室', status: '在用', useCount: 680, lastUse: '2026-04-30', nextMaint: '2026-07-01', lifeMonth: 38, deptRate: 32, totalCost: 450000, maintCost: 3000, spareCost: 800 },
-  { id: 'EQ008', name: '电子胃镜 GIF-XP290N', model: 'Olympus GIF-XP290N', serial: 'SN2018H290006', vendor: '奥林巴斯', purchaseDate: '2018-09-30', dept: '胃镜室', status: '已报废', useCount: 11230, lastUse: '2024-12-31', nextMaint: '-', lifeMonth: 91, deptRate: 100, totalCost: 128000, maintCost: 42000, spareCost: 18500 },
+  { id: 'EQ001', name: '电子腹部超声 GIF-H290', model: 'Olympus GIF-H290', serial: 'SN2021H290001', vendor: '奥林巴斯', purchaseDate: '2021-03-15', dept: '腹部超声室', status: '在用', useCount: 4821, lastUse: '2026-04-30', nextMaint: '2026-05-15', lifeMonth: 58, deptRate: 87, totalCost: 168000, maintCost: 12500, spareCost: 3200 },
+  { id: 'EQ002', name: '电子浅表超声 CF-H290I', model: 'Olympus CF-H290I', serial: 'SN2021H290002', vendor: '奥林巴斯', purchaseDate: '2021-03-15', dept: '肠镜室', status: '在用', useCount: 3890, lastUse: '2026-04-30', nextMaint: '2026-06-01', lifeMonth: 58, deptRate: 72, totalCost: 185000, maintCost: 9800, spareCost: 2800 },
+  { id: 'EQ003', name: '超声超声探头 EU-ME2', model: 'Olympus EU-ME2', serial: 'SN2022UME2001', vendor: '奥林巴斯', purchaseDate: '2022-07-20', dept: '超声超声室', status: '维保中', useCount: 1245, lastUse: '2026-04-28', nextMaint: '2026-05-01', lifeMonth: 46, deptRate: 45, totalCost: 320000, maintCost: 8500, spareCost: 1500 },
+  { id: 'EQ004', name: '电子腹部超声 EG-2990I', model: 'Pentax EG-2990I', serial: 'SN2020EG990003', vendor: '宾得', purchaseDate: '2020-11-08', dept: '腹部超声室', status: '在用', useCount: 6234, lastUse: '2026-04-30', nextMaint: '2026-05-20', lifeMonth: 70, deptRate: 95, totalCost: 145000, maintCost: 18200, spareCost: 5600 },
+  { id: 'EQ005', name: '介入超声 JF-260V', model: 'Olympus JF-260V', serial: 'SN2019JF260004', vendor: '奥林巴斯', purchaseDate: '2019-06-01', dept: 'ERCP室', status: '在用', useCount: 8920, lastUse: '2026-04-29', nextMaint: '2026-05-05', lifeMonth: 82, deptRate: 88, totalCost: 198000, maintCost: 24600, spareCost: 7800 },
+  { id: 'EQ006', name: '电子浅表超声 PCF-H290I', model: 'Olympus PCF-H290I', serial: 'SN2021H290005', vendor: '奥林巴斯', purchaseDate: '2021-08-22', dept: '肠镜室', status: '空闲', useCount: 3201, lastUse: '2026-04-25', nextMaint: '2026-06-15', lifeMonth: 56, deptRate: 58, totalCost: 175000, maintCost: 7200, spareCost: 2100 },
+  { id: 'EQ007', name: '胶囊超声系统 MiroCam', model: 'MiroCam MC-1000', serial: 'SN2023MC100001', vendor: 'Intravo', purchaseDate: '2023-02-14', dept: '胶囊超声室', status: '在用', useCount: 680, lastUse: '2026-04-30', nextMaint: '2026-07-01', lifeMonth: 38, deptRate: 32, totalCost: 450000, maintCost: 3000, spareCost: 800 },
+  { id: 'EQ008', name: '电子腹部超声 GIF-XP290N', model: 'Olympus GIF-XP290N', serial: 'SN2018H290006', vendor: '奥林巴斯', purchaseDate: '2018-09-30', dept: '腹部超声室', status: '已报废', useCount: 11230, lastUse: '2024-12-31', nextMaint: '-', lifeMonth: 91, deptRate: 100, totalCost: 128000, maintCost: 42000, spareCost: 18500 },
   { id: 'EQ009', name: '电子肠镜 CF-HQ290I', model: 'Olympus CF-HQ290I', serial: 'SN2022H290007', vendor: '奥林巴斯', purchaseDate: '2022-11-11', dept: '肠镜室', status: '在用', useCount: 2890, lastUse: '2026-04-30', nextMaint: '2026-05-28', lifeMonth: 41, deptRate: 68, totalCost: 192000, maintCost: 5600, spareCost: 1900 },
-  { id: 'EQ010', name: '内镜主机系统 CV-290', model: 'Olympus CV-290', serial: 'SN2021CV290001', vendor: '奥林巴斯', purchaseDate: '2021-03-15', dept: '胃镜室', status: '在用', useCount: 0, lastUse: '2026-04-30', nextMaint: '2026-08-01', lifeMonth: 61, deptRate: 92, totalCost: 280000, maintCost: 8000, spareCost: 0 },
-  { id: 'EQ011', name: '内镜洗消机 OER-AW', model: 'Olympus OER-AW', serial: 'SN2020OERAW001', vendor: '奥林巴斯', purchaseDate: '2020-07-01', dept: '洗消中心', status: '维保中', useCount: 0, lastUse: '2026-04-29', nextMaint: '2026-05-03', lifeMonth: 69, deptRate: 78, totalCost: 135000, maintCost: 18000, spareCost: 4200 },
+  { id: 'EQ010', name: '超声探头主机系统 CV-290', model: 'Olympus CV-290', serial: 'SN2021CV290001', vendor: '奥林巴斯', purchaseDate: '2021-03-15', dept: '腹部超声室', status: '在用', useCount: 0, lastUse: '2026-04-30', nextMaint: '2026-08-01', lifeMonth: 61, deptRate: 92, totalCost: 280000, maintCost: 8000, spareCost: 0 },
+  { id: 'EQ011', name: '超声洗消机 OER-AW', model: 'Olympus OER-AW', serial: 'SN2020OERAW001', vendor: '奥林巴斯', purchaseDate: '2020-07-01', dept: '洗消中心', status: '维保中', useCount: 0, lastUse: '2026-04-29', nextMaint: '2026-05-03', lifeMonth: 69, deptRate: 78, totalCost: 135000, maintCost: 18000, spareCost: 4200 },
   { id: 'EQ012', name: '高频电刀 ESG-300', model: 'Olympus ESG-300', serial: 'SN2019ESG30001', vendor: '奥林巴斯', purchaseDate: '2019-11-20', dept: '手术室', status: '在用', useCount: 0, lastUse: '2026-04-30', nextMaint: '2026-06-20', lifeMonth: 77, deptRate: 65, totalCost: 98000, maintCost: 11200, spareCost: 3600 },
 ]
 
@@ -310,13 +310,13 @@ export default function EquipmentLifecyclePage() {
               </thead>
               <tbody>
                 {[
-                  { device: 'EQ001', name: '电子胃镜 GIF-H290', model: 'Olympus GIF-H290', type: '常规保养', date: '2026-05-15', days: 15, vendor: '奥林巴斯维修站', cost: 2800 },
-                  { device: 'EQ005', name: '十二指肠镜 JF-260V', model: 'Olympus JF-260V', type: '常规保养', date: '2026-05-05', days: 5, vendor: '奥林巴斯维修站', cost: 3500 },
-                  { device: 'EQ003', name: '超声内镜 EU-ME2', model: 'Olympus EU-ME2', type: '故障维修', date: '2026-05-01', days: 1, vendor: '奥林巴斯维修站', cost: 6200 },
-                  { device: 'EQ004', name: '电子胃镜 EG-2990I', model: 'Pentax EG-2990I', type: '常规保养', date: '2026-05-20', days: 20, vendor: '宾得维修站', cost: 3200 },
-                  { device: 'EQ002', name: '电子结肠镜 CF-H290I', model: 'Olympus CF-H290I', type: '配件更换', date: '2026-06-01', days: 32, vendor: '奥林巴斯维修站', cost: 8500 },
-                  { device: 'EQ006', name: '电子结肠镜 PCF-H290I', model: 'Olympus PCF-H290I', type: '常规保养', date: '2026-06-15', days: 46, vendor: '奥林巴斯维修站', cost: 2800 },
-                  { device: 'EQ011', name: '内镜洗消机 OER-AW', model: 'Olympus OER-AW', type: '故障维修', date: '2026-05-03', days: 3, vendor: '第三方维修', cost: 8500 },
+                  { device: 'EQ001', name: '电子腹部超声 GIF-H290', model: 'Olympus GIF-H290', type: '常规保养', date: '2026-05-15', days: 15, vendor: '奥林巴斯维修站', cost: 2800 },
+                  { device: 'EQ005', name: '介入超声 JF-260V', model: 'Olympus JF-260V', type: '常规保养', date: '2026-05-05', days: 5, vendor: '奥林巴斯维修站', cost: 3500 },
+                  { device: 'EQ003', name: '超声超声探头 EU-ME2', model: 'Olympus EU-ME2', type: '故障维修', date: '2026-05-01', days: 1, vendor: '奥林巴斯维修站', cost: 6200 },
+                  { device: 'EQ004', name: '电子腹部超声 EG-2990I', model: 'Pentax EG-2990I', type: '常规保养', date: '2026-05-20', days: 20, vendor: '宾得维修站', cost: 3200 },
+                  { device: 'EQ002', name: '电子浅表超声 CF-H290I', model: 'Olympus CF-H290I', type: '配件更换', date: '2026-06-01', days: 32, vendor: '奥林巴斯维修站', cost: 8500 },
+                  { device: 'EQ006', name: '电子浅表超声 PCF-H290I', model: 'Olympus PCF-H290I', type: '常规保养', date: '2026-06-15', days: 46, vendor: '奥林巴斯维修站', cost: 2800 },
+                  { device: 'EQ011', name: '超声洗消机 OER-AW', model: 'Olympus OER-AW', type: '故障维修', date: '2026-05-03', days: 3, vendor: '第三方维修', cost: 8500 },
                   { device: 'EQ012', name: '高频电刀 ESG-300', model: 'Olympus ESG-300', type: '常规保养', date: '2026-06-20', days: 51, vendor: '奥林巴斯维修站', cost: 2200 },
                 ].map((m, i) => (
                   <tr key={i}>
