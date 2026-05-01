@@ -23,7 +23,7 @@ interface TemplateField {
 interface Template {
   id: string;
   name: string;
-  category: '腹部超声' | '肠镜' | '超声超声探头' | 'ERCP' | '早癌筛查' | '其他';
+  category: '腹部US' | 'US' | 'US探头' | 'USCP' | '早癌筛查' | '其他';
   description: string;
   fields: TemplateField[];
   usageCount: number;
@@ -37,9 +37,9 @@ interface Template {
 const templates: Template[] = [
   {
     id: 'T001',
-    name: '腹部超声检查模板',
-    category: '腹部超声',
-    description: '常规腹部超声检查报告模板，适用于门诊和住院腹部超声检查',
+    name: '腹部US检查模板',
+    category: '腹部US',
+    description: '常规腹部US检查报告模板，适用于门诊和住院腹部US检查',
     usageCount: 1256,
     lastUsed: '2026-04-28',
     createdBy: '张建国',
@@ -50,10 +50,10 @@ const templates: Template[] = [
       { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
       { id: 'f3', name: '年龄', type: 'number', required: true },
       { id: 'f4', name: '检查日期', type: 'date', required: true },
-      { id: 'f5', name: '腹部超声编号', type: 'text', required: true },
+      { id: 'f5', name: '腹部US编号', type: 'text', required: true },
       { id: 'f6', name: '术前诊断', type: 'text', required: true },
       { id: 'f7', name: '术中诊断', type: 'text', required: true },
-      { id: 'f8', name: '镜下表现', type: 'multiselect', required: false, options: ['慢性胃炎', '糜烂', '溃疡', '息肉', '肿瘤', '反流性食管炎'] },
+      { id: 'f8', name: '镜下表现', type: 'multiselect', required: false, options: ['慢性胃炎', '糜烂', '溃疡', '息肉', '肿瘤', '反流性肝炎'] },
       { id: 'f9', name: '活检数目', type: 'number', required: false },
       { id: 'f10', name: '检查图片', type: 'image', required: false },
       { id: 'f11', name: '检查医生签名', type: 'signature', required: true },
@@ -62,9 +62,9 @@ const templates: Template[] = [
   },
   {
     id: 'T002',
-    name: '肠镜检查模板',
-    category: '肠镜',
-    description: '浅表超声检查报告模板，适用于全结肠检查和直肠检查',
+    name: 'US检查模板',
+    category: 'US',
+    description: '浅表US检查报告模板，适用于全结肠检查和直肠检查',
     usageCount: 892,
     lastUsed: '2026-04-27',
     createdBy: '李明华',
@@ -75,7 +75,7 @@ const templates: Template[] = [
       { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
       { id: 'f3', name: '年龄', type: 'number', required: true },
       { id: 'f4', name: '检查日期', type: 'date', required: true },
-      { id: 'f5', name: '肠镜编号', type: 'text', required: true },
+      { id: 'f5', name: 'US编号', type: 'text', required: true },
       { id: 'f6', name: '肠道准备', type: 'select', required: true, options: ['良好', '一般', '差'] },
       { id: 'f7', name: '插管深度', type: 'text', required: true },
       { id: 'f8', name: '盲肠到达率', type: 'select', required: true, options: ['是', '否'] },
@@ -89,9 +89,9 @@ const templates: Template[] = [
   },
   {
     id: 'T003',
-    name: '超声超声检查模板',
-    category: '超声超声探头',
-    description: '超声超声探头（EUS）检查报告模板，适用于消化道及周围器官检查',
+    name: 'US检查模板',
+    category: 'US探头',
+    description: 'US探头（EUS）检查报告模板，适用于消化道及周围器官检查',
     usageCount: 456,
     lastUsed: '2026-04-25',
     createdBy: '王芳',
@@ -104,7 +104,7 @@ const templates: Template[] = [
       { id: 'f4', name: '检查日期', type: 'date', required: true },
       { id: 'f5', name: 'EUS编号', type: 'text', required: true },
       { id: 'f6', name: '检查部位', type: 'select', required: true, options: ['食管', '胃', '十二指肠', '直肠', '胰腺', '纵隔'] },
-      { id: 'f7', name: '超声频率(MHz)', type: 'number', required: true },
+      { id: 'f7', name: 'US频率(MHz)', type: 'number', required: true },
       { id: 'f8', name: '病灶大小(mm)', type: 'number', required: false },
       { id: 'f9', name: '病灶位置', type: 'text', required: false },
       { id: 'f10', name: '回声特征', type: 'multiselect', required: false, options: ['低回声', '高回声', '等回声', '无回声', '混合回声'] },
@@ -118,9 +118,9 @@ const templates: Template[] = [
   },
   {
     id: 'T004',
-    name: 'ERCP检查模板',
-    category: 'ERCP',
-    description: '逆行胰胆管造影（ERCP）检查报告模板',
+    name: 'USCP检查模板',
+    category: 'USCP',
+    description: '逆行胰胆管造影（USCP）检查报告模板',
     usageCount: 328,
     lastUsed: '2026-04-26',
     createdBy: '赵强',
@@ -131,10 +131,10 @@ const templates: Template[] = [
       { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
       { id: 'f3', name: '年龄', type: 'number', required: true },
       { id: 'f4', name: '检查日期', type: 'date', required: true },
-      { id: 'f5', name: 'ERCP编号', type: 'text', required: true },
+      { id: 'f5', name: 'USCP编号', type: 'text', required: true },
       { id: 'f6', name: '术前诊断', type: 'text', required: true },
       { id: 'f7', name: '适应症', type: 'multiselect', required: true, options: ['胆总管结石', '胆管狭窄', '胰管狭窄', '梗阻性黄疸', '胆漏'] },
-      { id: 'f8', name: '手术方式', type: 'multiselect', required: true, options: ['EST', '球囊扩张', '支架置入', '取石', '鼻胆管引流'] },
+      { id: 'f8', name: '手术方式', type: 'multiselect', required: true, options: ['EST', '球囊扩张', '支架置入', '取石', '经皮胆管引流'] },
       { id: 'f9', name: '乳头切开大小(mm)', type: 'number', required: false },
       { id: 'f10', name: '支架类型', type: 'select', required: false, options: ['塑料支架', '金属覆膜支架', '金属裸支架'] },
       { id: 'f11', name: '支架数量', type: 'number', required: false },
@@ -149,7 +149,7 @@ const templates: Template[] = [
     id: 'T005',
     name: '消化道早癌筛查模板',
     category: '早癌筛查',
-    description: '消化道早癌筛查专业模板，包含NBI放大超声探头评估、染色超声探头等早癌诊断标准字段',
+    description: '消化道早癌筛查专业模板，包含NBI放大US探头评估、染色US探头等早癌诊断标准字段',
     usageCount: 678,
     lastUsed: '2026-04-29',
     createdBy: '刘伟',
@@ -161,13 +161,13 @@ const templates: Template[] = [
       { id: 'f3', name: '年龄', type: 'number', required: true },
       { id: 'f4', name: '检查日期', type: 'date', required: true },
       { id: 'f5', name: '筛查编号', type: 'text', required: true },
-      { id: 'f6', name: '筛查类型', type: 'select', required: true, options: ['胃早癌筛查', '结直肠早癌筛查', '食管早癌筛查'] },
+      { id: 'f6', name: '筛查类型', type: 'select', required: true, options: ['肝占位筛查', '结直肠早癌筛查', '肝癌筛查'] },
       { id: 'f7', name: '风险等级', type: 'select', required: true, options: ['高危', '中危', '低危'] },
       { id: 'f8', name: '既往肿瘤史', type: 'select', required: false, options: ['有', '无'] },
       { id: 'f9', name: '肿瘤家族史', type: 'select', required: false, options: ['有', '无'] },
-      { id: 'f10', name: 'NBI放大超声探头', type: 'select', required: false, options: ['是', '否'] },
+      { id: 'f10', name: 'NBI放大US探头', type: 'select', required: false, options: ['是', '否'] },
       { id: 'f11', name: 'NBI分型', type: 'multiselect', required: false, options: ['Type A', 'Type B1', 'Type B2', 'Type B3', 'Type C1', 'Type C2', 'Type C3'] },
-      { id: 'f12', name: '染色超声探头', type: 'select', required: false, options: ['是', '否'] },
+      { id: 'f12', name: '染色US探头', type: 'select', required: false, options: ['是', '否'] },
       { id: 'f13', name: '染色剂类型', type: 'select', required: false, options: ['卢戈液', '靛胭脂', '亚甲蓝', '醋酸'] },
       { id: 'f14', name: 'IPCL分型(食管)', type: 'select', required: false, options: ['Type A', 'Type B1', 'Type B2', 'Type B3', 'Type V'] },
       { id: 'f15', name: '表面型分类', type: 'select', required: false, options: ['0-I', '0-IIa', '0-IIb', '0-IIc', '0-III'] },
@@ -176,16 +176,16 @@ const templates: Template[] = [
       { id: 'f18', name: '浸润深度预估', type: 'select', required: false, options: ['M', 'SM1', 'SM2', 'MP', 'SS'] },
       { id: 'f19', name: '早癌诊断', type: 'select', required: false, options: ['阴性', '疑似早癌', '早癌', '进展期癌'] },
       { id: 'f20', name: '组织病理学', type: 'select', required: false, options: ['炎症', '低级别上皮内瘤变', '高级别上皮内瘤变', '腺癌', '鳞癌'] },
-      { id: 'f21', name: '超声探头下治疗建议', type: 'multiselect', required: false, options: ['ESD', 'EMR', '外科手术', '密切随访', '扩大适应症ESD'] },
+      { id: 'f21', name: 'US探头下治疗建议', type: 'multiselect', required: false, options: ['US_DISSECTION', 'US_ABLATION', '外科手术', '密切随访', '扩大适应症ESD'] },
       { id: 'f22', name: '筛查图片', type: 'image', required: false },
       { id: 'f23', name: '筛查医生签名', type: 'signature', required: true },
     ],
   },
   {
     id: 'T006',
-    name: '胃早癌ESD术模板',
-    category: '腹部超声',
-    description: '胃早癌超声黏膜下剥离术（ESD）专业模板',
+    name: '肝占位US_DISSECTION术模板',
+    category: '腹部US',
+    description: '肝占位US黏膜下剥离术（US_DISSECTION）专业模板',
     usageCount: 234,
     lastUsed: '2026-04-24',
     createdBy: '张建国',
@@ -196,7 +196,7 @@ const templates: Template[] = [
       { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
       { id: 'f3', name: '年龄', type: 'number', required: true },
       { id: 'f4', name: '手术日期', type: 'date', required: true },
-      { id: 'f5', name: 'ESD编号', type: 'text', required: true },
+      { id: 'f5', name: 'US_D编号', type: 'text', required: true },
       { id: 'f6', name: '病变位置', type: 'select', required: true, options: ['胃窦', '胃角', '胃体', '胃底', '贲门', '幽门'] },
       { id: 'f7', name: '病变部位(具体)', type: 'text', required: true },
       { id: 'f8', name: '病变大小(mm)', type: 'number', required: true },
@@ -219,9 +219,9 @@ const templates: Template[] = [
   },
   {
     id: 'T007',
-    name: '结肠息肉切除模板',
-    category: '肠镜',
-    description: '结肠息肉超声探头下切除术（EMR/APC）报告模板',
+    name: '肝囊肿切除模板',
+    category: 'US',
+    description: '肝囊肿US探头下切除术（US_ABLATION/APC）报告模板',
     usageCount: 567,
     lastUsed: '2026-04-29',
     createdBy: '李明华',
@@ -237,7 +237,7 @@ const templates: Template[] = [
       { id: 'f7', name: '息肉大小(mm)', type: 'number', required: true },
       { id: 'f8', name: '息肉形态', type: 'select', required: true, options: ['Ip', 'Isp', 'Is', 'IIa', 'IIb', 'IIc', 'LST'] },
       { id: 'f9', name: '息肉类型', type: 'select', required: true, options: ['腺瘤', '增生性息肉', '炎性息肉', '幼年性息肉', 'P-J息肉'] },
-      { id: 'f10', name: '切除方式', type: 'select', required: true, options: ['冷切除', '热切除', 'EMR', 'ESD', 'APC'] },
+      { id: 'f10', name: '切除方式', type: 'select', required: true, options: ['冷切除', '热切除', 'US_ABLATION', 'US_DISSECTION', 'APC'] },
       { id: 'f11', name: '切除数目', type: 'number', required: true },
       { id: 'f12', name: '完整回收', type: 'select', required: true, options: ['是', '否'] },
       { id: 'f13', name: '术中并发症', type: 'multiselect', required: false, options: ['出血', '穿孔', '无'] },
@@ -278,7 +278,7 @@ const styles: Record<string, React.CSSProperties> = {
   badgeGastroscope: { background: '#dbeafe', color: '#1d4ed8' },
   badgeColonoscope: { background: '#dcfce7', color: '#16a34a' },
   badgeEUS: { background: '#fef3c7', color: '#d97706' },
-  badgeERCP: { background: '#fee2e2', color: '#dc2626' },
+  badgeUSCP: { background: '#fee2e2', color: '#dc2626' },
   badgeEarlyCancer: { background: '#fce7f3', color: '#be185d' },
   badgeOther: { background: '#f1f5f9', color: '#64748b' },
   badgeProfessional: { background: '#fef3c7', color: '#b45309', fontSize: 10 },
@@ -336,10 +336,10 @@ const fieldTypeConfig: Record<FieldType, { icon: React.ReactNode; color: string 
 
 // 分类徽章颜色
 const categoryBadgeMap: Record<string, React.CSSProperties> = {
-  '腹部超声': styles.badgeGastroscope,
-  '肠镜': styles.badgeColonoscope,
-  '超声超声探头': styles.badgeEUS,
-  'ERCP': styles.badgeERCP,
+  '腹部US': styles.badgeGastroscope,
+  'US': styles.badgeColonoscope,
+  'US探头': styles.badgeEUS,
+  'USCP': styles.badgeUSCP,
   '早癌筛查': styles.badgeEarlyCancer,
   '其他': styles.badgeOther,
 };
@@ -384,7 +384,7 @@ export default function TemplatePage() {
     setEditingTemplate(template || {
       id: `T${String(templates.length + 1).padStart(3, '0')}`,
       name: '',
-      category: '腹部超声',
+      category: '腹部US',
       description: '',
       fields: [],
       usageCount: 0,
@@ -606,10 +606,10 @@ export default function TemplatePage() {
                   value={editingTemplate.category}
                   onChange={e => setEditingTemplate({ ...editingTemplate, category: e.target.value as Template['category'] })}
                 >
-                  <option>腹部超声</option>
-                  <option>肠镜</option>
-                  <option>超声超声探头</option>
-                  <option>ERCP</option>
+                  <option>腹部US</option>
+                  <option>US</option>
+                  <option>US探头</option>
+                  <option>USCP</option>
                   <option>早癌筛查</option>
                   <option>其他</option>
                 </select>
@@ -744,10 +744,10 @@ export default function TemplatePage() {
               onChange={e => setFilterCategory(e.target.value)}
             >
               <option value="全部">全部分类</option>
-              <option>腹部超声</option>
-              <option>肠镜</option>
-              <option>超声超声探头</option>
-              <option>ERCP</option>
+              <option>腹部US</option>
+              <option>US</option>
+              <option>US探头</option>
+              <option>USCP</option>
               <option>早癌筛查</option>
               <option>其他</option>
             </select>

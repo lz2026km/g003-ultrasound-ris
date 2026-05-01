@@ -521,7 +521,7 @@ export default function CriticalValuePage() {
                       style={s.input}
                       value={formData.examItemName}
                       onChange={e => setFormData({ ...formData, examItemName: e.target.value })}
-                      placeholder="如：电子胃镜检查"
+                      placeholder="如：电子超声检查"
                     />
                   </div>
                   <div style={s.formGroup}>

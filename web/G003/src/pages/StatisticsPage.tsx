@@ -929,7 +929,7 @@ export default function StatisticsPage() {
             borderColor={s.purple.color}
           />
           <MonthCard
-            label="肠镜平均退镜"
+            label="超声平均退镜"
             value={stats.monthColonoscopyAvgWithdrawal}
             unit="分钟"
             borderColor={s.orange.color}
@@ -1028,7 +1028,7 @@ export default function StatisticsPage() {
           icon={Microscope}
         />
         <QCCard
-          title="肠镜退镜质控"
+          title="超声退镜质控"
           value={stats.monthColonoscopyAvgWithdrawal}
           minValue={6}
           unit="分钟"
@@ -1345,7 +1345,7 @@ function OverallRateCard({ stats }: OverallRateCardProps) {
         </div>
         <div style={s.overallRateFooterItem}>
           <CheckCircle size={12} />
-          肠镜质控 {((stats.monthColonoscopyAvgWithdrawal / 6) * 100).toFixed(0)}%
+          超声质控 {((stats.monthColonoscopyAvgWithdrawal / 6) * 100).toFixed(0)}%
         </div>
       </div>
     </div>

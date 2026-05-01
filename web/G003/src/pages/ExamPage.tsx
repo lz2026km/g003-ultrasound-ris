@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G003 超声RIS系统 - 检查执行工作台（大幅增强版）
+// G003 USRIS系统 - 检查执行工作台（大幅增强版）
 // 包含：检查执行全流程管理、检查室管理、图像采集、医嘱管理、检查小结
 // ============================================================
 import { useState, useEffect, useCallback, useRef } from 'react'
@@ -712,7 +712,7 @@ const ROOMS_CONFIG: { name: string; status: RoomStatus; inUseBy?: string }[] = [
   { name: '检查室2', status: '空闲' },
   { name: '检查室3', status: '使用中', inUseBy: '李秀英' },
   { name: '支气管镜室', status: '空闲' },
-  { name: 'ERCP室', status: '清洁中' },
+  { name: 'USCP室', status: '清洁中' },
 ]
 
 // 默认医嘱项
@@ -759,7 +759,7 @@ const EXAM_PHASES: { phase: ExamPhase; label: string; icon: string }[] = [
   { phase: '候诊', label: '候诊等待', icon: '⏳' },
   { phase: '入室', label: '进入诊室', icon: '🚪' },
   { phase: '麻醉', label: '麻醉/镇静', icon: '💉' },
-  { phase: '检查', label: '超声检查', icon: '🔍' },
+  { phase: '检查', label: 'US检查', icon: '🔍' },
   { phase: '复苏', label: '术后复苏', icon: '🛏️' },
   { phase: '报告', label: '报告书写', icon: '📝' },
   { phase: '离院', label: '患者离院', icon: '🏥' },
@@ -1578,7 +1578,7 @@ export default function ExamPage() {
     switch (status) {
       case '已接诊': return '护士签到，患者进入诊室'
       case '检查准备中': return '患者准备，麻醉评估'
-      case '检查中': return '正在进行超声检查'
+      case '检查中': return '正在进行US检查'
       case '复苏中': return '检查结束，患者复苏'
       case '报告待写': return '等待书写检查报告'
       case '已完成': return '检查已完成'
@@ -1898,13 +1898,13 @@ export default function ExamPage() {
               <ShieldCheck size={15} color="#1a3a5c" /> 质控标准
             </div>
 
-            {/* 胃镜质控 */}
+            {/* US质控 */}
             <div style={s.qcItem}>
               <div style={{ ...s.qcIconWrap, background: COLORS.purple.bg }}>
                 <Camera size={18} color={COLORS.purple.color} />
               </div>
               <div style={s.qcInfo}>
-                <div style={s.qcLabel}>胃镜检查</div>
+                <div style={s.qcLabel}>US检查</div>
                 <div style={s.qcValue}>≥ {GASTRORAPHY_MIN_PHOTOS} 张</div>
                 <div style={s.qcProgress}>
                   <div style={{
@@ -1923,13 +1923,13 @@ export default function ExamPage() {
               </div>
             </div>
 
-            {/* 肠镜质控 */}
+            {/* US质控 */}
             <div style={s.qcItem}>
               <div style={{ ...s.qcIconWrap, background: COLORS.orange.bg }}>
                 <Clock size={18} color={COLORS.orange.color} />
               </div>
               <div style={s.qcInfo}>
-                <div style={s.qcLabel}>肠镜退镜时间</div>
+                <div style={s.qcLabel}>US退镜时间</div>
                 <div style={s.qcValue}>≥ {COLONOSCOPY_MIN_WITHDRAWAL} 分钟</div>
                 <div style={s.qcProgress}>
                   <div style={{
@@ -2103,7 +2103,7 @@ export default function ExamPage() {
               <strong>{activeExam?.patientName}</strong> 的检查即将完成<br/>
               检查室：{selectedRoom}<br/>
               采集图像：{capturedImages.length} 张<br/>
-              质控：胃镜 {livePhotoCount >= GASTRORAPHY_MIN_PHOTOS ? '✓ 合格' : `✗ ${livePhotoCount}/${GASTRORAPHY_MIN_PHOTOS}`}
+              质控：US {livePhotoCount >= GASTRORAPHY_MIN_PHOTOS ? '✓ 合格' : `✗ ${livePhotoCount}/${GASTRORAPHY_MIN_PHOTOS}`}
             </div>
             <div style={{ fontSize: 13, color: '#64748b', marginBottom: 8 }}>
               请确认检查小结已填写

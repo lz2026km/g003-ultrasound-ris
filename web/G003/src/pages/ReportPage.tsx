@@ -355,7 +355,7 @@ export default function ReportPage() {
   // 模板管理状态
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<ReportTemplate | null>(null)
-  const [templateForm, setTemplateForm] = useState({ name: '', category: '胃镜' as '胃镜' | '肠镜' | '支气管镜' | '其他', content: '' })
+  const [templateForm, setTemplateForm] = useState({ name: '', category: '超声' as '超声' | '超声' | '支气管镜' | '其他', content: '' })
 
   // 统计
   const stats = useMemo(() => ({
@@ -438,7 +438,7 @@ export default function ReportPage() {
   // 模板管理
   const openNewTemplate = () => {
     setEditingTemplate(null)
-    setTemplateForm({ name: '', category: '胃镜', content: '' })
+    setTemplateForm({ name: '', category: '超声', content: '' })
     setShowTemplateModal(true)
   }
 
@@ -631,10 +631,10 @@ export default function ReportPage() {
               <div style={s.filterGroup}>
                 <select style={s.select} value={examTypeFilter} onChange={e => { setExamTypeFilter(e.target.value); setPage(1) }}>
                   <option value="">类型</option>
-                  <option value="胃镜">胃镜</option>
-                  <option value="肠镜">肠镜</option>
+                  <option value="超声">超声</option>
+                  <option value="超声">超声</option>
                   <option value="支气管镜">支气管镜</option>
-                  <option value="ERCP">ERCP</option>
+                  <option value="USCP">USCP</option>
                   <option value="超声检查">超声检查</option>
                 </select>
               </div>
@@ -898,13 +898,13 @@ export default function ReportPage() {
               <div style={s.templateEditor}>
                 <div style={s.formGroup}>
                   <label style={s.formLabel}>模板名称</label>
-                  <input style={s.formInput} value={templateForm.name} onChange={e => setTemplateForm(f => ({ ...f, name: e.target.value }))} placeholder="如：标准胃镜报告模板" />
+                  <input style={s.formInput} value={templateForm.name} onChange={e => setTemplateForm(f => ({ ...f, name: e.target.value }))} placeholder="如：标准超声报告模板" />
                 </div>
                 <div style={s.formGroup}>
                   <label style={s.formLabel}>检查类型</label>
                   <select style={s.select} value={templateForm.category} onChange={e => setTemplateForm(f => ({ ...f, category: e.target.value as typeof templateForm.category }))}>
-                    <option value="胃镜">胃镜</option>
-                    <option value="肠镜">肠镜</option>
+                    <option value="超声">超声</option>
+                    <option value="超声">超声</option>
                     <option value="支气管镜">支气管镜</option>
                     <option value="其他">其他</option>
                   </select>

@@ -142,7 +142,7 @@ interface QCIssue {
 
 // ========== 22张图片标准数据 ==========
 const GASTROSCOPY_STANDARD: QCPhotoStandard = {
-  examType: '电子胃镜检查',
+  examType: '电子超声检查',
   totalRequired: 22,
   items: [
     { id: 'G01', name: '食道上段', description: '距门齿约15-20cm，吸气相', required: true, captured: false, quality: 'missing' },
@@ -171,7 +171,7 @@ const GASTROSCOPY_STANDARD: QCPhotoStandard = {
 }
 
 const COLONOSCOPY_STANDARD: QCPhotoStandard = {
-  examType: '电子结肠镜检查',
+  examType: '电子结超声检查',
   totalRequired: 22,
   items: [
     { id: 'C01', name: '肛管', description: '观察肛管病变', required: true, captured: false, quality: 'missing' },
@@ -200,7 +200,7 @@ const COLONOSCOPY_STANDARD: QCPhotoStandard = {
 }
 
 const EUS_STANDARD: QCPhotoStandard = {
-  examType: '超声超声检查（EUS）',
+  examType: '超声检查（EUS）',
   totalRequired: 18,
   items: [
     { id: 'E01', name: '探查部位1', description: '超声探头探查位置', required: true, captured: false, quality: 'missing' },
@@ -229,7 +229,7 @@ const generateHistoryRecords = (): HistoryRecord[] => {
   const patients = ['张伟', '王芳', '李明', '刘洋', '陈静', '杨帆', '赵雷', '周婷', '吴强', '郑鑫',
                      '孙鹏', '马云', '李娜', '王磊', '刘芳', '陈刚', '周洋', '吴琳', '郑浩', '冯雪',
                      '许志明', '邓丽华', '梁志强', '肖娜', '朱红梅', '秦建国', '薛丽娜', '贺明', '谭志远', '卢晓峰']
-  const types = ['胃镜', '肠镜', 'EUS']
+  const types = ['超声', '超声', 'EUS']
   const suggestions = [
     '建议加强退镜时间把控',
     '图片采集数量需达标',
@@ -262,7 +262,7 @@ const generateHistoryRecords = (): HistoryRecord[] => {
 const generateScoringRecords = (): QCScoring[] => {
   const patients = ['张伟', '王芳', '李明', '刘洋', '陈静', '杨帆', '赵雷', '周婷', '吴强', '郑鑫',
                      '孙鹏', '马云', '李娜', '王磊', '刘芳']
-  const types = ['胃镜', '肠镜', 'EUS']
+  const types = ['超声', '超声', 'EUS']
   const deductionItems = [
     { item: '图片数量不足', points: 2 },
     { item: '退镜时间不足', points: 3 },
@@ -334,12 +334,12 @@ const aiModels: AIModel[] = [
   },
   {
     id: 'model-2', name: 'JMANBI-Scorer', version: 'v2.1.0', type: 'jmanbi',
-    description: '胃镜黏膜下肿瘤分期评分模型，自动评估JMANBI分期指标并给出评分建议',
+    description: '超声黏膜下肿瘤分期评分模型，自动评估JMANBI分期指标并给出评分建议',
     status: 'active', accuracy: 88.3, precision: 85.6, recall: 91.1, detections: 8930, lastUpdated: '2026-04-20',
   },
   {
     id: 'model-3', name: 'BBPS-Analyser', version: 'v1.8.5', type: 'bbps',
-    description: '肠镜BBPS评分分析模型，自动评估肠道准备质量和BBPS分项得分',
+    description: '超声BBPS评分分析模型，自动评估肠道准备质量和BBPS分项得分',
     status: 'active', accuracy: 91.2, precision: 89.5, recall: 93.0, detections: 6780, lastUpdated: '2026-04-18',
   },
   {
@@ -373,10 +373,10 @@ const QC_INDICATORS: QCIndicator[] = [
 ]
 
 const QC_ISSUES: QCIssue[] = [
-  { id: 'Q001', patientName: '王芳', examType: '肠镜', date: '2026-04-29', issueType: '图像不达标', severity: 'high', description: '退镜时间仅4分32秒，低于标准6分钟', suggestion: '加强退镜时间培训，使用计时器', status: 'pending' },
-  { id: 'Q002', patientName: '李明', examType: '胃镜', date: '2026-04-29', issueType: '图片缺失', severity: 'medium', description: '缺少胃体上部图像', suggestion: '补充采集缺失体位图片', status: 'pending' },
-  { id: 'Q003', patientName: '刘洋', examType: '肠镜', date: '2026-04-28', issueType: '清晰度不足', severity: 'medium', description: '图像清晰度评分低于80分', suggestion: '检查摄像头状态，清洁镜头', status: 'resolved' },
-  { id: 'Q004', patientName: '陈静', examType: '胃镜', date: '2026-04-28', issueType: '报告迟交', severity: 'low', description: '报告提交时间超过24小时', suggestion: '优化报告书写流程', status: 'ignored' },
+  { id: 'Q001', patientName: '王芳', examType: '超声', date: '2026-04-29', issueType: '图像不达标', severity: 'high', description: '退镜时间仅4分32秒，低于标准6分钟', suggestion: '加强退镜时间培训，使用计时器', status: 'pending' },
+  { id: 'Q002', patientName: '李明', examType: '超声', date: '2026-04-29', issueType: '图片缺失', severity: 'medium', description: '缺少胃体上部图像', suggestion: '补充采集缺失体位图片', status: 'pending' },
+  { id: 'Q003', patientName: '刘洋', examType: '超声', date: '2026-04-28', issueType: '清晰度不足', severity: 'medium', description: '图像清晰度评分低于80分', suggestion: '检查摄像头状态，清洁镜头', status: 'resolved' },
+  { id: 'Q004', patientName: '陈静', examType: '超声', date: '2026-04-28', issueType: '报告迟交', severity: 'low', description: '报告提交时间超过24小时', suggestion: '优化报告书写流程', status: 'ignored' },
 ]
 
 // ========== 样式定义 ==========
@@ -706,7 +706,7 @@ export default function AIQCPage() {
   const paginatedHistory = filteredHistory.slice((page - 1) * pageSize, page * pageSize)
   const totalPages = Math.ceil(filteredHistory.length / pageSize)
 
-  const examTypes = ['全部', '胃镜', '肠镜', 'EUS']
+  const examTypes = ['全部', '超声', '超声', 'EUS']
 
   // KPI数据
   const kpiData = [
@@ -830,9 +830,9 @@ export default function AIQCPage() {
             </div>
             <div style={s.panelBody}>
               {[
-                { patient: '王芳', type: '肠镜', time: '10:32', detection: '发现结肠息肉', confidence: 92 },
-                { patient: '李明', type: '胃镜', time: '10:28', detection: '可疑溃疡病灶', confidence: 87 },
-                { patient: '刘洋', type: '肠镜', time: '10:15', detection: '直肠息肉', confidence: 95 },
+                { patient: '王芳', type: '超声', time: '10:32', detection: '发现肝囊肿', confidence: 92 },
+                { patient: '李明', type: '超声', time: '10:28', detection: '可疑溃疡病灶', confidence: 87 },
+                { patient: '刘洋', type: '超声', time: '10:15', detection: '直肠息肉', confidence: 95 },
               ].map((item, idx) => (
                 <div key={idx} style={{
                   padding: '12px 14px', border: '1px solid #e5e7eb', borderRadius: 8, marginBottom: 8,
@@ -961,13 +961,13 @@ export default function AIQCPage() {
                 style={{ ...s.btnIcon, background: selectedExamType === 'gastroscopy' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'gastroscopy' ? '#fff' : '#475569' }}
                 onClick={() => setSelectedExamType('gastroscopy')}
               >
-                <Camera size={14} />胃镜（22张）
+                <Camera size={14} />超声（22张）
               </button>
               <button
                 style={{ ...s.btnIcon, background: selectedExamType === 'colonoscopy' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'colonoscopy' ? '#fff' : '#475569' }}
                 onClick={() => setSelectedExamType('colonoscopy')}
               >
-                <Camera size={14} />肠镜（22张）
+                <Camera size={14} />超声（22张）
               </button>
               <button
                 style={{ ...s.btnIcon, background: selectedExamType === 'eus' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'eus' ? '#fff' : '#475569' }}

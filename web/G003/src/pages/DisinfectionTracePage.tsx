@@ -175,7 +175,7 @@ const generateDisinfectionRecords = (): DisinfectionRecord[] => {
   const operators = ['张伟', '李娜', '王芳', '刘洋', '陈静', '赵鹏', '孙磊']
   const ultrasoundDeviceModels = ['Olympus CF-HQ290', 'Fujifilm EC-601WM', 'Pentax ED-3490TK', 'Boston Scientific 38032', 'Olympus GIF-H290', 'Fujifilm EC-601WM2']
   const patients = ['王建国', '李秀英', '张德明', '刘玉兰', '陈志强', '杨桂花', '赵文博', '吴晓燕', '周伟平', '郑美华', '孙立新', '朱红梅', '马文涛', '胡丽娜', '郭永强']
-  const procedures = ['腹部超声检查', '浅表超声检查', '介入超声', '肺部超声', '超声超声探头', 'ERCP', 'EUS']
+  const procedures = ['腹部超声检查', '浅表超声检查', '介入超声', '肺部超声', '超声超声探头', 'USCP', 'EUS']
   const disinfectantNames = ['戊二醛 2%', '过氧乙酸 0.2%', '邻苯二甲醛 0.55%', '次氯酸钠 5%']
 
   for (let i = 0; i < 60; i++) {
@@ -296,7 +296,7 @@ const generateDeviceUsage = (): DeviceUsage[] => {
   const usage: DeviceUsage[] = []
   const models = ['Olympus CF-HQ290', 'Fujifilm EC-601WM', 'Pentax ED-3490TK', 'Boston Scientific 38032']
   const patients = ['王建国', '李秀英', '张德明', '刘玉兰', '陈志强', '杨桂花', '赵文博', '吴晓燕', '周伟平', '郑美华', '孙立新', '朱红梅', '马文涛', '胡丽娜', '郭永强', '林晓峰', '何秀英', '高建国', '罗玉兰', '谢志明']
-  const checkTypes = ['腹部超声检查', '浅表超声检查', '介入超声', '肺部超声', '超声超声探头', 'ERCP', 'EUS']
+  const checkTypes = ['腹部超声检查', '浅表超声检查', '介入超声', '肺部超声', '超声超声探头', 'USCP', 'EUS']
   const statuses: DeviceUsage['status'][] = ['in_use', 'pending', 'cleaning', 'ready', 'maintenance']
 
   for (let i = 0; i < 20; i++) {

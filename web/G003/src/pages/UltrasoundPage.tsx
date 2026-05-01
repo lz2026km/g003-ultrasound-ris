@@ -31,12 +31,12 @@ interface UseRecord {
 
 // ---------- 模拟使用记录数据 ----------
 const mockUseRecords: UseRecord[] = [
-  { id: 'UR001', endoscopeId: 'US001', patientName: '王建国', patientId: 'P001', examType: '彩色多普勒超声检查', doctorName: '张建国', nurseName: '李娟', examRoom: '超声设备室1', examDate: '2026-04-29', examTime: '09:00', endTime: '09:25', findings: '慢性浅表性胃炎，胃溃疡（S2期）', status: '已完成' },
+  { id: 'UR001', endoscopeId: 'US001', patientName: '王建国', patientId: 'P001', examType: '彩色多普勒超声检查', doctorName: '张建国', nurseName: '李娟', examRoom: '超声设备室1', examDate: '2026-04-29', examTime: '09:00', endTime: '09:25', findings: '慢性浅表性胃炎，肝溃疡（S2期）', status: '已完成' },
   { id: 'UR002', endoscopeId: 'US001', patientName: '李美华', patientId: 'P002', examType: '彩色多普勒超声检查', doctorName: '张建国', nurseName: '李娟', examRoom: '超声设备室1', examDate: '2026-04-28', examTime: '14:00', endTime: '14:30', findings: '食道炎，贲门松弛', status: '已完成' },
-  { id: 'UR003', endoscopeId: 'US001', patientName: '赵大力', patientId: 'P003', examType: '彩色多普勒超声检查', doctorName: '周明', nurseName: '王芳', examRoom: '超声设备室1', examDate: '2026-04-27', examTime: '10:30', endTime: '11:00', findings: '正常胃黏膜', status: '已完成' },
-  { id: 'UR004', endoscopeId: 'US001', patientName: '孙小燕', patientId: 'P004', examType: '彩色多普勒超声检查', doctorName: '张建国', nurseName: '李娟', examRoom: '超声设备室1', examDate: '2026-04-26', examTime: '15:00', endTime: '15:28', findings: '胃息肉（山田I型）', status: '已完成' },
+  { id: 'UR003', endoscopeId: 'US001', patientName: '赵大力', patientId: 'P003', examType: '彩色多普勒超声检查', doctorName: '周明', nurseName: '王芳', examRoom: '超声设备室1', examDate: '2026-04-27', examTime: '10:30', endTime: '11:00', findings: '正常肝黏膜', status: '已完成' },
+  { id: 'UR004', endoscopeId: 'US001', patientName: '孙小燕', patientId: 'P004', examType: '彩色多普勒超声检查', doctorName: '张建国', nurseName: '李娟', examRoom: '超声设备室1', examDate: '2026-04-26', examTime: '15:00', endTime: '15:28', findings: '胆囊息肉（山田I型）', status: '已完成' },
   { id: 'UR005', endoscopeId: 'US002', patientName: '周国强', patientId: 'P005', examType: '彩色多普勒超声检查', doctorName: '周明', nurseName: '王芳', examRoom: '超声设备室1', examDate: '2026-04-29', examTime: '10:30', endTime: '11:05', findings: '十二指肠溃疡', status: '已完成' },
-  { id: 'UR006', endoscopeId: 'US003', patientName: '吴婷', patientId: 'P006', examType: '腹部超声检查', doctorName: '张建国', nurseName: '李娟', examRoom: '超声设备室2', examDate: '2026-04-28', examTime: '08:30', endTime: '09:15', findings: '结肠息肉（山田II型）', status: '已完成' },
+  { id: 'UR006', endoscopeId: 'US003', patientName: '吴婷', patientId: 'P006', examType: '腹部超声检查', doctorName: '张建国', nurseName: '李娟', examRoom: '超声设备室2', examDate: '2026-04-28', examTime: '08:30', endTime: '09:15', findings: '肝囊肿（山田II型）', status: '已完成' },
   { id: 'UR007', endoscopeId: 'US003', patientName: '郑伟', patientId: 'P007', examType: '腹部超声检查', doctorName: '周明', nurseName: '王芳', examRoom: '超声设备室2', examDate: '2026-04-27', examTime: '14:00', endTime: '14:50', findings: '溃疡性结肠炎（活动期）', status: '已完成' },
   { id: 'UR008', endoscopeId: 'US004', patientName: '陈静', patientId: 'P008', examType: '腹部超声检查', doctorName: '张建国', nurseName: '李娟', examRoom: '超声设备室2', examDate: '2026-04-29', examTime: '08:00', endTime: '08:40', findings: '正常结肠黏膜', status: '已完成' },
 ];
@@ -361,11 +361,11 @@ const generateExtraEndoscopes = (base: Endoscope[]): Endoscope[] => {
   const extra: Endoscope[] = []
   const names = [
     { name: 'Fujifilm彩色多普勒超声', model: 'EL-7000', manufacturer: 'Fujifilm', category: '超声检查' },
-    { name: 'Fujifilm腹部超声', model: 'EC-7000', manufacturer: 'Fujifilm', category: '肠镜' },
+    { name: 'Fujifilm腹部超声', model: 'EC-7000', manufacturer: 'Fujifilm', category: '超声' },
     { name: 'Pentax彩色多普勒超声', model: 'EG-2990i', manufacturer: 'Pentax', category: '超声检查' },
-    { name: 'Pentax腹部超声', model: 'EC-3890i', manufacturer: 'Pentax', category: '肠镜' },
-    { name: 'Boston超声超声设备', model: 'SU-9000', manufacturer: 'Boston Scientific', category: '超声超声设备' },
-    { name: 'Cook气囊小肠镜', model: 'SB-900', manufacturer: 'Cook Medical', category: '其他' },
+    { name: 'Pentax腹部超声', model: 'EC-3890i', manufacturer: 'Pentax', category: '超声' },
+    { name: 'Boston超声设备', model: 'SU-9000', manufacturer: 'Boston Scientific', category: '超声设备' },
+    { name: 'Cook气囊小超声', model: 'SB-900', manufacturer: 'Cook Medical', category: '其他' },
   ]
   const statuses: EquipmentStatus[] = ['空闲', '空闲', '空闲', '使用中', '清洗中', '消毒中', '维修中', '空闲']
   const locations = ['超声设备室1', '超声设备室2', '超声设备室3', '超声设备储存室', '超声设备室1', '超声设备室2']
@@ -484,7 +484,7 @@ export default function EndoscopePage() {
           <div style={s.overviewStatInfo}>
             <div style={s.overviewStatValue}>{endoscopes.length}</div>
             <div style={s.overviewStatLabel}>设备总数</div>
-            <div style={s.overviewStatSub}>超声设备 {endoscopes.filter(e => ['超声检查','肠镜','肺部超声','心脏超声','超声超声设备'].includes(e.category)).length} 台</div>
+            <div style={s.overviewStatSub}>超声设备 {endoscopes.filter(e => ['超声检查','超声','肺部超声','心脏超声','超声设备'].includes(e.category)).length} 台</div>
           </div>
         </div>
         <div style={s.overviewStatCard}>
@@ -1030,10 +1030,10 @@ export default function EndoscopePage() {
                         onChange={e => handleField('category', e.target.value)}
                       >
                         <option value="超声检查">超声检查</option>
-                        <option value="肠镜">肠镜</option>
+                        <option value="超声">超声</option>
                         <option value="肺部超声">肺部超声</option>
                         <option value="心脏超声">心脏超声</option>
-                        <option value="超声超声设备">超声超声设备</option>
+                        <option value="超声设备">超声设备</option>
                         <option value="其他">其他</option>
                       </select>
                     </div>

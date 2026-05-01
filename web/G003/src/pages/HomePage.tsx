@@ -418,7 +418,7 @@ const CLINICAL_FEEDS = [
   { id: 1, type: 'urgent', icon: AlertCircle, iconBg: '#fef2f2', iconColor: '#ef4444', title: '危急值通报', desc: '患者李红霞，腹部超声活检结果：高度异型增生', time: '10:32', badge: '紧急', badgeBg: '#fef2f2', badgeColor: '#ef4444' },
   { id: 2, type: 'report', icon: FileText, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '检查报告完成', desc: '王建国 — 浅表超声检查（操作：赵主任）', time: '10:18', badge: '报告', badgeBg: '#eff6ff', badgeColor: '#3b82f6' },
   { id: 3, type: 'disinfect', icon: Syringe, iconBg: '#f0fdfa', iconColor: '#14b8a6', title: '超声探头洗消完成', desc: '腹部超声 #3 洗消完成，可投入使用', time: '09:55', badge: '洗消', badgeBg: '#f0fdfa', badgeColor: '#14b8a6' },
-  { id: 4, type: 'appoint', icon: CalendarClock, iconBg: '#f5f3ff', iconColor: '#8b5cf6', title: '新增预约', desc: '张明 — 肠镜检查，预约时间 14:00', time: '09:40', badge: '预约', badgeBg: '#f5f3ff', badgeColor: '#8b5cf6' },
+  { id: 4, type: 'appoint', icon: CalendarClock, iconBg: '#f5f3ff', iconColor: '#8b5cf6', title: '新增预约', desc: '张明 — 超声检查，预约时间 14:00', time: '09:40', badge: '预约', badgeBg: '#f5f3ff', badgeColor: '#8b5cf6' },
   { id: 5, type: 'critical', icon: HeartPulse, iconBg: '#fff7ed', iconColor: '#f97316', title: '麻醉复苏提醒', desc: '患者赵磊 — 丙泊酚麻醉复苏中，预计15分钟', time: '09:22', badge: '麻醉', badgeBg: '#fff7ed', badgeColor: '#f97316' },
 ]
 
@@ -866,7 +866,7 @@ export default function HomePage() {
           suffix="/ ≥22张"
         />
         <IndicatorCard
-          label="肠镜平均退镜"
+          label="超声平均退镜"
           value={stats.monthColonoscopyAvgWithdrawal}
           unit="分钟"
           borderColor={s.orange.color}

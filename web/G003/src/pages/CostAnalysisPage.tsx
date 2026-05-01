@@ -227,10 +227,10 @@ export default function CostAnalysisPage() {
           <div style={s.card}>
             <div style={s.cardTitle}><Activity size={16} color="#a371f7" /> 设备效益分析</div>
             {[
-              { name: '电子胃镜 GIF-H290', exams: 486, income: 291600, cost: 42000, profit: 249600, rate: 85 },
-              { name: '电子肠镜 CF-H290I', exams: 398, income: 238800, cost: 38000, profit: 200800, rate: 84 },
-              { name: '超声内镜 EU-M2000', exams: 124, income: 186000, cost: 65000, profit: 121000, rate: 65 },
-              { name: '电子胃镜 GIF-Q260J', exams: 312, income: 187200, cost: 35000, profit: 152200, rate: 81 },
+              { name: '电子超声 GIF-H290', exams: 486, income: 291600, cost: 42000, profit: 249600, rate: 85 },
+              { name: '电子超声 CF-H290I', exams: 398, income: 238800, cost: 38000, profit: 200800, rate: 84 },
+              { name: '超声 EU-M2000', exams: 124, income: 186000, cost: 65000, profit: 121000, rate: 65 },
+              { name: '电子超声 GIF-Q260J', exams: 312, income: 187200, cost: 35000, profit: 152200, rate: 81 },
             ].map(eq => (
               <div key={eq.name} style={{ marginBottom: 14 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>

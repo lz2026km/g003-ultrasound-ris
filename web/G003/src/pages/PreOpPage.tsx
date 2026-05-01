@@ -112,7 +112,7 @@ export interface PreOpAssessment {
 const preOpAssessments: PreOpAssessment[] = [
   {
     id: 'POA001', patientId: 'P001', patientName: '王建国', gender: '男', age: 58,
-    surgeryType: 'ERCP', surgeryDate: '2026-04-30', doctorName: '张建国',
+    surgeryType: 'USCP', surgeryDate: '2026-04-30', doctorName: '张建国',
     asaLevel: 'ASA III', metsScore: 4, metsLevel: '中',
     bleedingRisk: '中危', bleedingScore: 3, anesthesiaRisk: '中危',
     anesthesiaMethod: '全麻',
@@ -156,7 +156,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA002', patientId: 'P002', patientName: '李秀芳', gender: '女', age: 45,
-    surgeryType: 'EMR', surgeryDate: '2026-04-30', doctorName: '李秀英',
+    surgeryType: 'US_ABLATION', surgeryDate: '2026-04-30', doctorName: '李秀英',
     asaLevel: 'ASA I', metsScore: 8, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 1, anesthesiaRisk: '低危',
     anesthesiaMethod: '镇静',
@@ -200,7 +200,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA003', patientId: 'P003', patientName: '张德明', gender: '男', age: 62,
-    surgeryType: 'ESD', surgeryDate: '2026-04-30', doctorName: '张建国',
+    surgeryType: 'US_DISSECTION', surgeryDate: '2026-04-30', doctorName: '张建国',
     asaLevel: 'ASA IV', metsScore: 3, metsLevel: '低',
     bleedingRisk: '高危', bleedingScore: 5, anesthesiaRisk: '高危',
     anesthesiaMethod: '全麻',
@@ -282,13 +282,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 11:00', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 11:10', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '患者ASA I级，METs 9，各项指标正常，无明显出血及麻醉风险，可按计划进行超声超声检查。',
+    conclusion: '患者ASA I级，METs 9，各项指标正常，无明显出血及麻醉风险，可按计划进行超声检查。',
     precautions: ['常规监护'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA005', patientId: 'P005', patientName: '陈伟强', gender: '男', age: 55,
-    surgeryType: 'ERCP', surgeryDate: '2026-04-30', doctorName: '张建国',
+    surgeryType: 'USCP', surgeryDate: '2026-04-30', doctorName: '张建国',
     asaLevel: 'ASA II', metsScore: 6, metsLevel: '中',
     bleedingRisk: '低危', bleedingScore: 2, anesthesiaRisk: '低危',
     anesthesiaMethod: '全麻',
@@ -302,7 +302,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-29 11:30', anesthesiologist: '李医生',
-      visitNotes: 'ASA II级，肝功能轻度异常，可行全麻ERCP',
+      visitNotes: 'ASA II级，肝功能轻度异常，可行全麻USCP',
       vitalSigns: { bp: '125/82mmHg', hr: 75, rr: 17, temp: 36.5, spo2: 98 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati II，张口3指',
@@ -317,7 +317,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     status: '已评估-可手术',
     functionalStatus: '正常活动，轻度受限',
-    comorbidities: ['HP阳性', '轻度脂肪肝'],
+    comorbidities: ['乙肝阳性', '轻度脂肪肝'],
     labAbnormalities: ['ALT 58U/L偏高'],
     assessments: [
       { time: '2026-04-29 11:00', type: 'ASA分级', result: 'ASA II', doctor: '王海涛' },
@@ -326,13 +326,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 11:45', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 12:00', type: '综合结论', result: '可手术', doctor: '张建国' },
     ],
-    conclusion: '患者ASA II级，METs 6，低危出血及麻醉风险，轻度肝功能异常不影响手术，可按计划行ERCP。',
+    conclusion: '患者ASA II级，METs 6，低危出血及麻醉风险，轻度肝功能异常不影响手术，可按计划行USCP。',
     precautions: ['术中注意肝功能保护', '常规监护'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA006', patientId: 'P006', patientName: '吴美珍', gender: '女', age: 67,
-    surgeryType: '胃底静脉曲张治疗', surgeryDate: '2026-04-30', doctorName: '李秀英',
+    surgeryType: '肝静脉曲张治疗', surgeryDate: '2026-04-30', doctorName: '李秀英',
     asaLevel: 'ASA IV', metsScore: 2, metsLevel: '低',
     bleedingRisk: '高危', bleedingScore: 6, anesthesiaRisk: '高危',
     anesthesiaMethod: '全麻',
@@ -376,7 +376,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA007', patientId: 'P007', patientName: '黄大军', gender: '男', age: 48,
-    surgeryType: 'EMR', surgeryDate: '2026-04-30', doctorName: '张建国',
+    surgeryType: 'US_ABLATION', surgeryDate: '2026-04-30', doctorName: '张建国',
     asaLevel: 'ASA II', metsScore: 7, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 1, anesthesiaRisk: '低危',
     anesthesiaMethod: '镇静',
@@ -414,7 +414,7 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 14:15', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 14:30', type: '综合结论', result: '可手术', doctor: '张建国' },
     ],
-    conclusion: '患者ASA II级，METs 7，低危出血及麻醉风险，血脂偏高但不影响手术，可按计划行EMR。',
+    conclusion: '患者ASA II级，METs 7，低危出血及麻醉风险，血脂偏高但不影响手术，可按计划行US_A。',
     precautions: ['常规监护'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
@@ -434,7 +434,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-29 14:30', anesthesiologist: '李医生',
-      visitNotes: 'ASA II级，反流性食管炎，局麻下行食管扩张',
+      visitNotes: 'ASA II级，反流性肝炎，局麻下行食管扩张',
       vitalSigns: { bp: '120/76mmHg', hr: 72, rr: 17, temp: 36.5, spo2: 98 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati II，气道可',
@@ -442,14 +442,14 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     riskAssessment: {
       cardiacRisk: '低危', cardiacRiskFactors: [],
-      pulmonaryRisk: '低危', pulmonaryRiskFactors: ['反流性食管炎'],
+      pulmonaryRisk: '低危', pulmonaryRiskFactors: ['反流性肝炎'],
       liverRisk: '低危', kidneyRisk: '低危', dvtRisk: '低危', dvtScore: 0,
       nutritionRisk: '低危', nutritionScore: 1, overallRisk: '低危',
       riskMitigation: ['注意反流误吸', '常规监护']
     },
     status: '已评估-可手术',
     functionalStatus: '正常活动',
-    comorbidities: ['反流性食管炎'],
+    comorbidities: ['反流性肝炎'],
     labAbnormalities: [],
     assessments: [
       { time: '2026-04-29 14:00', type: 'ASA分级', result: 'ASA II', doctor: '王海涛' },
@@ -458,13 +458,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 14:30', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 14:45', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '患者ASA II级，METs 6，低危出血及麻醉风险，可按计划行食管扩张术。',
+    conclusion: '患者ASA II级，METs 6，低危出血及麻醉风险，可按计划行血管扩张术。',
     precautions: ['注意反流误吸', '常规监护'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA009', patientId: 'P009', patientName: '赵小龙', gender: '男', age: 42,
-    surgeryType: 'ESD', surgeryDate: '2026-04-30', doctorName: '张建国',
+    surgeryType: 'US_DISSECTION', surgeryDate: '2026-04-30', doctorName: '张建国',
     asaLevel: 'ASA I', metsScore: 8, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '全麻',
@@ -478,7 +478,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-29 15:00', anesthesiologist: '李医生',
-      visitNotes: 'ASA I级，身体健康，可行全麻ESD',
+      visitNotes: 'ASA I级，身体健康，可行全麻US_D',
       vitalSigns: { bp: '118/72mmHg', hr: 68, rr: 16, temp: 36.3, spo2: 99 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati I，气道正常',
@@ -502,7 +502,7 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 15:00', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 15:15', type: '综合结论', result: '可手术', doctor: '张建国' },
     ],
-    conclusion: '患者ASA I级，METs 8，各项指标正常，无出血及麻醉风险，可按计划行ESD。',
+    conclusion: '患者ASA I级，METs 8，各项指标正常，无出血及麻醉风险，可按计划行US_D。',
     precautions: ['常规监护'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
@@ -552,7 +552,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA011', patientId: 'P001', patientName: '王建国', gender: '男', age: 58,
-    surgeryType: 'EMR', surgeryDate: '2026-05-02', doctorName: '张建国',
+    surgeryType: 'US_ABLATION', surgeryDate: '2026-05-02', doctorName: '张建国',
     asaLevel: 'ASA II', metsScore: 5, metsLevel: '中',
     bleedingRisk: '低危', bleedingScore: 1, anesthesiaRisk: '低危',
     anesthesiaMethod: '镇静',
@@ -591,7 +591,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA012', patientId: 'P002', patientName: '李秀芳', gender: '女', age: 45,
-    surgeryType: 'ERCP', surgeryDate: '2026-05-02', doctorName: '李秀英',
+    surgeryType: 'USCP', surgeryDate: '2026-05-02', doctorName: '李秀英',
     asaLevel: 'ASA I', metsScore: 9, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '全麻',
@@ -605,7 +605,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-28 09:45', anesthesiologist: '李医生',
-      visitNotes: 'ASA I级，身体状况良好，全麻ERCP无特殊风险',
+      visitNotes: 'ASA I级，身体状况良好，全麻USCP无特殊风险',
       vitalSigns: { bp: '115/72mmHg', hr: 68, rr: 16, temp: 36.4, spo2: 99 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati I，气道正常',
@@ -635,7 +635,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA013', patientId: 'P003', patientName: '张德明', gender: '男', age: 62,
-    surgeryType: '结肠镜检查', surgeryDate: '2026-05-01', doctorName: '张建国',
+    surgeryType: '结超声检查', surgeryDate: '2026-05-01', doctorName: '张建国',
     asaLevel: 'ASA II', metsScore: 6, metsLevel: '中',
     bleedingRisk: '低危', bleedingScore: 1, anesthesiaRisk: '低危',
     anesthesiaMethod: '镇静',
@@ -649,7 +649,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-27 09:45', anesthesiologist: '李医生',
-      visitNotes: 'ASA II级，结肠息肉术后，可行镇静肠镜',
+      visitNotes: 'ASA II级，肝囊肿术后，可行镇静超声',
       vitalSigns: { bp: '122/78mmHg', hr: 72, rr: 16, temp: 36.4, spo2: 98 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati II，气道正常',
@@ -664,7 +664,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     status: '已完成',
     functionalStatus: '正常活动',
-    comorbidities: ['结肠息肉术后'],
+    comorbidities: ['肝囊肿术后'],
     labAbnormalities: [],
     assessments: [
       { time: '2026-04-27 10:00', type: 'ASA分级', result: 'ASA II', doctor: '王海涛' },
@@ -673,13 +673,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-27 10:45', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-27 11:00', type: '综合结论', result: '可手术', doctor: '张建国' },
     ],
-    conclusion: '术前评估通过，已顺利完成结肠镜检查，未见明显异常。',
+    conclusion: '术前评估通过，已顺利完成结超声检查，未见明显异常。',
     precautions: ['术后常规观察'],
     assessedBy: '王海涛', assessedDate: '2026-04-27'
   },
   {
     id: 'POA014', patientId: 'P004', patientName: '周丽娟', gender: '女', age: 38,
-    surgeryType: '胃镜检查', surgeryDate: '2026-04-29', doctorName: '李秀英',
+    surgeryType: '超声检查', surgeryDate: '2026-04-29', doctorName: '李秀英',
     asaLevel: 'ASA I', metsScore: 10, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '咽部局麻',
@@ -717,13 +717,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 08:30', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 08:45', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '术前评估通过，已顺利完成胃镜检查，提示慢性浅表性胃炎。',
+    conclusion: '术前评估通过，已顺利完成超声检查，提示慢性浅表性胃炎。',
     precautions: ['术后常规观察'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA015', patientId: 'P005', patientName: '陈伟强', gender: '男', age: 55,
-    surgeryType: '胃镜下活检', surgeryDate: '2026-04-29', doctorName: '李秀英',
+    surgeryType: '超声引导下活检', surgeryDate: '2026-04-29', doctorName: '李秀英',
     asaLevel: 'ASA II', metsScore: 7, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 1, anesthesiaRisk: '低危',
     anesthesiaMethod: '咽部局麻',
@@ -737,7 +737,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-29 09:00', anesthesiologist: '李医生',
-      visitNotes: 'ASA II级，HP阳性，局麻下行活检',
+      visitNotes: 'ASA II级，乙肝阳性，局麻下行活检',
       vitalSigns: { bp: '120/76mmHg', hr: 72, rr: 16, temp: 36.4, spo2: 98 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati II，气道正常',
@@ -752,7 +752,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     status: '已完成',
     functionalStatus: '正常体力活动',
-    comorbidities: ['HP阳性'],
+    comorbidities: ['乙肝阳性'],
     labAbnormalities: ['HP (+)'],
     assessments: [
       { time: '2026-04-29 08:30', type: 'ASA分级', result: 'ASA II', doctor: '王海涛' },
@@ -761,13 +761,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 09:00', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 09:15', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '术前评估通过，已顺利完成胃镜下活检，标本已送病理。',
+    conclusion: '术前评估通过，已顺利完成超声引导下活检，标本已送病理。',
     precautions: ['术后常规观察', '活检后禁食2小时'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA016', patientId: 'P006', patientName: '吴美珍', gender: '女', age: 67,
-    surgeryType: '肠镜检查', surgeryDate: '2026-04-29', doctorName: '李秀英',
+    surgeryType: '超声检查', surgeryDate: '2026-04-29', doctorName: '李秀英',
     asaLevel: 'ASA III', metsScore: 4, metsLevel: '中',
     bleedingRisk: '中危', bleedingScore: 3, anesthesiaRisk: '中危',
     anesthesiaMethod: '镇静',
@@ -796,7 +796,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     status: '已完成',
     functionalStatus: '活动轻度受限',
-    comorbidities: ['2型糖尿病', '高血压', '结肠息肉术后'],
+    comorbidities: ['2型糖尿病', '高血压', '肝囊肿术后'],
     labAbnormalities: ['血糖 8.6mmol/L偏高'],
     assessments: [
       { time: '2026-04-29 09:00', type: 'ASA分级', result: 'ASA III', doctor: '王海涛' },
@@ -805,13 +805,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 09:45', type: '麻醉评估', result: '中危', doctor: '麻醉科张主任' },
       { time: '2026-04-29 10:00', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '术前评估通过，已顺利完成肠镜检查，提示肠道准备欠佳。',
+    conclusion: '术前评估通过，已顺利完成超声检查，提示肠道准备欠佳。',
     precautions: ['术中监护', '注意血糖控制'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA017', patientId: 'P007', patientName: '黄大军', gender: '男', age: 48,
-    surgeryType: '胃镜检查', surgeryDate: '2026-04-29', doctorName: '张建国',
+    surgeryType: '超声检查', surgeryDate: '2026-04-29', doctorName: '张建国',
     asaLevel: 'ASA I', metsScore: 8, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '咽部局麻',
@@ -849,13 +849,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 10:00', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 10:15', type: '综合结论', result: '可手术', doctor: '张建国' },
     ],
-    conclusion: '术前评估通过，已顺利完成胃镜检查，未见明显异常。',
+    conclusion: '术前评估通过，已顺利完成超声检查，未见明显异常。',
     precautions: ['术后常规观察'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA018', patientId: 'P008', patientName: '孙红梅', gender: '女', age: 52,
-    surgeryType: '胃镜复查', surgeryDate: '2026-04-29', doctorName: '张建国',
+    surgeryType: '超声复查', surgeryDate: '2026-04-29', doctorName: '张建国',
     asaLevel: 'ASA I', metsScore: 7, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '咽部局麻',
@@ -869,7 +869,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-29 10:30', anesthesiologist: '李医生',
-      visitNotes: 'ASA I级，反流性食管炎复查，局麻下完成',
+      visitNotes: 'ASA I级，反流性肝炎复查，局麻下完成',
       vitalSigns: { bp: '115/70mmHg', hr: 70, rr: 16, temp: 36.4, spo2: 99 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati I，气道正常',
@@ -877,14 +877,14 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     riskAssessment: {
       cardiacRisk: '低危', cardiacRiskFactors: [],
-      pulmonaryRisk: '低危', pulmonaryRiskFactors: ['反流性食管炎'],
+      pulmonaryRisk: '低危', pulmonaryRiskFactors: ['反流性肝炎'],
       liverRisk: '低危', kidneyRisk: '低危', dvtRisk: '低危', dvtScore: 0,
       nutritionRisk: '低危', nutritionScore: 0, overallRisk: '低危',
       riskMitigation: ['术后常规观察']
     },
     status: '已完成',
     functionalStatus: '正常体力活动',
-    comorbidities: ['反流性食管炎'],
+    comorbidities: ['反流性肝炎'],
     labAbnormalities: [],
     assessments: [
       { time: '2026-04-29 10:00', type: 'ASA分级', result: 'ASA I', doctor: '王海涛' },
@@ -893,13 +893,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 10:30', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 10:45', type: '综合结论', result: '可手术', doctor: '张建国' },
     ],
-    conclusion: '术前评估通过，已顺利完成胃镜复查，提示反流性食管炎较前好转。',
+    conclusion: '术前评估通过，已顺利完成超声复查，提示反流性肝炎较前好转。',
     precautions: ['术后常规观察'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA019', patientId: 'P009', patientName: '赵小龙', gender: '男', age: 42,
-    surgeryType: '肠镜检查', surgeryDate: '2026-04-30', doctorName: '李秀英',
+    surgeryType: '超声检查', surgeryDate: '2026-04-30', doctorName: '李秀英',
     asaLevel: 'ASA I', metsScore: 9, metsLevel: '高',
     bleedingRisk: '低危', bleedingScore: 0, anesthesiaRisk: '低危',
     anesthesiaMethod: '镇静',
@@ -936,7 +936,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA020', patientId: 'P010', patientName: '周玉芬', gender: '女', age: 71,
-    surgeryType: '结肠镜检查', surgeryDate: '2026-04-30', doctorName: '李秀英',
+    surgeryType: '结超声检查', surgeryDate: '2026-04-30', doctorName: '李秀英',
     asaLevel: 'ASA III', metsScore: 3, metsLevel: '低',
     bleedingRisk: '中危', bleedingScore: 4, anesthesiaRisk: '中危',
     anesthesiaMethod: '镇静',
@@ -950,7 +950,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-29 11:45', anesthesiologist: '张主任',
-      visitNotes: 'ASA III级，贫血已纠正，可行镇静肠镜',
+      visitNotes: 'ASA III级，贫血已纠正，可行镇静超声',
       vitalSigns: { bp: '135/85mmHg', hr: 76, rr: 17, temp: 36.5, spo2: 97 },
       cardiacExam: '未及明显杂音', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati II，颈椎活动可',
@@ -974,13 +974,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 11:45', type: '麻醉评估', result: '中危', doctor: '麻醉科张主任' },
       { time: '2026-04-29 12:00', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '术前评估通过，输血纠正贫血后顺利进行结肠镜检查，发现结肠多发息肉。',
+    conclusion: '术前评估通过，输血纠正贫血后顺利进行结超声检查，发现肝多发囊肿。',
     precautions: ['术中监护', '备血', '术后补充铁剂'],
     assessedBy: '李秀英', assessedDate: '2026-04-29'
   },
   {
     id: 'POA021', patientId: 'P001', patientName: '王建国', gender: '男', age: 58,
-    surgeryType: '胃镜复查', surgeryDate: '2026-04-28', doctorName: '张建国',
+    surgeryType: '超声复查', surgeryDate: '2026-04-28', doctorName: '张建国',
     asaLevel: 'ASA II', metsScore: 5, metsLevel: '中',
     bleedingRisk: '低危', bleedingScore: 1, anesthesiaRisk: '低危',
     anesthesiaMethod: '咽部局麻',
@@ -994,7 +994,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-28 08:45', anesthesiologist: '李医生',
-      visitNotes: 'ASA II级，胃溃疡病史，局麻下复查',
+      visitNotes: 'ASA II级，肝溃疡病史，局麻下复查',
       vitalSigns: { bp: '125/80mmHg', hr: 74, rr: 16, temp: 36.4, spo2: 98 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati II，气道正常',
@@ -1009,7 +1009,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     status: '已完成',
     functionalStatus: '正常活动',
-    comorbidities: ['胃溃疡病史'],
+    comorbidities: ['肝溃疡病史'],
     labAbnormalities: [],
     assessments: [
       { time: '2026-04-28 08:00', type: 'ASA分级', result: 'ASA II', doctor: '王海涛' },
@@ -1018,7 +1018,7 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-28 08:45', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-28 09:00', type: '综合结论', result: '可手术', doctor: '张建国' },
     ],
-    conclusion: '术前评估通过，已顺利完成胃镜复查，提示胃溃疡愈合中。',
+    conclusion: '术前评估通过，已顺利完成超声复查，提示肝溃疡愈合中。',
     precautions: ['术后常规观察', '继续抑酸治疗'],
     assessedBy: '王海涛', assessedDate: '2026-04-28'
   },
@@ -1062,13 +1062,13 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 11:30', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 11:45', type: '综合结论', result: '可手术', doctor: '李秀英' },
     ],
-    conclusion: '术前评估通过，已顺利完成超声超声检查，提示胃黏膜下肿物。',
+    conclusion: '术前评估通过，已顺利完成超声检查，提示肝囊肿。',
     precautions: ['术后常规观察'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },
   {
     id: 'POA023', patientId: 'P003', patientName: '张德明', gender: '男', age: 62,
-    surgeryType: 'EMR', surgeryDate: '2026-04-30', doctorName: '张建国',
+    surgeryType: 'US_ABLATION', surgeryDate: '2026-04-30', doctorName: '张建国',
     asaLevel: 'ASA III', metsScore: 4, metsLevel: '中',
     bleedingRisk: '中危', bleedingScore: 4, anesthesiaRisk: '中危',
     anesthesiaMethod: '全麻',
@@ -1147,7 +1147,7 @@ const preOpAssessments: PreOpAssessment[] = [
   },
   {
     id: 'POA025', patientId: 'P005', patientName: '陈伟强', gender: '男', age: 55,
-    surgeryType: 'ERCP', surgeryDate: '2026-05-03', doctorName: '张建国',
+    surgeryType: 'USCP', surgeryDate: '2026-05-03', doctorName: '张建国',
     asaLevel: 'ASA II', metsScore: 6, metsLevel: '中',
     bleedingRisk: '低危', bleedingScore: 2, anesthesiaRisk: '低危',
     anesthesiaMethod: '全麻',
@@ -1161,7 +1161,7 @@ const preOpAssessments: PreOpAssessment[] = [
     },
     anesthesiaVisit: {
       visited: true, visitTime: '2026-04-29 14:45', anesthesiologist: '李医生',
-      visitNotes: 'ASA II级，肝功能异常暂缓ERCP，保肝治疗后重新评估',
+      visitNotes: 'ASA II级，肝功能异常暂缓USCP，保肝治疗后重新评估',
       vitalSigns: { bp: '120/78mmHg', hr: 72, rr: 16, temp: 36.4, spo2: 98 },
       cardiacExam: '心音正常', pulmonaryExam: '双肺呼吸音清',
       airwayExam: 'Mallampati II，气道正常',
@@ -1185,7 +1185,7 @@ const preOpAssessments: PreOpAssessment[] = [
       { time: '2026-04-29 14:45', type: '麻醉评估', result: '低危', doctor: '麻醉科李医生' },
       { time: '2026-04-29 15:00', type: '综合结论', result: '暂缓-肝功能异常', doctor: '张建国' },
     ],
-    conclusion: '患者ASA II级，凝血功能正常但肝功能轻度异常，建议暂缓ERCP，先行保肝治疗，1周后复查肝功能再评估。',
+    conclusion: '患者ASA II级，凝血功能正常但肝功能轻度异常，建议暂缓USCP，先行保肝治疗，1周后复查肝功能再评估。',
     precautions: ['暂缓手术', '保肝治疗', '复查肝功能', '待肝功能好转后重新评估'],
     assessedBy: '王海涛', assessedDate: '2026-04-29'
   },

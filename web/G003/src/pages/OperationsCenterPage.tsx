@@ -80,10 +80,10 @@ const DOCTOR_RANKING = [
 ]
 
 const PROJECT_DATA = [
-  { name: '胃镜', value: 185, color: '#3b82f6' },
-  { name: '肠镜', value: 142, color: '#4ade80' },
-  { name: '超声内镜', value: 68, color: '#fbbf24' },
-  { name: 'ERCP', value: 35, color: '#f97316' },
+  { name: '超声', value: 185, color: '#3b82f6' },
+  { name: '超声', value: 142, color: '#4ade80' },
+  { name: '超声', value: 68, color: '#fbbf24' },
+  { name: 'USCP', value: 35, color: '#f97316' },
   { name: '其他', value: 57, color: '#8b5cf6' },
 ]
 

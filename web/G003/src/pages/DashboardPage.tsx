@@ -656,10 +656,10 @@ export default function DashboardPage() {
           今日检查完成进度
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginTop: 4 }}>
-          <ProgressItem label="胃镜" done={18} total={25} color="#3b82f6" />
-          <ProgressItem label="肠镜" done={12} total={15} color="#22c55e" />
+          <ProgressItem label="超声" done={18} total={25} color="#3b82f6" />
+          <ProgressItem label="超声" done={12} total={15} color="#22c55e" />
           <ProgressItem label="浅表超声" done={4} total={5} color="#8b5cf6" />
-          <ProgressItem label="ERCP" done={2} total={3} color="#f97316" />
+          <ProgressItem label="USCP" done={2} total={3} color="#f97316" />
         </div>
       </div>
     </div>

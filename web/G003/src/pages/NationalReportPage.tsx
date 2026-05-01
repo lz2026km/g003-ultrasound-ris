@@ -15,35 +15,35 @@ import {
 // ============ 演示数据 ============
 // 上报历史数据 - 30条
 const REPORT_HISTORY = [
-  { id: 1, date: '2026-04-28', cycle: '2026Q1', content: '胃镜检查数据上报', doctor: '张明华', status: '已通过', records: 428 },
-  { id: 2, date: '2026-04-27', cycle: '2026Q1', content: '肠镜检查数据上报', doctor: '李芳', status: '已通过', records: 386 },
-  { id: 3, date: '2026-04-26', cycle: '2026Q1', content: 'ERCP操作数据上报', doctor: '王建国', status: '待审核', records: 52 },
-  { id: 4, date: '2026-04-25', cycle: '2026Q1', content: '超声内镜数据上报', doctor: '刘洋', status: '已通过', records: 128 },
-  { id: 5, date: '2026-04-24', cycle: '2026Q1', content: '胶囊内镜数据上报', doctor: '陈晓燕', status: '已通过', records: 68 },
-  { id: 6, date: '2026-04-23', cycle: '2026Q1', content: '胃镜检查数据上报', doctor: '赵德明', status: '已通过', records: 415 },
-  { id: 7, date: '2026-04-22', cycle: '2026Q1', content: '肠镜检查数据上报', doctor: '孙丽萍', status: '已通过', records: 372 },
+  { id: 1, date: '2026-04-28', cycle: '2026Q1', content: '超声检查数据上报', doctor: '张明华', status: '已通过', records: 428 },
+  { id: 2, date: '2026-04-27', cycle: '2026Q1', content: '超声检查数据上报', doctor: '李芳', status: '已通过', records: 386 },
+  { id: 3, date: '2026-04-26', cycle: '2026Q1', content: 'USCP操作数据上报', doctor: '王建国', status: '待审核', records: 52 },
+  { id: 4, date: '2026-04-25', cycle: '2026Q1', content: '超声数据上报', doctor: '刘洋', status: '已通过', records: 128 },
+  { id: 5, date: '2026-04-24', cycle: '2026Q1', content: '胶囊超声数据上报', doctor: '陈晓燕', status: '已通过', records: 68 },
+  { id: 6, date: '2026-04-23', cycle: '2026Q1', content: '超声检查数据上报', doctor: '赵德明', status: '已通过', records: 415 },
+  { id: 7, date: '2026-04-22', cycle: '2026Q1', content: '超声检查数据上报', doctor: '孙丽萍', status: '已通过', records: 372 },
   { id: 8, date: '2026-04-21', cycle: '2026Q1', content: '早癌筛查数据上报', doctor: '周伟', status: '待审核', records: 89 },
   { id: 9, date: '2026-04-20', cycle: '2026Q1', content: '质控指标数据上报', doctor: '吴静', status: '已通过', records: 1245 },
-  { id: 10, date: '2026-04-19', cycle: '2026Q1', content: '胃镜检查数据上报', doctor: '郑强', status: '已通过', records: 398 },
-  { id: 11, date: '2026-04-18', cycle: '2026Q1', content: '肠镜检查数据上报', doctor: '张明华', status: '已通过', records: 365 },
+  { id: 10, date: '2026-04-19', cycle: '2026Q1', content: '超声检查数据上报', doctor: '郑强', status: '已通过', records: 398 },
+  { id: 11, date: '2026-04-18', cycle: '2026Q1', content: '超声检查数据上报', doctor: '张明华', status: '已通过', records: 365 },
   { id: 12, date: '2026-04-17', cycle: '2026Q1', content: '并发症数据上报', doctor: '李芳', status: '已通过', records: 18 },
-  { id: 13, date: '2026-04-16', cycle: '2026Q1', content: '胃镜检查数据上报', doctor: '王建国', status: '已通过', records: 422 },
-  { id: 14, date: '2026-04-15', cycle: '2026Q1', content: 'ERCP操作数据上报', doctor: '刘洋', status: '待审核', records: 48 },
-  { id: 15, date: '2026-04-14', cycle: '2026Q1', content: '超声内镜数据上报', doctor: '陈晓燕', status: '已通过', records: 115 },
-  { id: 16, date: '2026-04-13', cycle: '2026Q1', content: '胶囊内镜数据上报', doctor: '赵德明', status: '已通过', records: 72 },
-  { id: 17, date: '2026-04-12', cycle: '2026Q1', content: '胃镜检查数据上报', doctor: '孙丽萍', status: '已通过', records: 408 },
-  { id: 18, date: '2026-04-11', cycle: '2026Q1', content: '肠镜检查数据上报', doctor: '周伟', status: '已通过', records: 358 },
+  { id: 13, date: '2026-04-16', cycle: '2026Q1', content: '超声检查数据上报', doctor: '王建国', status: '已通过', records: 422 },
+  { id: 14, date: '2026-04-15', cycle: '2026Q1', content: 'USCP操作数据上报', doctor: '刘洋', status: '待审核', records: 48 },
+  { id: 15, date: '2026-04-14', cycle: '2026Q1', content: '超声数据上报', doctor: '陈晓燕', status: '已通过', records: 115 },
+  { id: 16, date: '2026-04-13', cycle: '2026Q1', content: '胶囊超声数据上报', doctor: '赵德明', status: '已通过', records: 72 },
+  { id: 17, date: '2026-04-12', cycle: '2026Q1', content: '超声检查数据上报', doctor: '孙丽萍', status: '已通过', records: 408 },
+  { id: 18, date: '2026-04-11', cycle: '2026Q1', content: '超声检查数据上报', doctor: '周伟', status: '已通过', records: 358 },
   { id: 19, date: '2026-04-10', cycle: '2026Q1', content: '早癌筛查数据上报', doctor: '吴静', status: '已通过', records: 95 },
   { id: 20, date: '2026-04-09', cycle: '2026Q1', content: '质控指标数据上报', doctor: '郑强', status: '已通过', records: 1180 },
-  { id: 21, date: '2026-04-08', cycle: '2026Q1', content: '胃镜检查数据上报', doctor: '张明华', status: '已通过', records: 435 },
-  { id: 22, date: '2026-04-07', cycle: '2026Q1', content: '肠镜检查数据上报', doctor: '李芳', status: '已通过', records: 392 },
+  { id: 21, date: '2026-04-08', cycle: '2026Q1', content: '超声检查数据上报', doctor: '张明华', status: '已通过', records: 435 },
+  { id: 22, date: '2026-04-07', cycle: '2026Q1', content: '超声检查数据上报', doctor: '李芳', status: '已通过', records: 392 },
   { id: 23, date: '2026-04-06', cycle: '2026Q1', content: '并发症数据上报', doctor: '王建国', status: '已通过', records: 22 },
-  { id: 24, date: '2026-04-05', cycle: '2026Q1', content: '胃镜检查数据上报', doctor: '刘洋', status: '已通过', records: 418 },
-  { id: 25, date: '2026-04-04', cycle: '2026Q1', content: 'ERCP操作数据上报', doctor: '陈晓燕', status: '待审核', records: 55 },
-  { id: 26, date: '2026-04-03', cycle: '2026Q1', content: '超声内镜数据上报', doctor: '赵德明', status: '已通过', records: 122 },
-  { id: 27, date: '2026-04-02', cycle: '2026Q1', content: '胶囊内镜数据上报', doctor: '孙丽萍', status: '已通过', records: 78 },
-  { id: 28, date: '2026-04-01', cycle: '2026Q1', content: '胃镜检查数据上报', doctor: '周伟', status: '已通过', records: 428 },
-  { id: 29, date: '2026-03-31', cycle: '2026Q1', content: '肠镜检查数据上报', doctor: '吴静', status: '已通过', records: 378 },
+  { id: 24, date: '2026-04-05', cycle: '2026Q1', content: '超声检查数据上报', doctor: '刘洋', status: '已通过', records: 418 },
+  { id: 25, date: '2026-04-04', cycle: '2026Q1', content: 'USCP操作数据上报', doctor: '陈晓燕', status: '待审核', records: 55 },
+  { id: 26, date: '2026-04-03', cycle: '2026Q1', content: '超声数据上报', doctor: '赵德明', status: '已通过', records: 122 },
+  { id: 27, date: '2026-04-02', cycle: '2026Q1', content: '胶囊超声数据上报', doctor: '孙丽萍', status: '已通过', records: 78 },
+  { id: 28, date: '2026-04-01', cycle: '2026Q1', content: '超声检查数据上报', doctor: '周伟', status: '已通过', records: 428 },
+  { id: 29, date: '2026-03-31', cycle: '2026Q1', content: '超声检查数据上报', doctor: '吴静', status: '已通过', records: 378 },
   { id: 30, date: '2026-03-30', cycle: '2026Q1', content: '早癌筛查数据上报', doctor: '郑强', status: '已通过', records: 102 },
 ]
 
@@ -446,7 +446,7 @@ export default function NationalReportPage() {
   const [formData, setFormData] = useState({
     date: '2026-04-28',
     doctor: '张明华',
-    operationType: '胃镜检查',
+    operationType: '超声检查',
     adr: '25.8',
     colonCompletionRate: '92.5',
     disinfectionRate: '98.2',
@@ -468,7 +468,7 @@ export default function NationalReportPage() {
   }
 
   const handleSubmit = () => {
-    alert('数据上报成功！\n\n上报日期：' + formData.date + '\n操作医生：' + formData.doctor + '\n操作类型：' + formData.operationType + '\nADR：' + formData.adr + '%\n肠镜完成率：' + formData.colonCompletionRate + '%')
+    alert('数据上报成功！\n\n上报日期：' + formData.date + '\n操作医生：' + formData.doctor + '\n操作类型：' + formData.operationType + '\nADR：' + formData.adr + '%\n超声完成率：' + formData.colonCompletionRate + '%')
   }
 
   const getStatusTag = (status: string) => {
@@ -552,11 +552,11 @@ export default function NationalReportPage() {
             value={formData.operationType}
             onChange={e => handleInputChange('operationType', e.target.value)}
           >
-            <option value="胃镜检查">胃镜检查</option>
-            <option value="肠镜检查">肠镜检查</option>
-            <option value="ERCP">ERCP</option>
-            <option value="超声内镜">超声内镜</option>
-            <option value="胶囊内镜">胶囊内镜</option>
+            <option value="超声检查">超声检查</option>
+            <option value="超声检查">超声检查</option>
+            <option value="USCP">USCP</option>
+            <option value="超声">超声</option>
+            <option value="胶囊超声">胶囊超声</option>
           </select>
         </div>
         <div style={s.formGroup}>
@@ -570,7 +570,7 @@ export default function NationalReportPage() {
           />
         </div>
         <div style={s.formGroup}>
-          <label style={s.label}>肠镜完成率（%）</label>
+          <label style={s.label}>超声完成率（%）</label>
           <input
             type="number"
             style={s.input}
@@ -883,11 +883,11 @@ export default function NationalReportPage() {
           </div>
         </div>
 
-        {/* 肠镜完成率 */}
+        {/* 超声完成率 */}
         <div style={s.qcCard}>
           <div style={s.qcCardTitle}>
             <CheckCircle size={16} color="#22c55e" />
-            肠镜完成率
+            超声完成率
           </div>
           <div style={s.qcTrend}>
             <span style={s.qcValue}>92.5%</span>

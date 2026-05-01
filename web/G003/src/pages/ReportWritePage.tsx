@@ -91,10 +91,10 @@ const STRUCTURED_TEMPLATES: { type: ReportTemplateType; label: string; icon: str
     icon: '🔪',
     description: '手术操作详细记录模板',
     sections: [
-      { title: '手术名称', placeholder: '如：超声下息肉切除术（EMR）' },
-      { title: '术前诊断', placeholder: '结肠多发息肉' },
+      { title: '手术名称', placeholder: '如：超声下息肉切除术（US_ABLATION）' },
+      { title: '术前诊断', placeholder: '肝多发囊肿' },
       { title: '手术步骤', placeholder: '1. 黏膜下注射...\n2. 切开...\n3. 剥离...\n4. 止血...' },
-      { title: '术后诊断', placeholder: '结肠多发息肉（已切除）' },
+      { title: '术后诊断', placeholder: '肝多发囊肿（已切除）' },
       { title: '术中情况', placeholder: '术中出血约5ml，未发生穿孔...' },
       { title: '标本处理', placeholder: '标本已送病理检查' },
     ],
@@ -106,9 +106,9 @@ const STRUCTURED_TEMPLATES: { type: ReportTemplateType; label: string; icon: str
     description: '急诊绿色通道快速报告模板',
     sections: [
       { title: '急诊主诉', placeholder: '呕血2小时伴晕厥一次...' },
-      { title: '检查所见', placeholder: '食管胃底静脉曲张破裂出血...' },
+      { title: '检查所见', placeholder: '食管肝静脉曲张破裂出血...' },
       { title: '紧急处理', placeholder: '已行套扎术止血，过程顺利...' },
-      { title: '诊断结论', placeholder: '食管胃底静脉曲张破裂出血（急诊）' },
+      { title: '诊断结论', placeholder: '食管肝静脉曲张破裂出血（急诊）' },
       { title: '危急值', placeholder: '请立即通知临床医生' },
     ],
   },
@@ -118,11 +118,11 @@ const STRUCTURED_TEMPLATES: { type: ReportTemplateType; label: string; icon: str
     icon: '📅',
     description: '术后/治疗后随访对比报告',
     sections: [
-      { title: '上次检查情况', placeholder: '2025-10-15胃镜：胃溃疡（A1期）...' },
+      { title: '上次检查情况', placeholder: '2025-10-15超声：肝溃疡（A1期）...' },
       { title: '本次检查所见', placeholder: '溃疡已形成白色疤痕...' },
       { title: '治疗效果评估', placeholder: 'S2期愈合中，HP已根除' },
-      { title: '本次诊断', placeholder: '胃溃疡疤痕形成期' },
-      { title: '下次复查建议', placeholder: '建议6-12个月复查胃镜' },
+      { title: '本次诊断', placeholder: '肝溃疡疤痕形成期' },
+      { title: '下次复查建议', placeholder: '建议6-12个月复查超声' },
     ],
   },
 ]
@@ -175,17 +175,17 @@ const COMMON_PHRASES: { category: string; phrases: string[] }[] = [
 
 // 术语提示
 const TERM_HINTS: Record<string, string[]> = {
-  '溃疡': ['胃溃疡', '十二指肠溃疡', '复合溃疡', '溃疡愈合中（S1/S2期）'],
+  '溃疡': ['肝溃疡', '十二指肠溃疡', '复合溃疡', '溃疡愈合中（S1/S2期）'],
   '糜烂': ['点状糜烂', '片状糜烂', '疣状糜烂', '慢性浅表性胃炎伴糜烂'],
   '息肉': ['增生性息肉', '腺瘤性息肉', '息肉切除术后', '多发息肉'],
-  '炎症': ['慢性浅表性胃炎', '慢性萎缩性胃炎', '反流性食管炎', '结肠炎'],
+  '炎症': ['慢性浅表性胃炎', '慢性萎缩性胃炎', '反流性肝炎', '结肠炎'],
   '肿瘤': ['可疑恶性肿瘤', 'Ca？（待病理）', '黏膜下肿物'],
   '出': ['陈旧性出血', '活动性出血', '可见咖啡色物质'],
 }
 
 // AI 模拟生成内容
 const AI_CONTENT: Record<string, { findings: string; conclusion: string }> = {
-  '电子胃镜检查': {
+  '电子超声检查': {
     findings: `食道：黏膜光滑，血管纹理清晰，齿状线清晰，距门齿约38cm。
 胃底：黏液湖清，黏膜光滑，色泽正常。
 胃体：黏膜红白相间，以红为主，皱襞排列规整。
@@ -195,7 +195,7 @@ const AI_CONTENT: Record<string, { findings: string; conclusion: string }> = {
 十二指肠：球部及降部黏膜光滑，未见溃疡及出血。`,
     conclusion: '1. 慢性浅表性胃炎（糜烂型） 2. HP感染待除外',
   },
-  '电子结肠镜检查': {
+  '电子结超声检查': {
     findings: `肛管：黏膜光滑。
 直肠：黏膜光滑，血管纹理清晰。
 乙状结肠：黏膜光滑，血管纹理清晰。
@@ -204,7 +204,7 @@ const AI_CONTENT: Record<string, { findings: string; conclusion: string }> = {
 升结肠：黏膜光滑。
 盲肠：黏膜光滑，可见回盲瓣开闭良好。
 回肠末段：黏膜光滑，淋巴滤泡轻度增生。`,
-    conclusion: '1. 结肠镜检查未见明显异常 2. 回肠末段淋巴滤泡增生',
+    conclusion: '1. 结超声检查未见明显异常 2. 回肠末段淋巴滤泡增生',
   },
 }
 
@@ -237,7 +237,7 @@ const QUALITY_CRITERIA: { key: string; label: string; weight: number; check: (r:
     label: '图像规范',
     weight: 25,
     check: (r, imgs) => {
-      const isGastro = (r.examItemName || '').includes('胃镜')
+      const isGastro = (r.examItemName || '').includes('超声')
       const min = isGastro ? GASTROSCOPY_MIN_PHOTOS : COLONOSCOPY_MIN_PHOTOS
       const count = imgs.length
       const score = count === 0 ? 0 : count < min ? 40 : count === min ? 80 : 100
@@ -264,21 +264,21 @@ const DIAGNOSTIC_TEMPLATES: { category: string; templates: { title: string; find
     category: '胃',
     templates: [
       { title: '慢性胃炎', findings: '胃窦：黏膜充血水肿，红白相间，以红为主。幽门：圆形，开闭良好。', conclusion: '1. 慢性浅表性胃炎\n2. HP感染待除外' },
-      { title: '胃溃疡', findings: '胃角：可见一溃疡灶，大小约0.6×0.5cm，表面覆白苔，周围黏膜充血水肿。', conclusion: '1. 胃溃疡（性质待病理）\n2. HP感染待除外' },
-      { title: '胃息肉', findings: '胃体：可见一枚息肉样隆起，大小约0.4×0.3cm，表面光滑。', conclusion: '1. 胃息肉\n2. 建议择期切除' },
+      { title: '肝溃疡', findings: '胃角：可见一溃疡灶，大小约0.6×0.5cm，表面覆白苔，周围黏膜充血水肿。', conclusion: '1. 肝溃疡（性质待病理）\n2. HP感染待除外' },
+      { title: '胆囊息肉', findings: '胃体：可见一枚息肉样隆起，大小约0.4×0.3cm，表面光滑。', conclusion: '1. 胆囊息肉\n2. 建议择期切除' },
     ],
   },
   {
     category: '食道',
     templates: [
-      { title: '反流性食管炎', findings: '食道：黏膜充血水肿，距门齿约35-38cm可见纵行糜烂，血管纹理模糊。', conclusion: '1. 反流性食管炎（LA-A级）\n2. 慢性胃炎' },
+      { title: '反流性肝炎', findings: '食道：黏膜充血水肿，距门齿约35-38cm可见纵行糜烂，血管纹理模糊。', conclusion: '1. 反流性肝炎（LA-A级）\n2. 慢性胃炎' },
       { title: '食道白斑', findings: '食道：距门齿约25cm可见白色念珠菌样白斑，约0.3×0.2cm。', conclusion: '1. 食道白斑\n2. 建议定期复查' },
     ],
   },
   {
     category: '肠',
     templates: [
-      { title: '结肠息肉', findings: '乙状结肠：可见一枚息肉样隆起，大小约0.6×0.5cm，表面光滑。', conclusion: '1. 结肠息肉\n2. 已行切除' },
+      { title: '肝囊肿', findings: '乙状结肠：可见一枚息肉样隆起，大小约0.6×0.5cm，表面光滑。', conclusion: '1. 肝囊肿\n2. 已行切除' },
       { title: '溃疡性结肠炎', findings: '直肠：黏膜弥漫性充血水肿，血管纹理模糊，可见多发溃疡，覆脓性分泌物。', conclusion: '1. 溃疡性结肠炎（活动期）\n2. 建议进一步检查' },
     ],
   },
@@ -287,8 +287,8 @@ const DIAGNOSTIC_TEMPLATES: { category: string; templates: { title: string; find
 // ========== 新增：历史报告参考数据 ==========
 const MOCK_HISTORY_REPORTS: Record<string, { id: string; date: string; examType: string; findings: string; conclusion: string }[]> = {
   'P001': [
-    { id: 'RPT202401', date: '2024-01-15', examType: '电子胃镜检查', findings: '食道：黏膜光滑。胃窦：黏膜充血水肿，红白相间，以红为主。', conclusion: '1. 慢性浅表性胃炎\n2. HP感染待除外' },
-    { id: 'RPT202310', date: '2023-10-08', examType: '电子胃镜检查', findings: '食道：黏膜光滑，血管纹理清晰。胃底：黏液湖清。', conclusion: '1. 胃镜检查未见明显异常' },
+    { id: 'RPT202401', date: '2024-01-15', examType: '电子超声检查', findings: '食道：黏膜光滑。胃窦：黏膜充血水肿，红白相间，以红为主。', conclusion: '1. 慢性浅表性胃炎\n2. HP感染待除外' },
+    { id: 'RPT202310', date: '2023-10-08', examType: '电子超声检查', findings: '食道：黏膜光滑，血管纹理清晰。胃底：黏液湖清。', conclusion: '1. 超声检查未见明显异常' },
   ],
 }
 
@@ -1086,7 +1086,7 @@ export default function ReportWritePage() {
   const [annotationArrows, setAnnotationArrows] = (useState as any)<{ x1: number; y1: number; x2: number; y2: number; color: string }[]>([])
   const [annDragStart, setAnnDragStart] = (useState as any)<{ x: number; y: number } | null>(null)
   const annotationColors = ['#dc2626', '#ea580c', '#16a34a', '#2563eb', '#7c3aed', '#fff']
-  const isGastro = (editingReport.examItemName || '').includes('胃镜')
+  const isGastro = (editingReport.examItemName || '').includes('超声')
   const currentStandard = isGastro ? GASTROSCOPY_22_STANDARD : COLONOSCOPY_22_STANDARD
   const capturedCount = Math.min(reportImages.length, currentStandard.length)
   const capturedPercent = currentStandard.length > 0 ? Math.round(capturedCount / currentStandard.length * 100) : 0
@@ -1339,7 +1339,7 @@ export default function ReportWritePage() {
     setAiLoading(true)
     setTimeout(() => {
       const examType = editingReport.examItemName || ''
-      const ai = AI_CONTENT[examType] || AI_CONTENT['电子胃镜检查']
+      const ai = AI_CONTENT[examType] || AI_CONTENT['电子超声检查']
       const replacedFindings = replaceTemplateVars(ai.findings, editingReport)
       const replacedConclusion = replaceTemplateVars(ai.conclusion, editingReport)
       setAiContent({ findings: replacedFindings, conclusion: replacedConclusion })
@@ -1436,7 +1436,7 @@ export default function ReportWritePage() {
   // 图片数量质控
   const getImageQCStatus = () => {
     const count = reportImages.length
-    const isGastro = (editingReport.examItemName || '').includes('胃镜')
+    const isGastro = (editingReport.examItemName || '').includes('超声')
     const min = isGastro ? GASTROSCOPY_MIN_PHOTOS : COLONOSCOPY_MIN_PHOTOS
     if (count < min) return 'warn'
     if (count === min) return 'ok'
@@ -1956,8 +1956,8 @@ export default function ReportWritePage() {
                                     imageQCStatus === 'ok' ? { background: '#ffedd5', color: '#ea580c', border: '1px solid #fdba74' } :
                                       { background: '#dcfce7', color: '#16a34a', border: '1px solid #86efac' }),
                                 }}>
-                                  {(editingReport.examItemName || '').includes('胃镜') ? `胃镜` : '肠镜'}：
-                                  {reportImages.length} / {(editingReport.examItemName || '').includes('胃镜') ? GASTROSCOPY_MIN_PHOTOS : COLONOSCOPY_MIN_PHOTOS} 张
+                                  {(editingReport.examItemName || '').includes('超声') ? `超声` : '超声'}：
+                                  {reportImages.length} / {(editingReport.examItemName || '').includes('超声') ? GASTROSCOPY_MIN_PHOTOS : COLONOSCOPY_MIN_PHOTOS} 张
                                   {imageQCStatus === 'pass' ? ' ✓ 达标' : imageQCStatus === 'ok' ? ' ⚠ 刚好达标' : ' ✗ 不达标'}
                                 </div>
                                 <button style={{ ...s.btnIcon }} onClick={handleImageUpload}>
@@ -2223,7 +2223,7 @@ export default function ReportWritePage() {
                         <>
                           <div style={s.photoStdPanelTitle}>
                             <Camera size={12} />
-                            {isGastro ? '胃镜22张标准' : '肠镜22张标准'}
+                            {isGastro ? '超声22张标准' : '超声22张标准'}
                           </div>
                           <div style={s.photoStdGrid}>
                             {currentStandard.map((item, idx) => {

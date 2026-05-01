@@ -1,6 +1,6 @@
 // @ts-nocheck
 // ============================================================
-// G003 超声RIS系统 - 临床数据中心（研究页面）
+// G003 USRIS系统 - 临床数据中心（研究页面）
 // 5个Tab：研究课题管理 | 数据提取 | 多中心协作 | 统计分析 | 数据总览
 // ============================================================
 import { useState, useMemo } from 'react'
@@ -320,27 +320,27 @@ const s: Record<string, React.CSSProperties> = {
 
 // 研究课题
 const RESEARCH_TOPICS = [
-  { id: 'RT001', title: '胃镜下早期胃癌筛查多中心研究', PI: '张建国', status: '进行中', patientCount: 156, examCount: 312, startDate: '2026-01-01', endDate: '2026-12-31', progress: 45, institution: '上海市第一人医院' },
-  { id: 'RT002', title: '结肠息肉复发因素分析', PI: '李秀英', status: '进行中', patientCount: 89, examCount: 178, startDate: '2026-03-01', endDate: '2027-02-28', progress: 28, institution: '上海市第一人医院' },
-  { id: 'RT003', title: 'ERCP术后并发症风险评估模型', PI: '王海涛', status: '待审核', patientCount: 42, examCount: 56, startDate: '2026-06-01', endDate: '2027-05-31', progress: 0, institution: '南京市中心医院' },
-  { id: 'RT004', title: '超声检查在胰腺疾病诊断中的应用', PI: '赵晓敏', status: '已完成', patientCount: 120, examCount: 180, startDate: '2025-06-01', endDate: '2026-05-31', progress: 100, institution: '北京市协和医院' },
+  { id: 'RT001', title: '超声引导下早期肝癌筛查多中心研究', PI: '张建国', status: '进行中', patientCount: 156, examCount: 312, startDate: '2026-01-01', endDate: '2026-12-31', progress: 45, institution: '上海市第一人医院' },
+  { id: 'RT002', title: '肝囊肿复发因素分析', PI: '李秀英', status: '进行中', patientCount: 89, examCount: 178, startDate: '2026-03-01', endDate: '2027-02-28', progress: 28, institution: '上海市第一人医院' },
+  { id: 'RT003', title: 'USCP术后并发症风险评估模型', PI: '王海涛', status: '待审核', patientCount: 42, examCount: 56, startDate: '2026-06-01', endDate: '2027-05-31', progress: 0, institution: '南京市中心医院' },
+  { id: 'RT004', title: 'US检查在胰腺疾病诊断中的应用', PI: '赵晓敏', status: '已完成', patientCount: 120, examCount: 180, startDate: '2025-06-01', endDate: '2026-05-31', progress: 100, institution: '北京市协和医院' },
   { id: 'RT005', title: 'HP感染与胃癌发生相关性研究', PI: '刘伟东', status: '进行中', patientCount: 230, examCount: 460, startDate: '2025-09-01', endDate: '2026-08-31', progress: 62, institution: '广州市第一人医院' },
 ]
 
 // 数据提取任务
 const DATA_EXTRACTIONS = [
-  { id: 'DE001', name: '2026年Q1胃镜检查数据', fields: 'patientName,examDate,findings,biopsyResult', recordCount: 856, status: '已完成', createdBy: '张建国', createdAt: '2026-04-01', format: 'CSV' },
-  { id: 'DE002', name: '结肠镜息肉患者随访数据', fields: 'patientName,lastExamDate,totalExamCount,findings', recordCount: 342, status: '进行中', createdBy: '李秀英', createdAt: '2026-04-10', format: 'Excel' },
-  { id: 'DE003', name: 'HP阳性患者治疗效果追踪', fields: 'patientName,HP_result,treatment,followUpDate', recordCount: 128, status: '待处理', createdBy: '王海涛', createdAt: '2026-04-15', format: 'CSV' },
+  { id: 'DE001', name: '2026年Q1US检查数据', fields: 'patientName,examDate,findings,biopsyResult', recordCount: 856, status: '已完成', createdBy: '张建国', createdAt: '2026-04-01', format: 'CSV' },
+  { id: 'DE002', name: '结US息肉患者随访数据', fields: 'patientName,lastExamDate,totalExamCount,findings', recordCount: 342, status: '进行中', createdBy: '李秀英', createdAt: '2026-04-10', format: 'Excel' },
+  { id: 'DE003', name: '乙肝阳性患者治疗效果追踪', fields: 'patientName,HP_result,treatment,followUpDate', recordCount: 128, status: '待处理', createdBy: '王海涛', createdAt: '2026-04-15', format: 'CSV' },
   { id: 'DE004', name: '早癌筛查阳性病例汇总', fields: 'patientName,examDate,findings,biopsyResult,diagnosis', recordCount: 45, status: '已完成', createdBy: '赵晓敏', createdAt: '2026-03-20', format: 'PDF' },
-  { id: 'DE005', name: 'ERCP手术数据提取', fields: 'patientName,examDate,procedure,complications', recordCount: 67, status: '已完成', createdBy: '刘伟东', createdAt: '2026-04-05', format: 'Excel' },
+  { id: 'DE005', name: 'USCP数据提取', fields: 'patientName,examDate,procedure,complications', recordCount: 67, status: '已完成', createdBy: '刘伟东', createdAt: '2026-04-05', format: 'Excel' },
 ]
 
 // 多中心协作
 const MULTI_CENTER_COLLABS = [
-  { id: 'MC001', name: '华东地区消化超声联盟', members: 12, myRole: '参与单位', joinedDate: '2025-06-01', dataShared: 4521, examsIncluded: 8950, status: 'active', recentActivity: '2026-04-28' },
+  { id: 'MC001', name: '华东地区消化US联盟', members: 12, myRole: '参与单位', joinedDate: '2025-06-01', dataShared: 4521, examsIncluded: 8950, status: 'active', recentActivity: '2026-04-28' },
   { id: 'MC002', name: '全国早期胃癌筛查网络', members: 45, myRole: '核心成员', joinedDate: '2024-01-01', dataShared: 23400, examsIncluded: 45000, status: 'active', recentActivity: '2026-04-29' },
-  { id: 'MC003', name: '结肠早癌AI诊断多中心验证', members: 8, myRole: '牵头单位', joinedDate: '2025-09-01', dataShared: 1200, examsIncluded: 2400, status: 'active', recentActivity: '2026-04-27' },
+  { id: 'MC003', name: '肝癌AI诊断多中心验证', members: 8, myRole: '牵头单位', joinedDate: '2025-09-01', dataShared: 1200, examsIncluded: 2400, status: 'active', recentActivity: '2026-04-27' },
   { id: 'MC004', name: 'HP规范化治疗研究协作组', members: 23, myRole: '参与单位', joinedDate: '2025-03-01', dataShared: 3200, examsIncluded: 6800, status: 'pending', recentActivity: '2026-04-20' },
 ]
 
@@ -611,7 +611,7 @@ function Tab2DataExtract() {
         <div style={s.cardTitle}><Database size={16} color="#3b82f6" />快速数据提取</div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
           {[
-            { label: '按检查类型', desc: '胃镜/肠镜/超声检查...', icon: FlaskConical, color: '#3b82f6' },
+            { label: '按检查类型', desc: 'US/US/US检查...', icon: FlaskConical, color: '#3b82f6' },
             { label: '按时间范围', desc: '自定义日期区间', icon: Clock, color: '#22c55e' },
             { label: '按诊断结果', desc: '阳性/阴性/息肉...', icon: FileText, color: '#f97316' },
             { label: '按患者特征', desc: '年龄/性别/病史...', icon: Users, color: '#8b5cf6' },
@@ -866,11 +866,11 @@ function Tab4Stats() {
   }, [])
 
   const examTypeStats = useMemo(() => [
-    { name: '胃镜', value: 5258, color: '#3b82f6' },
-    { name: '肠镜', value: 4669, color: '#22c55e' },
-    { name: '超声检查', value: 1453, color: '#f97316' },
-    { name: 'ERCP', value: 593, color: '#8b5cf6' },
-    { name: '胶囊超声', value: 856, color: '#14b8a6' },
+    { name: 'US', value: 5258, color: '#3b82f6' },
+    { name: 'US', value: 4669, color: '#22c55e' },
+    { name: 'US检查', value: 1453, color: '#f97316' },
+    { name: 'USCP', value: 593, color: '#8b5cf6' },
+    { name: '胶囊US', value: 856, color: '#14b8a6' },
   ], [])
 
   const monthlyTrend = [
@@ -902,9 +902,9 @@ function Tab4Stats() {
           <div style={{ fontSize: 11, color: '#94a3b8' }}>年龄范围 {Math.min(...allPatients.map(p => p.age))}-{Math.max(...allPatients.map(p => p.age))}岁</div>
         </div>
         <div style={s.kpiCard}>
-          <div style={{ fontSize: 12, color: '#64748b' }}>HP阳性率</div>
-          <div style={s.kpiValue}>{(allPatients.filter(p => p.medicalHistory.includes('HP阳性')).length / allPatients.length * 100).toFixed(1)}%</div>
-          <div style={{ fontSize: 11, color: '#94a3b8' }}>阳性 {allPatients.filter(p => p.medicalHistory.includes('HP阳性')).length} 例</div>
+          <div style={{ fontSize: 12, color: '#64748b' }}>乙肝阳性率</div>
+          <div style={s.kpiValue}>{(allPatients.filter(p => p.medicalHistory.includes('乙肝阳性')).length / allPatients.length * 100).toFixed(1)}%</div>
+          <div style={{ fontSize: 11, color: '#94a3b8' }}>阳性 {allPatients.filter(p => p.medicalHistory.includes('乙肝阳性')).length} 例</div>
         </div>
       </div>
 
@@ -919,9 +919,9 @@ function Tab4Stats() {
               <YAxis tick={{ fontSize: 11, fill: '#64748b' }} />
               <Tooltip />
               <Legend />
-              <Line type="monotone" dataKey="gastroscope" stroke="#3b82f6" strokeWidth={2} name="胃镜" dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="colonoscopy" stroke="#22c55e" strokeWidth={2} name="肠镜" dot={{ r: 3 }} />
-              <Line type="monotone" dataKey="ultrasound" stroke="#f97316" strokeWidth={2} name="超声" dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="gastroscope" stroke="#3b82f6" strokeWidth={2} name="US" dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="colonoscopy" stroke="#22c55e" strokeWidth={2} name="US" dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="ultrasound" stroke="#f97316" strokeWidth={2} name="US" dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </div>

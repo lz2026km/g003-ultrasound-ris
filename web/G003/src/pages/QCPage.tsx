@@ -78,7 +78,7 @@ const INDICATORS: Indicator[] = [
       { name: '肝胆外科', value: 82.1, rank: 4 },
       { name: 'VIP病区', value: 76.5, rank: 5 },
     ],
-    description: '图像采集符合22张标准（胃镜22张/肠镜22张/超声检查标准）的比例',
+    description: '图像采集符合22张标准（超声22张/超声22张/超声检查标准）的比例',
     suggestions: ['加强图片采集培训', '规范采集流程', '配置高质量摄像头'],
   },
   {
@@ -97,7 +97,7 @@ const INDICATORS: Indicator[] = [
       { name: '肝胆外科', value: 68.9, rank: 4 },
       { name: 'VIP病区', value: 61.3, rank: 5 },
     ],
-    description: '结肠镜检查退镜时间≥6分钟的比例',
+    description: '结超声检查退镜时间≥6分钟的比例',
     suggestions: ['严格执行退镜时间规范', '使用计时器提醒', '加强质量意识教育'],
   },
   {

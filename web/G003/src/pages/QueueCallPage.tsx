@@ -34,18 +34,18 @@ interface Room {
 
 // ---------- 演示数据 ----------
 const mockPatients: Patient[] = [
-  { id: 'P001', sequence: 1, name: '张三', patientId: '340111199001011234', examType: '电子胃镜检查', room: '诊室1', callTime: '09:05', status: '检查中' },
-  { id: 'P002', sequence: 2, name: '李四', patientId: '340222199103022345', examType: '电子胃镜检查', room: '诊室1', callTime: '09:00', status: '已呼叫' },
-  { id: 'P003', sequence: 3, name: '王五', patientId: '340333199204033456', examType: '电子结肠镜检查', room: '诊室2', callTime: '08:55', status: '等待' },
-  { id: 'P004', sequence: 4, name: '赵六', patientId: '340444199305044567', examType: '电子胃镜检查', room: '诊室2', callTime: '08:50', status: '等待' },
-  { id: 'P005', sequence: 5, name: '钱七', patientId: '340555199406055678', examType: '电子结肠镜检查', room: '诊室3', callTime: '08:45', status: '等待' },
-  { id: 'P006', sequence: 6, name: '孙八', patientId: '340666199507066789', examType: '电子胃镜检查', room: '诊室3', callTime: '08:40', status: '等待' },
-  { id: 'P007', sequence: 7, name: '周九', patientId: '340777199608077890', examType: '电子胃镜检查', room: '诊室2', callTime: '', status: '等待' },
-  { id: 'P008', sequence: 8, name: '吴十', patientId: '340888199709088901', examType: '电子结肠镜检查', room: '诊室1', callTime: '', status: '等待' },
-  { id: 'P009', sequence: 9, name: '郑一', patientId: '340999199810099012', examType: '电子胃镜检查', room: '诊室3', callTime: '', status: '等待' },
-  { id: 'P010', sequence: 10, name: '冯二', patientId: '341010199911101123', examType: '电子胃镜检查', room: '诊室2', callTime: '', status: '等待' },
-  { id: 'P011', sequence: 11, name: '陈三', patientId: '341121200001011234', examType: '电子结肠镜检查', room: '诊室1', callTime: '', status: '等待' },
-  { id: 'P012', sequence: 12, name: '褚四', patientId: '341232200102122345', examType: '电子胃镜检查', room: '诊室3', callTime: '', status: '等待' },
+  { id: 'P001', sequence: 1, name: '张三', patientId: '340111199001011234', examType: '电子超声检查', room: '诊室1', callTime: '09:05', status: '检查中' },
+  { id: 'P002', sequence: 2, name: '李四', patientId: '340222199103022345', examType: '电子超声检查', room: '诊室1', callTime: '09:00', status: '已呼叫' },
+  { id: 'P003', sequence: 3, name: '王五', patientId: '340333199204033456', examType: '电子结超声检查', room: '诊室2', callTime: '08:55', status: '等待' },
+  { id: 'P004', sequence: 4, name: '赵六', patientId: '340444199305044567', examType: '电子超声检查', room: '诊室2', callTime: '08:50', status: '等待' },
+  { id: 'P005', sequence: 5, name: '钱七', patientId: '340555199406055678', examType: '电子结超声检查', room: '诊室3', callTime: '08:45', status: '等待' },
+  { id: 'P006', sequence: 6, name: '孙八', patientId: '340666199507066789', examType: '电子超声检查', room: '诊室3', callTime: '08:40', status: '等待' },
+  { id: 'P007', sequence: 7, name: '周九', patientId: '340777199608077890', examType: '电子超声检查', room: '诊室2', callTime: '', status: '等待' },
+  { id: 'P008', sequence: 8, name: '吴十', patientId: '340888199709088901', examType: '电子结超声检查', room: '诊室1', callTime: '', status: '等待' },
+  { id: 'P009', sequence: 9, name: '郑一', patientId: '340999199810099012', examType: '电子超声检查', room: '诊室3', callTime: '', status: '等待' },
+  { id: 'P010', sequence: 10, name: '冯二', patientId: '341010199911101123', examType: '电子超声检查', room: '诊室2', callTime: '', status: '等待' },
+  { id: 'P011', sequence: 11, name: '陈三', patientId: '341121200001011234', examType: '电子结超声检查', room: '诊室1', callTime: '', status: '等待' },
+  { id: 'P012', sequence: 12, name: '褚四', patientId: '341232200102122345', examType: '电子超声检查', room: '诊室3', callTime: '', status: '等待' },
 ]
 
 const mockRooms: Room[] = [

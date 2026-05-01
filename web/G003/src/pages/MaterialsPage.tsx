@@ -721,9 +721,9 @@ export default function MaterialsPage() {
         <select style={s.select}>
           <option value="">全部检查类型</option>
           <option value="腹部超声">腹部超声</option>
-          <option value="肠镜">肠镜</option>
-          <option value="ERCP">ERCP</option>
-          <option value="超声超声探头">超声超声探头</option>
+          <option value="超声">超声</option>
+          <option value="USCP">USCP</option>
+          <option value="超声探头">超声探头</option>
         </select>
       </div>
 

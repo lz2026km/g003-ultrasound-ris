@@ -563,7 +563,7 @@ export default function PatientPage() {
 
     const examItemNames: Record<string, string> = {
       'EI001': '电子腹部超声检查', 'EI002': '电子浅表超声检查', 'EI003': '腹部超声下活检',
-      'EI004': '肠镜下息肉切除', 'EI005': '超声超声检查', 'EI006': 'ERCP检查',
+      'EI004': '超声引导下息肉切除', 'EI005': '超声检查', 'EI006': 'USCP检查',
       'EI007': '电子肺部超声检查', 'EI008': '胶囊超声检查',
     }
     const doctorNames: Record<string, string> = {
@@ -1519,9 +1519,9 @@ export default function PatientPage() {
                       <option value="EI001">电子腹部超声检查</option>
                       <option value="EI002">电子浅表超声检查</option>
                       <option value="EI003">腹部超声下活检</option>
-                      <option value="EI004">肠镜下息肉切除</option>
-                      <option value="EI005">超声超声检查</option>
-                      <option value="EI006">ERCP检查</option>
+                      <option value="EI004">超声引导下息肉切除</option>
+                      <option value="EI005">超声检查</option>
+                      <option value="EI006">USCP检查</option>
                       <option value="EI007">电子肺部超声检查</option>
                       <option value="EI008">胶囊超声检查</option>
                     </select>
