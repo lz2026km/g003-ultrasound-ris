@@ -58,6 +58,7 @@ const CostAnalysisPage = lazy(() => import('./pages/CostAnalysisPage'))
 const ImagingModesPage = lazy(() => import('./pages/ImagingModesPage'))
 const ReportQCPage = lazy(() => import('./pages/ReportQCPage'))
 const ProbeManagementPage = lazy(() => import('./pages/ProbeManagementPage'))
+const ExamFlowPage = lazy(() => import('./pages/ExamFlowPage'))
 
 const SkeletonBlock = ({ width = '100%', height = 20, style = {} }: { width?: string | number, height?: number, style?: React.CSSProperties }) => (
   <div style={{
@@ -218,6 +219,7 @@ const NAV_ITEMS = [
       { path: '/stats-enhanced', icon: BarChart3, label: '统计分析' },
       { path: '/dashboard', icon: BarChart3, label: '科室看板' },
       { path: '/operations', icon: BarChart3, label: '运营指挥中心' },
+      { path: '/exam-flow', icon: Activity, label: '流程管理' },
       { path: '/cost-analysis', icon: BarChart3, label: '成本效益分析' },
       { path: '/authority', icon: ShieldAlert, label: '权限管理' },
       { path: '/dictionary', icon: BookOpen, label: '数据字典' },
@@ -388,6 +390,7 @@ function AppShell() {
             <Route path="/data-report" element={<DataReportCenterPage />} />
             <Route path="/equipment-lifecycle" element={<EquipmentLifecyclePage />} />
             <Route path="/operations" element={<OperationsCenterPage />} />
+            <Route path="/exam-flow" element={<ExamFlowPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </Suspense>

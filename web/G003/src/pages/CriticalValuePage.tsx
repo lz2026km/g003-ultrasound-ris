@@ -1,947 +1,830 @@
-// @ts-nocheck
-// ============================================================
-// G004 超声管理系统 - 危急值管理页面
-// 危急值：检查中发现的可疑恶性肿瘤等需立即通知患者的指标
-// ============================================================
-import type { LucideIcon } from 'lucide-react';
-import { useState } from 'react'
+import React, { useState, useMemo, useCallback } from 'react';
 import {
-  AlertTriangle, Phone, CheckCircle, XCircle, Clock,
-  Search, Plus, Eye, Bell, User, FileText, ChevronDown, ChevronUp
-} from 'lucide-react'
-import { initialCriticalValues } from '../data/initialData'
-import type { CriticalValue } from '../types'
+  AlertTriangle, CheckCircle, Clock, Phone, Eye, FileText, User,
+  Plus, Filter, X, ChevronDown, ChevronUp, Zap, ShieldAlert,
+  Activity, Bell, ArrowRight, LogOut, Timer, TrendingUp, Database,
+  MessageSquare, Heart, ArrowUpCircle, Calendar, Users, XCircle
+} from 'lucide-react';
+import type { CriticalValue, CriticalLevel, CriticalStage, CriticalValueLog, EscalationRule, PatientOutcome } from '../types';
+import {
+  initialCriticalValues, initialEscalationRules, initialUsers
+} from '../data/initialData';
 
-// ---------- 样式 ----------
-const s: Record<string, React.CSSProperties> = {
-  root: { padding: 0 },
-  header: { marginBottom: 24, display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  title: { fontSize: 20, fontWeight: 700, color: '#1a3a5c', margin: 0 },
-  subtitle: { fontSize: 13, color: '#64748b', marginTop: 4 },
-  // 统计行
-  statRow: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(6, 1fr)',
-    gap: 16,
-    marginBottom: 24,
-  },
+// ============== 样式 ==============
+const s = {
+  root: { minHeight: '100vh', background: '#f7f9fc', fontFamily: '"PingFang SC", "Microsoft YaHei", sans-serif' },
+  header: { background: 'linear-gradient(135deg, #1e3a5f 0%, #0d2137 100%)', color: '#fff', padding: '24px 32px' },
+  headerTitle: { fontSize: 22, fontWeight: 700, margin: 0, display: 'flex', alignItems: 'center', gap: 10 },
+  headerSub: { fontSize: 13, color: 'rgba(255,255,255,0.65)', marginTop: 4 },
+  container: { maxWidth: 1400, margin: '0 auto', padding: '24px 32px' },
+  // 统计卡片区
+  statsGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 },
   statCard: {
-    background: '#fff',
-    borderRadius: 12,
-    padding: '18px 20px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
+    background: '#fff', borderRadius: 12, padding: 20, display: 'flex',
+    alignItems: 'center', gap: 16, boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    border: '1px solid #eef2f7', transition: 'box-shadow 0.2s',
   },
-  statIconWrap: {
-    width: 44, height: 44, borderRadius: 10,
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    flexShrink: 0,
-  },
+  statIconWrap: { width: 48, height: 48, borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
   statInfo: { flex: 1, minWidth: 0 },
-  statValue: { fontSize: 22, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.2 },
-  statLabel: { fontSize: 11, color: '#64748b', marginTop: 2 },
-  // 操作行
-  actionRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  searchBox: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    background: '#fff',
-    borderRadius: 8,
-    padding: '8px 12px',
-    border: '1px solid #e2e8f0',
-    width: 280,
-  },
-  searchInput: {
-    border: 'none',
-    outline: 'none',
-    fontSize: 13,
-    color: '#334155',
-    flex: 1,
-    background: 'transparent',
-  },
-  addBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 6,
-    background: '#ef4444',
-    color: '#fff',
-    border: 'none',
-    borderRadius: 8,
-    padding: '8px 16px',
-    fontSize: 13,
-    fontWeight: 600,
-    cursor: 'pointer',
-  },
+  statValue: { fontSize: 26, fontWeight: 700, color: '#1a3a5c', lineHeight: 1.2 },
+  statLabel: { fontSize: 12, color: '#8898aa', marginTop: 2 },
+  // 标签筛选
+  filterRow: { display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' as const },
+  filterTabs: { display: 'flex', background: '#fff', borderRadius: 10, padding: 4, gap: 2, boxShadow: '0 1px 3px rgba(0,0,0,0.05)', border: '1px solid #eef2f7' },
+  filterTab: (active: boolean) => ({
+    padding: '6px 14px', borderRadius: 7, border: 'none', fontSize: 13, fontWeight: 500, cursor: 'pointer',
+    background: active ? 'linear-gradient(135deg, #1e40af, #1e3a8a)' : 'transparent',
+    color: active ? '#fff' : '#64748b', transition: 'all 0.2s',
+  }),
+  levelFilter: { display: 'flex', gap: 8 },
+  levelBtn: (active: boolean, color: string) => ({
+    padding: '5px 12px', borderRadius: 6, border: 'none', fontSize: 12, fontWeight: 500, cursor: 'pointer',
+    background: active ? color : '#f1f5f9', color: active ? '#fff' : '#64748b', transition: 'all 0.2s',
+  }),
   // 卡片列表
-  cardList: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: 12,
-  },
+  cardList: { display: 'flex', flexDirection: 'column' as const, gap: 16 },
   card: {
-    background: '#fff',
-    borderRadius: 12,
-    padding: '20px',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
-    borderLeft: '4px solid',
-    cursor: 'pointer',
-    transition: 'box-shadow 0.2s',
+    background: '#fff', borderRadius: 14, boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+    border: '1px solid #eef2f7', overflow: 'hidden', transition: 'box-shadow 0.2s',
   },
   cardHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '16px 20px', borderBottom: '1px solid #f1f5f9', gap: 12, flexWrap: 'wrap' as const,
   },
-  cardPatient: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 10,
-  },
-  patientAvatar: {
-    width: 40, height: 40, borderRadius: '50%',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    fontSize: 16, fontWeight: 700, color: '#fff',
-  },
+  cardPatient: { display: 'flex', alignItems: 'center', gap: 12 },
+  patientAvatar: { width: 40, height: 40, borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16, fontWeight: 700, color: '#fff', flexShrink: 0 },
   patientInfo: {},
-  patientName: { fontSize: 15, fontWeight: 700, color: '#1a3a5c' },
-  patientMeta: { fontSize: 12, color: '#64748b', marginTop: 2 },
+  patientName: { fontSize: 15, fontWeight: 600, color: '#1a3a5c' },
+  patientMeta: { fontSize: 12, color: '#8898aa', marginTop: 1 },
   cardTags: { display: 'flex', gap: 6, flexWrap: 'wrap' as const },
-  cardBody: { marginBottom: 12 },
-  cardContent: { fontSize: 13, color: '#334155', lineHeight: 1.6, marginBottom: 10 },
-  cardDetail: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: 8,
-    fontSize: 12,
-    color: '#64748b',
-  },
-  detailItem: { display: 'flex', alignItems: 'center', gap: 4 },
-  detailIcon: { color: '#94a3b8' },
+  tag: (bg: string, color: string) => ({ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '3px 8px', borderRadius: 6, fontSize: 11, fontWeight: 600, background: bg, color }),
+  cardBody: { padding: '16px 20px' },
+  cardContent: { fontSize: 14, color: '#374151', lineHeight: 1.6, marginBottom: 12 },
+  cardDetail: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 8 },
+  detailItem: { display: 'flex', alignItems: 'flex-start', gap: 6, fontSize: 12, color: '#64748b' },
+  detailIcon: { flexShrink: 0, marginTop: 1, color: '#94a3b8' },
   cardFooter: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTop: '1px solid #f1f5f9',
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    padding: '12px 20px', borderTop: '1px solid #f1f5f9', background: '#fafbfd',
   },
-  footerLeft: { display: 'flex', gap: 12, fontSize: 12, color: '#64748b' },
+  footerLeft: { fontSize: 12, color: '#8898aa' },
   footerRight: { display: 'flex', gap: 8 },
   actionBtn: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '5px 10px',
-    borderRadius: 6,
-    fontSize: 12,
-    fontWeight: 500,
-    cursor: 'pointer',
-    border: 'none',
+    display: 'inline-flex', alignItems: 'center', gap: 5, padding: '5px 12px',
+    borderRadius: 7, border: 'none', fontSize: 12, fontWeight: 500, cursor: 'pointer', transition: 'all 0.2s',
   },
-  // 标签
-  tag: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 4,
-    padding: '3px 8px',
-    borderRadius: 12,
-    fontSize: 11,
-    fontWeight: 500,
+  // 生命周期进度条
+  lifecycleBar: {
+    display: 'flex', alignItems: 'center', padding: '12px 20px',
+    background: '#f8fafc', borderBottom: '1px solid #eef2f7', gap: 0, overflowX: 'auto' as const,
+  },
+  lifecycleStep: (active: boolean, done: boolean, color: string) => ({
+    display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 4,
+    flex: 1, minWidth: 80, position: 'relative' as const,
+  }),
+  stepDot: (done: boolean, active: boolean, color: string) => ({
+    width: 28, height: 28, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: done ? color : active ? color : '#e2e8f0',
+    color: done || active ? '#fff' : '#94a3b8', fontSize: 11, fontWeight: 700, zIndex: 1,
+    border: done || active ? 'none' : '2px solid #cbd5e1',
+    transition: 'all 0.3s',
+  }),
+  stepLabel: (done: boolean, active: boolean) => ({
+    fontSize: 11, fontWeight: done || active ? 600 : 400, color: done || active ? '#1a3a5c' : '#94a3b8', textAlign: 'center' as const,
+  }),
+  stepTime: (done: boolean) => ({ fontSize: 10, color: '#94a3b8', textAlign: 'center' as const }),
+  // 5阶段颜色
+  stages: ['#6366f1', '#f59e0b', '#3b82f6', '#10b981', '#64748b'] as const,
+  stageLabels: ['发现', '上报', '通知', '处理', '归档'] as const,
+  stageIcons: [AlertTriangle, Bell, MessageSquare, Activity, Archive],
+  // 等级颜色
+  levelColors: {
+    critical: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca', label: '一级危急', icon: Zap },
+    urgent: { bg: '#fffbeb', color: '#d97706', border: '#fde68a', label: '二级紧急', icon: AlertTriangle },
+    warning: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0', label: '三级警戒', icon: ShieldAlert },
   },
   // 弹窗
-  modalOverlay: {
-    position: 'fixed' as const,
-    top: 0, left: 0, right: 0, bottom: 0,
-    background: 'rgba(0,0,0,0.5)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1000,
-  },
   modal: {
-    background: '#fff',
-    borderRadius: 16,
-    padding: 28,
-    width: 560,
-    maxHeight: '80vh',
-    overflowY: 'auto' as const,
-    boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
+    position: 'fixed' as const, inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex',
+    alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20,
   },
-  modalTitle: { fontSize: 18, fontWeight: 700, color: '#1a3a5c', marginBottom: 20 },
-  formGrid: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: 16,
-    marginBottom: 16,
+  modalContent: {
+    background: '#fff', borderRadius: 16, width: '100%', maxWidth: 700, maxHeight: '90vh',
+    overflow: 'auto', boxShadow: '0 20px 60px rgba(0,0,0,0.2)',
   },
-  formGroup: { marginBottom: 14 },
-  label: { display: 'block', fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 6 },
-  input: {
-    width: '100%',
-    padding: '9px 12px',
-    border: '1px solid #e2e8f0',
-    borderRadius: 8,
-    fontSize: 13,
-    color: '#334155',
-    outline: 'none',
-    boxSizing: 'border-box' as const,
+  modalHeader: {
+    padding: '20px 24px', borderBottom: '1px solid #eef2f7', display: 'flex',
+    alignItems: 'center', justifyContent: 'space-between',
   },
-  select: {
-    width: '100%',
-    padding: '9px 12px',
-    border: '1px solid #e2e8f0',
-    borderRadius: 8,
-    fontSize: 13,
-    color: '#334155',
-    outline: 'none',
-    background: '#fff',
-    boxSizing: 'border-box' as const,
+  modalTitle: { fontSize: 17, fontWeight: 700, color: '#1a3a5c' },
+  modalBody: { padding: '24px' },
+  modalFooter: { padding: '16px 24px', borderTop: '1px solid #eef2f7', display: 'flex', justifyContent: 'flex-end', gap: 10 },
+  closeBtn: {
+    width: 32, height: 32, borderRadius: 8, border: 'none', background: '#f1f5f9',
+    color: '#64748b', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
   },
-  textarea: {
-    width: '100%',
-    padding: '9px 12px',
-    border: '1px solid #e2e8f0',
-    borderRadius: 8,
-    fontSize: 13,
-    color: '#334155',
-    outline: 'none',
-    resize: 'vertical' as const,
-    minHeight: 80,
-    fontFamily: 'inherit',
-    boxSizing: 'border-box' as const,
+  // 表单
+  formGrid: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
+  formGroup: { display: 'flex', flexDirection: 'column' as const, gap: 6 },
+  formGroupFull: { gridColumn: '1 / -1' },
+  formLabel: { fontSize: 12, fontWeight: 600, color: '#374151' },
+  formInput: {
+    padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13,
+    color: '#1a3a5c', background: '#fafbfc', outline: 'none', transition: 'border 0.2s',
   },
-  fullWidth: { gridColumn: '1 / -1' },
-  modalActions: {
-    display: 'flex',
-    justifyContent: 'flex-end',
-    gap: 10,
-    marginTop: 20,
-    paddingTop: 16,
-    borderTop: '1px solid #f1f5f9',
+  formSelect: {
+    padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13,
+    color: '#1a3a5c', background: '#fafbfc', outline: 'none',
+  },
+  formTextarea: {
+    padding: '8px 12px', borderRadius: 8, border: '1px solid #e2e8f0', fontSize: 13,
+    color: '#1a3a5c', background: '#fafbfc', outline: 'none', resize: 'vertical' as const, minHeight: 80,
+  },
+  primaryBtn: {
+    padding: '8px 20px', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg, #1e40af, #1e3a8a)',
+    color: '#fff', fontSize: 13, fontWeight: 600, cursor: 'pointer',
   },
   cancelBtn: {
-    padding: '9px 18px',
-    borderRadius: 8,
-    border: '1px solid #e2e8f0',
-    background: '#fff',
-    fontSize: 13,
-    color: '#64748b',
-    cursor: 'pointer',
-  },
-  saveBtn: {
-    padding: '9px 18px',
-    borderRadius: 8,
-    border: 'none',
-    background: '#ef4444',
-    fontSize: 13,
-    color: '#fff',
-    fontWeight: 600,
-    cursor: 'pointer',
+    padding: '8px 20px', borderRadius: 8, border: '1px solid #e2e8f0',
+    background: '#fff', color: '#64748b', fontSize: 13, fontWeight: 500, cursor: 'pointer',
   },
   // 颜色
-  red: { backgroundColor: '#fef2f2', color: '#ef4444', borderColor: '#fecaca' },
-  orange: { backgroundColor: '#fff7ed', color: '#f97316', borderColor: '#fed7aa' },
-  green: { backgroundColor: '#f0fdf4', color: '#22c55e', borderColor: '#bbf7d0' },
-  blue: { backgroundColor: '#eff6ff', color: '#3b82f6', borderColor: '#bfdbfe' },
-  purple: { backgroundColor: '#f5f3ff', color: '#8b5cf6', borderColor: '#ddd6fe' },
-  gray: { backgroundColor: '#f8fafc', color: '#64748b', borderColor: '#e2e8f0' },
-  // 超时预警色
-  urgentRed: { backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#f87171' },
-  timeoutOrange: { backgroundColor: '#ffedd5', color: '#ea580c', borderColor: '#fb923c' },
+  blue: { backgroundColor: '#eff6ff', color: '#1d4ed8' },
+  green: { backgroundColor: '#f0fdf4', color: '#15803d' },
+  orange: { backgroundColor: '#fff7ed', color: '#c2410c' },
+  purple: { backgroundColor: '#f5f3ff', color: '#7c3aed' },
+  red: { backgroundColor: '#fef2f2', color: '#dc2626' },
+  // 日志面板
+  logPanel: { background: '#fafbfd', borderRadius: 10, padding: 16, marginTop: 16 },
+  logTitle: { fontSize: 13, fontWeight: 700, color: '#1a3a5c', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 },
+  logItem: { display: 'flex', gap: 12, padding: '10px 0', borderBottom: '1px solid #f1f5f9', alignItems: 'flex-start' },
+  logDot: (color: string) => ({ width: 10, height: 10, borderRadius: '50%', background: color, flexShrink: 0, marginTop: 4 }),
+  logContent: { flex: 1 },
+  logAction: { fontSize: 13, fontWeight: 600, color: '#1a3a5c' },
+  logMeta: { fontSize: 11, color: '#94a3b8', marginTop: 2 },
+  logConnector: { width: 1, background: '#e2e8f0', margin: '0 4px', alignSelf: 'stretch' },
+  // 升级提示
+  escalationBanner: (color: string) => ({
+    display: 'flex', alignItems: 'center', gap: 10, padding: '10px 20px',
+    background: color, color: '#fff', fontSize: 12, fontWeight: 600,
+  }),
+  empty: { textAlign: 'center' as const, padding: '60px 0', color: '#94a3b8' },
+  blue2: '#1e40af',
 }
 
-// ---------- 颜色常量 ----------
-const TYPE_COLORS: Record<string, typeof s.red> = {
-  '可疑恶性肿瘤': s.red,
-  '消化道出血': s.orange,
-  '严重感染': s.purple,
-  '其他危急值': s.blue,
+// 动态导入 Archive 图标 (lucide-react 没有 Archive，用 Database 代替)
+import { Archive } from 'lucide-react';
+
+// ============== 工具函数 ==============
+const LEVEL_COLORS = {
+  critical: { bg: '#fef2f2', color: '#dc2626', border: '#fecaca', label: '一级危急', icon: Zap },
+  urgent: { bg: '#fffbeb', color: '#d97706', border: '#fde68a', label: '二级紧急', icon: AlertTriangle },
+  warning: { bg: '#f0fdf4', color: '#16a34a', border: '#bbf7d0', label: '三级警戒', icon: ShieldAlert },
+};
+
+const STAGE_COLORS = ['#6366f1', '#f59e0b', '#3b82f6', '#10b981', '#64748b'];
+const STAGE_LABELS = ['发现', '上报', '通知', '处理', '归档'];
+const STAGE_KEYS: CriticalStage[] = ['detected', 'reported', 'notified', 'handled', 'archived'];
+
+const STAGE_ACTION_LABELS: Record<string, string> = {
+  detected: '发现异常', reported: '科室上报', notified: '通知医生',
+  handled: '处理完成', archived: '已归档', escalated: '自动升级',
+};
+
+function getStageIndex(stage: CriticalStage): number {
+  return STAGE_KEYS.indexOf(stage);
 }
 
-const STATUS_COLORS = {
-  handled: s.green,
-  pending: s.orange,
+function getAvatarColor(name: string): string {
+  const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#f97316'];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  return colors[Math.abs(hash) % colors.length];
 }
 
-// ============ CriticalValuePage 组件 ============
-export default function CriticalValuePage() {
-  const [criticalValues, setCriticalValues] = useState<CriticalValue[]>(initialCriticalValues)
-  const [searchKeyword, setSearchKeyword] = useState('')
-  const [filterStatus, setFilterStatus] = useState<'all' | 'handled' | 'pending'>('all')
-  const [showModal, setShowModal] = useState(false)
-  const [modalType, setModalType] = useState<'add' | 'view' | 'report'>('add')
-  const [selectedCV, setSelectedCV] = useState<CriticalValue | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
+function formatTime(iso: string): string {
+  if (!iso) return '—';
+  return iso.replace('T', ' ').slice(0, 16);
+}
 
-  // 表单状态
-  const [formData, setFormData] = useState({
-    patientName: '',
-    examItemName: '',
-    criticalValueType: '可疑恶性肿瘤',
-    criticalValueContent: '',
-    reportMethod: '电话' as '电话' | '口头' | '书面',
-    patientResponse: '',
-    notes: '',
-  })
+function getTimeoutStatus(cv: CriticalValue): 'normal' | 'warning' | 'urgent' {
+  if (cv.handled || cv.stage === 'archived') return 'normal';
+  const rule = initialEscalationRules.find(r => r.level === cv.level);
+  if (!rule) return 'normal';
+  const detected = new Date(cv.detectedTime).getTime();
+  const now = Date.now();
+  const diffMin = (now - detected) / 60000;
+  if (diffMin >= rule.thresholdMinutes) return 'urgent';
+  if (diffMin >= rule.thresholdMinutes * 0.7) return 'warning';
+  return 'normal';
+}
 
-  // 统计
-  const total = criticalValues.length
-  const handled = criticalValues.filter(cv => cv.handled).length
-  const pending = total - handled
-  const todayNew = criticalValues.filter(cv => {
-    const d = cv.detectedTime?.slice(0, 10)
-    return d === new Date().toISOString().slice(0, 10)
-  }).length
+function getElapsedMinutes(detectedTime: string): number {
+  const detected = new Date(detectedTime).getTime();
+  return Math.floor((Date.now() - detected) / 60000);
+}
 
-  // 过滤
-  const filtered = criticalValues.filter(cv => {
-    const matchSearch = !searchKeyword ||
-      cv.patientName.includes(searchKeyword) ||
-      cv.criticalValueContent.includes(searchKeyword) ||
-      cv.examItemName.includes(searchKeyword)
-    const matchStatus = filterStatus === 'all' ||
-      (filterStatus === 'handled' && cv.handled) ||
-      (filterStatus === 'pending' && !cv.handled)
-    return matchSearch && matchStatus
-  })
+function getOutcomeLabel(outcome: PatientOutcome): string {
+  const map: Record<string, string> = {
+    '继续观察': '继续观察', '住院治疗': '住院治疗', '手术': '手术',
+    '转院': '转院', '死亡': '死亡', '失访': '失访', '': '未记录',
+  };
+  return map[outcome] || outcome || '未记录';
+}
 
-  // 打开弹窗
-  const openAddModal = () => {
-    setModalType('add')
-    setFormData({
-      patientName: '',
-      examItemName: '',
-      criticalValueType: '可疑恶性肿瘤',
-      criticalValueContent: '',
-      reportMethod: '电话',
-      patientResponse: '',
-      notes: '',
-    })
-    setShowModal(true)
-  }
+function getOutcomeColor(outcome: PatientOutcome): string {
+  const map: Record<string, string> = {
+    '继续观察': '#3b82f6', '住院治疗': '#f59e0b', '手术': '#8b5cf6',
+    '转院': '#06b6d4', '死亡': '#ef4444', '失访': '#94a3b8', '': '#94a3b8',
+  };
+  return map[outcome] || '#94a3b8';
+}
 
-  const openViewModal = (cv: CriticalValue) => {
-    setSelectedCV(cv)
-    setModalType('view')
-    setShowModal(true)
-  }
+// ============== 生命周期进度条组件 ==============
+function LifecycleBar({ cv }: { cv: CriticalValue }) {
+  const currentIdx = getStageIndex(cv.stage);
+  const elapsed = getElapsedMinutes(cv.detectedTime);
+  const rule = initialEscalationRules.find(r => r.level === cv.level);
+  const threshold = rule?.thresholdMinutes || 30;
 
-  const openReportModal = (cv: CriticalValue) => {
-    setSelectedCV(cv)
-    setModalType('report')
-    setFormData({
-      patientName: cv.patientName,
-      examItemName: cv.examItemName,
-      criticalValueType: cv.criticalValueType,
-      criticalValueContent: cv.criticalValueContent,
-      reportMethod: cv.reportMethod || '电话',
-      patientResponse: cv.patientResponse || '',
-      notes: cv.notes || '',
-    })
-    setShowModal(true)
-  }
+  const getLogTime = (stage: CriticalStage): string => {
+    const log = cv.logs?.find(l => l.toStage === stage);
+    return log ? formatTime(log.actionTime) : '—';
+  };
 
-  // 保存
-  const handleSave = () => {
-    if (modalType === 'add') {
-      const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
-      const newCV: CriticalValue = {
-        id: `CV${String(criticalValues.length + 1).padStart(3, '0')}`,
-        examId: '',
-        patientId: '',
-        patientName: formData.patientName,
-        examItemName: formData.examItemName,
-        criticalValueType: formData.criticalValueType,
-        criticalValueContent: formData.criticalValueContent,
-        detectedDoctorId: 'U001',
-        detectedDoctorName: '张建国',
-        detectedTime: now,
-        reportMethod: formData.reportMethod,
-        patientResponse: formData.patientResponse,
-        handled: false,
-        notes: formData.notes,
-      }
-      setCriticalValues([newCV, ...criticalValues])
-    } else if (modalType === 'report' && selectedCV) {
-      setCriticalValues(criticalValues.map(cv =>
-        cv.id === selectedCV.id
-          ? {
-              ...cv,
-              reportMethod: formData.reportMethod,
-              patientResponse: formData.patientResponse,
-              reportedDoctorId: 'U001',
-              reportedDoctorName: '张建国',
-              reportedTime: new Date().toISOString().slice(0, 16).replace('T', ' '),
-              handled: true,
-              handledTime: new Date().toISOString().slice(0, 16).replace('T', ' '),
-              notes: formData.notes,
-            }
-          : cv
-      ))
+  return (
+    <div style={s.lifecycleBar}>
+      {STAGE_KEYS.map((stage, idx) => {
+        const done = idx < currentIdx;
+        const active = idx === currentIdx;
+        const color = STAGE_COLORS[idx];
+        return (
+          <React.Fragment key={stage}>
+            <div style={s.lifecycleStep(active, done, color)}>
+              <div style={s.stepDot(done, active, color)}>
+                {done ? '✓' : active ? (idx + 1) : idx + 1}
+              </div>
+              <div style={s.stepLabel(done, active)}>{STAGE_LABELS[idx]}</div>
+              <div style={s.stepTime(done)}>{getLogTime(stage)}</div>
+            </div>
+            {idx < STAGE_KEYS.length - 1 && (
+              <div style={{ flex: '0 0 24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <ArrowRight size={12} color={done ? color : '#cbd5e1'} />
+              </div>
+            )}
+          </React.Fragment>
+        );
+      })}
+      {/* 超时指示 */}
+      {!cv.handled && cv.stage !== 'archived' && (
+        <div style={{
+          marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6,
+          padding: '4px 10px', borderRadius: 6, fontSize: 11, fontWeight: 600,
+          background: elapsed >= threshold ? '#fef2f2' : elapsed >= threshold * 0.7 ? '#fffbeb' : '#f0fdf4',
+          color: elapsed >= threshold ? '#dc2626' : elapsed >= threshold * 0.7 ? '#d97706' : '#16a34a',
+          flexShrink: 0,
+        }}>
+          <Timer size={12} />
+          已超时 {elapsed}min / {threshold}min
+          {elapsed >= threshold && <Zap size={12} />}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ============== 危急值卡片 ==============
+function CriticalValueCard({
+  cv, onView, onAdvance, onMarkHandled, onEscalate,
+}: {
+  cv: CriticalValue;
+  onView: () => void;
+  onAdvance: () => void;
+  onMarkHandled: () => void;
+  onEscalate: () => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const lc = LEVEL_COLORS[cv.level];
+  const timeoutStatus = getTimeoutStatus(cv);
+  const elapsed = getElapsedMinutes(cv.detectedTime);
+  const rule = initialEscalationRules.find(r => r.level === cv.level);
+  const threshold = rule?.thresholdMinutes || 30;
+  const currentIdx = getStageIndex(cv.stage);
+
+  const nextStageLabel = () => {
+    if (cv.stage === 'detected') return '确认上报';
+    if (cv.stage === 'reported') return '通知医生';
+    if (cv.stage === 'notified') return '处理完成';
+    if (cv.stage === 'handled') return '归档';
+    return null;
+  };
+
+  const handleAdvance = () => {
+    if (cv.stage === 'handled') {
+      onMarkHandled();
+    } else {
+      onAdvance();
     }
-    setShowModal(false)
-  }
-
-  // 标记已处理
-  const markHandled = (cv: CriticalValue) => {
-    setCriticalValues(criticalValues.map(c =>
-      c.id === cv.id
-        ? { ...c, handled: true, handledTime: new Date().toISOString().slice(0, 16).replace('T', ' ') }
-        : c
-    ))
-  }
-
-  const getAvatarColor = (name: string) => {
-    const colors = [s.red.color, s.orange.color, s.blue.color, s.purple.color, s.green.color]
-    const idx = name.charCodeAt(0) % colors.length
-    return colors[idx]
-  }
-
-  // 计算超时状态
-  const getTimeoutStatus = (cv: CriticalValue): 'normal' | 'warning' | 'urgent' => {
-    if (cv.handled) return 'normal'
-    const detected = new Date(cv.detectedTime.replace(' ', 'T'))
-    const now = new Date()
-    const minutes = (now.getTime() - detected.getTime()) / (1000 * 60)
-    if (minutes >= 60) return 'urgent'  // 60分钟以上：紧急
-    if (minutes >= 30) return 'warning'  // 30分钟以上：标红
-    return 'normal'
-  }
-
-  // 计算平均响应时间（分钟）
-  const avgResponseTime = (() => {
-    const handled = criticalValues.filter(cv => cv.handled && cv.handledTime)
-    if (handled.length === 0) return null
-    const total = handled.reduce((sum, cv) => {
-      const detected = new Date(cv.detectedTime.replace(' ', 'T'))
-      const handledTime = new Date(cv.handledTime!.replace(' ', 'T'))
-      return sum + (handledTime.getTime() - detected.getTime()) / (1000 * 60)
-    }, 0)
-    return Math.round(total / handled.length)
-  })()
-
-  // 超时统计
-  const overdue30 = criticalValues.filter(cv => !cv.handled && getTimeoutStatus(cv) === 'warning').length
-  const overdue60 = criticalValues.filter(cv => !cv.handled && getTimeoutStatus(cv) === 'urgent').length
+  };
 
   return (
-    <div style={s.root}>
-      {/* 标题 */}
-      <div style={s.header}>
-        <div>
-          <h1 style={s.title}>危急值管理</h1>
-          <p style={s.subtitle}>检查中发现的可疑恶性肿瘤等需立即通知患者或家属的指标</p>
-        </div>
-      </div>
-
-      {/* 统计卡片 */}
-      <div style={s.statRow}>
-        <StatCard
-          icon={AlertTriangle}
-          iconBg={s.red.backgroundColor as string}
-          iconColor={s.red.color as string}
-          value={total}
-          unit="例"
-          label="危急值总数"
-        />
-        <StatCard
-          icon={Bell}
-          iconBg={s.orange.backgroundColor as string}
-          iconColor={s.orange.color as string}
-          value={pending}
-          unit="例"
-          label="待处理"
-        />
-        <StatCard
-          icon={CheckCircle}
-          iconBg={s.green.backgroundColor as string}
-          iconColor={s.green.color as string}
-          value={handled}
-          unit="例"
-          label="已处理"
-        />
-        <StatCard
-          icon={Clock}
-          iconBg={s.blue.backgroundColor as string}
-          iconColor={s.blue.color as string}
-          value={todayNew}
-          unit="例"
-          label="今日新增"
-        />
-        <StatCard
-          icon={Clock}
-          iconBg={s.timeoutOrange.backgroundColor as string}
-          iconColor={s.timeoutOrange.color as string}
-          value={overdue30}
-          unit="例"
-          label="超30分钟待处理"
-        />
-        <StatCard
-          icon={AlertTriangle}
-          iconBg={s.urgentRed.backgroundColor as string}
-          iconColor={s.urgentRed.color as string}
-          value={overdue60}
-          unit="例"
-          label="超60分钟紧急"
-        />
-      </div>
-
-      {/* 平均响应时间 */}
-      {avgResponseTime !== null && (
-        <div style={{ marginBottom: 16, padding: '12px 16px', background: '#eff6ff', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Clock size={16} color="#3b82f6" />
-          <span style={{ fontSize: 13, color: '#334155' }}>
-            平均响应时间：<strong style={{ color: '#3b82f6' }}>{avgResponseTime}</strong> 分钟
-          </span>
-          <span style={{ fontSize: 12, color: '#94a3b8', marginLeft: 8 }}>
-            （已处理 {handled} 例）
-          </span>
-        </div>
-      )}
-
-      {/* 操作行 */}
-      <div style={s.actionRow}>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <div style={s.searchBox}>
-            <Search size={15} color="#94a3b8" />
-            <input
-              style={s.searchInput}
-              placeholder="搜索患者姓名、检查项目..."
-              value={searchKeyword}
-              onChange={e => setSearchKeyword(e.target.value)}
-            />
-          </div>
-          <FilterTabs value={filterStatus} onChange={setFilterStatus} />
-        </div>
-        <button style={s.addBtn} onClick={openAddModal}>
-          <Plus size={15} /> 登记危急值
-        </button>
-      </div>
-
-      {/* 卡片列表 */}
-      <div style={s.cardList}>
-        {filtered.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '60px 0', color: '#94a3b8' }}>
-            <div style={{ marginBottom: 16 }}>
-              <AlertTriangle size={48} color="#d1d5db" strokeWidth={1.5} />
-            </div>
-            <div style={{ fontSize: 16, fontWeight: 600, color: '#64748b', marginBottom: 8 }}>暂无危急值记录</div>
-            <div style={{ fontSize: 13, color: '#94a3b8' }}>当前没有需要处理的危急值信息</div>
-            <div style={{ marginTop: 20 }}>
-              <button style={{ ...s.addBtn, minHeight: 44, padding: '10px 24px', fontSize: 14 }} onClick={openAddModal}>
-                <Plus size={16} /> 登记危急值
-              </button>
-            </div>
-          </div>
-        ) : (
-          filtered.map(cv => (
-            <CriticalValueCard
-              key={cv.id}
-              cv={cv}
-              isExpanded={expandedId === cv.id}
-              onToggle={() => setExpandedId(expandedId === cv.id ? null : cv.id)}
-              onView={() => openViewModal(cv)}
-              onReport={() => openReportModal(cv)}
-              onMarkHandled={() => markHandled(cv)}
-              getAvatarColor={getAvatarColor}
-              timeoutStatus={getTimeoutStatus(cv)}
-            />
-          ))
-        )}
-      </div>
-
-      {/* 弹窗 */}
-      {showModal && (
-        <div style={s.modalOverlay} onClick={() => setShowModal(false)}>
-          <div style={s.modal} onClick={e => e.stopPropagation()}>
-            {modalType === 'add' && (
-              <>
-                <h2 style={s.modalTitle}>登记危急值</h2>
-                <div style={s.formGrid}>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>患者姓名 *</label>
-                    <input
-                      style={s.input}
-                      value={formData.patientName}
-                      onChange={e => setFormData({ ...formData, patientName: e.target.value })}
-                      placeholder="请输入患者姓名"
-                    />
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>检查项目 *</label>
-                    <input
-                      style={s.input}
-                      value={formData.examItemName}
-                      onChange={e => setFormData({ ...formData, examItemName: e.target.value })}
-                      placeholder="如：电子超声检查"
-                    />
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>危急值类型 *</label>
-                    <select
-                      style={s.select}
-                      value={formData.criticalValueType}
-                      onChange={e => setFormData({ ...formData, criticalValueType: e.target.value })}
-                    >
-                      <option value="可疑恶性肿瘤">可疑恶性肿瘤</option>
-                      <option value="消化道出血">消化道出血</option>
-                      <option value="严重感染">严重感染</option>
-                      <option value="其他危急值">其他危急值</option>
-                    </select>
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>报告方式</label>
-                    <select
-                      style={s.select}
-                      value={formData.reportMethod}
-                      onChange={e => setFormData({ ...formData, reportMethod: e.target.value as '电话' | '口头' | '书面' })}
-                    >
-                      <option value="电话">电话</option>
-                      <option value="口头">口头</option>
-                      <option value="书面">书面</option>
-                    </select>
-                  </div>
-                  <div style={{ ...s.formGroup, ...s.fullWidth }}>
-                    <label style={s.label}>危急值内容 *</label>
-                    <textarea
-                      style={s.textarea}
-                      value={formData.criticalValueContent}
-                      onChange={e => setFormData({ ...formData, criticalValueContent: e.target.value })}
-                      placeholder="请详细描述发现的可疑病灶或异常情况..."
-                    />
-                  </div>
-                  <div style={{ ...s.formGroup, ...s.fullWidth }}>
-                    <label style={s.label}>患者/家属反馈</label>
-                    <input
-                      style={s.input}
-                      value={formData.patientResponse}
-                      onChange={e => setFormData({ ...formData, patientResponse: e.target.value })}
-                      placeholder="患者或家属接到通知后的反馈"
-                    />
-                  </div>
-                  <div style={{ ...s.formGroup, ...s.fullWidth }}>
-                    <label style={s.label}>备注</label>
-                    <textarea
-                      style={s.textarea}
-                      value={formData.notes}
-                      onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                      placeholder="其他补充说明..."
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            {modalType === 'view' && selectedCV && (
-              <>
-                <h2 style={s.modalTitle}>危急值详情</h2>
-                <div style={s.formGrid}>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>患者姓名</label>
-                    <div style={{ fontSize: 14, color: '#334155', padding: '9px 0' }}>{selectedCV.patientName}</div>
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>检查项目</label>
-                    <div style={{ fontSize: 14, color: '#334155', padding: '9px 0' }}>{selectedCV.examItemName}</div>
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>危急值类型</label>
-                    <div style={{ fontSize: 14, color: '#334155', padding: '9px 0' }}>{selectedCV.criticalValueType}</div>
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>发现时间</label>
-                    <div style={{ fontSize: 14, color: '#334155', padding: '9px 0' }}>{selectedCV.detectedTime}</div>
-                  </div>
-                  <div style={{ ...s.formGroup, ...s.fullWidth }}>
-                    <label style={s.label}>发现医生</label>
-                    <div style={{ fontSize: 14, color: '#334155', padding: '9px 0' }}>{selectedCV.detectedDoctorName}</div>
-                  </div>
-                  <div style={{ ...s.formGroup, ...s.fullWidth }}>
-                    <label style={s.label}>危急值内容</label>
-                    <div style={{ fontSize: 14, color: '#334155', padding: '9px 0', lineHeight: 1.6 }}>{selectedCV.criticalValueContent}</div>
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>报告方式</label>
-                    <div style={{ fontSize: 14, color: '#334155', padding: '9px 0' }}>{selectedCV.reportMethod}</div>
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>处理状态</label>
-                    <div style={{ padding: '9px 0' }}>
-                      {selectedCV.handled ? (
-                        <span style={{ ...s.tag, background: s.green.backgroundColor, color: s.green.color }}>
-                          <CheckCircle size={12} /> 已处理
-                        </span>
-                      ) : (
-                        <span style={{ ...s.tag, background: s.orange.backgroundColor, color: s.orange.color }}>
-                          <Clock size={12} /> 待处理
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {selectedCV.patientResponse && (
-                    <div style={{ ...s.formGroup, ...s.fullWidth }}>
-                      <label style={s.label}>患者反馈</label>
-                      <div style={{ fontSize: 14, color: '#334155', padding: '9px 0' }}>{selectedCV.patientResponse}</div>
-                    </div>
-                  )}
-                  {selectedCV.notes && (
-                    <div style={{ ...s.formGroup, ...s.fullWidth }}>
-                      <label style={s.label}>备注</label>
-                      <div style={{ fontSize: 14, color: '#334155', padding: '9px 0' }}>{selectedCV.notes}</div>
-                    </div>
-                  )}
-                </div>
-              </>
-            )}
-
-            {modalType === 'report' && selectedCV && (
-              <>
-                <h2 style={s.modalTitle}>报告与处理</h2>
-                <div style={{ marginBottom: 16, padding: '12px 16px', background: s.red.backgroundColor, borderRadius: 8, borderLeft: `4px solid ${s.red.color}` }}>
-                  <div style={{ fontSize: 13, fontWeight: 600, color: s.red.color, marginBottom: 4 }}>
-                    ⚠️ {selectedCV.patientName} - {selectedCV.criticalValueType}
-                  </div>
-                  <div style={{ fontSize: 12, color: '#64748b' }}>{selectedCV.criticalValueContent}</div>
-                </div>
-                <div style={s.formGrid}>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>报告方式 *</label>
-                    <select
-                      style={s.select}
-                      value={formData.reportMethod}
-                      onChange={e => setFormData({ ...formData, reportMethod: e.target.value as '电话' | '口头' | '书面' })}
-                    >
-                      <option value="电话">电话</option>
-                      <option value="口头">口头</option>
-                      <option value="书面">书面</option>
-                    </select>
-                  </div>
-                  <div style={s.formGroup}>
-                    <label style={s.label}>患者/家属反馈</label>
-                    <input
-                      style={s.input}
-                      value={formData.patientResponse}
-                      onChange={e => setFormData({ ...formData, patientResponse: e.target.value })}
-                      placeholder="反馈说明"
-                    />
-                  </div>
-                  <div style={{ ...s.formGroup, ...s.fullWidth }}>
-                    <label style={s.label}>备注</label>
-                    <textarea
-                      style={s.textarea}
-                      value={formData.notes}
-                      onChange={e => setFormData({ ...formData, notes: e.target.value })}
-                      placeholder="处理情况说明..."
-                    />
-                  </div>
-                </div>
-              </>
-            )}
-
-            <div style={s.modalActions}>
-              <button style={s.cancelBtn} onClick={() => setShowModal(false)}>取消</button>
-              <button style={s.saveBtn} onClick={handleSave}>
-                {modalType === 'add' ? '登记' : modalType === 'view' ? '关闭' : '确认报告并处理'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
-  )
-}
-
-// ---------- StatCard ----------
-interface StatCardProps {
-  icon: LucideIcon
-  iconBg: React.CSSProperties['background']
-  iconColor: string
-  value: number | string
-  unit: string
-  label: string
-}
-
-function StatCard({ icon: Icon, iconBg, iconColor, value, unit, label }: StatCardProps) {
-  return (
-    <div style={s.statCard}>
-      <div style={{ ...s.statIconWrap, background: iconBg }}>
-        <Icon size={20} color={iconColor} />
-      </div>
-      <div style={s.statInfo}>
-        <div style={s.statValue}>
-          {value}<span style={{ fontSize: 13, color: '#64748b', fontWeight: 400 }}>{unit}</span>
-        </div>
-        <div style={s.statLabel}>{label}</div>
-      </div>
-    </div>
-  )
-}
-
-// ---------- FilterTabs ----------
-function FilterTabs({ value, onChange }: { value: string; onChange: (v: 'all' | 'handled' | 'pending') => void }) {
-  const tabs = [
-    { key: 'all', label: '全部' },
-    { key: 'pending', label: '待处理' },
-    { key: 'handled', label: '已处理' },
-  ]
-  return (
-    <div style={{ display: 'flex', background: '#f8fafc', borderRadius: 8, padding: 3, gap: 2 }}>
-      {tabs.map(tab => (
-        <button
-          key={tab.key}
-          onClick={() => onChange(tab.key as 'all' | 'handled' | 'pending')}
-          style={{
-            padding: '5px 12px',
-            borderRadius: 6,
-            border: 'none',
-            fontSize: 12,
-            fontWeight: 500,
-            cursor: 'pointer',
-            background: value === tab.key ? '#fff' : 'transparent',
-            color: value === tab.key ? '#1a3a5c' : '#64748b',
-            boxShadow: value === tab.key ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-            transition: 'all 0.2s',
-          }}
-        >
-          {tab.label}
-        </button>
-      ))}
-    </div>
-  )
-}
-
-// ---------- CriticalValueCard ----------
-interface CriticalValueCardProps {
-  cv: CriticalValue
-  isExpanded: boolean
-  onToggle: () => void
-  onView: () => void
-  onReport: () => void
-  onMarkHandled: () => void
-  getAvatarColor: (name: string) => string
-  timeoutStatus?: 'normal' | 'warning' | 'urgent'
-}
-
-function CriticalValueCard({ cv, isExpanded, onToggle, onView, onReport, onMarkHandled, getAvatarColor, timeoutStatus }: CriticalValueCardProps) {
-  const typeColor = TYPE_COLORS[cv.criticalValueType] || s.blue
-  const statusColor = cv.handled ? s.green : s.orange
-
-  // 超时样式覆盖
-  const timeoutBg = timeoutStatus === 'urgent' ? s.urgentRed.backgroundColor
-    : timeoutStatus === 'warning' ? s.timeoutOrange.backgroundColor
-    : undefined
-  const timeoutBorder = timeoutStatus === 'urgent' ? s.urgentRed.color
-    : timeoutStatus === 'warning' ? s.timeoutOrange.color
-    : typeColor.color
-
-  return (
-    <div
-      style={{
-        ...s.card,
-        borderLeftColor: timeoutBorder,
-        background: timeoutBg || '#fff',
-      }}
-    >
-      {/* 卡片头部 */}
+    <div style={{
+      ...s.card,
+      borderLeft: `4px solid ${timeoutStatus === 'urgent' ? '#dc2626' : timeoutStatus === 'warning' ? '#d97706' : lc.color}`,
+      background: timeoutStatus === 'urgent' ? '#fef2f2' : timeoutStatus === 'warning' ? '#fffbeb' : '#fff',
+    }}>
+      {/* 等级+状态头部 */}
       <div style={s.cardHeader}>
         <div style={s.cardPatient}>
           <div style={{ ...s.patientAvatar, background: getAvatarColor(cv.patientName) }}>
             {cv.patientName.charAt(0)}
           </div>
           <div style={s.patientInfo}>
-            <div style={s.patientName}>{cv.patientName}</div>
+            <div style={s.patientName}>{cv.patientName} <span style={{ fontSize: 12, color: '#94a3b8', fontWeight: 400 }}>#{cv.id}</span></div>
             <div style={s.patientMeta}>{cv.examItemName}</div>
           </div>
         </div>
         <div style={s.cardTags}>
-          {timeoutStatus === 'urgent' && (
-            <span style={{ ...s.tag, background: s.urgentRed.backgroundColor, color: s.urgentRed.color }}>
-              <AlertTriangle size={11} /> 紧急处理
+          <span style={s.tag(lc.bg, lc.color)}>
+            <lc.icon size={11} /> {lc.label}
+          </span>
+          <span style={s.tag('#eff6ff', '#1d4ed8')}>
+            <Clock size={11} /> {STAGE_LABELS[currentIdx]}
+          </span>
+          {cv.autoEscalation && (
+            <span style={s.tag('#fef2f2', '#dc2626')}>
+              <ArrowUpCircle size={11} /> 自动升级
             </span>
           )}
-          <span style={{ ...s.tag, background: typeColor.backgroundColor, color: typeColor.color }}>
-            <AlertTriangle size={11} /> {cv.criticalValueType}
-          </span>
-          <span style={{ ...s.tag, background: statusColor.backgroundColor, color: statusColor.color }}>
-            {cv.handled ? <CheckCircle size={11} /> : <Clock size={11} />}
-            {cv.handled ? '已处理' : '待处理'}
-          </span>
+          {cv.patientOutcome && (
+            <span style={s.tag('#f0fdf4', getOutcomeColor(cv.patientOutcome))}>
+              <Heart size={11} /> {getOutcomeLabel(cv.patientOutcome)}
+            </span>
+          )}
+          {timeoutStatus === 'urgent' && (
+            <span style={s.tag('#fef2f2', '#dc2626')}>
+              <Zap size={11} /> 超时{elapsed - threshold}min
+            </span>
+          )}
         </div>
       </div>
+
+      {/* 生命周期进度条 */}
+      <LifecycleBar cv={cv} />
+
+      {/* 自动升级提示 */}
+      {cv.autoEscalation && (
+        <div style={s.escalationBanner('#fef2f2')}>
+          <Zap size={14} color="#dc2626" />
+          <span style={{ color: '#dc2626' }}>
+            系统自动升级：{cv.escalationTime} 已通知 {cv.notifiedDoctorName || '上级医生'}
+            {cv.escalationCount > 1 && ` (第${cv.escalationCount}次升级)`}
+          </span>
+        </div>
+      )}
 
       {/* 卡片内容 */}
       <div style={s.cardBody}>
         <div style={s.cardContent}>{cv.criticalValueContent}</div>
         <div style={s.cardDetail}>
-          <div style={s.detailItem}>
-            <User size={12} style={s.detailIcon} />
-            <span>发现医生：{cv.detectedDoctorName}</span>
-          </div>
-          <div style={s.detailItem}>
-            <Clock size={12} style={s.detailIcon} />
-            <span>发现时间：{cv.detectedTime}</span>
-          </div>
-          {cv.reportedDoctorName && (
-            <div style={s.detailItem}>
-              <Phone size={12} style={s.detailIcon} />
-              <span>报告医生：{cv.reportedDoctorName}</span>
-            </div>
-          )}
-          {cv.reportMethod && (
-            <div style={s.detailItem}>
-              <Phone size={12} style={s.detailIcon} />
-              <span>报告方式：{cv.reportMethod}</span>
-            </div>
-          )}
-          {cv.patientResponse && (
-            <div style={{ ...s.detailItem, gridColumn: '1 / -1' }}>
-              <FileText size={12} style={s.detailIcon} />
-              <span>患者反馈：{cv.patientResponse}</span>
-            </div>
-          )}
+          <div style={s.detailItem}><User size={12} style={s.detailIcon} /><span>发现：{cv.detectedDoctorName} · {formatTime(cv.detectedTime)}</span></div>
+          {cv.reportedDoctorName && <div style={s.detailItem}><Bell size={12} style={s.detailIcon} /><span>上报：{cv.reportedDoctorName} · {formatTime(cv.reportedTime || '')}</span></div>}
+          {cv.notifiedDoctorName && <div style={s.detailItem}><MessageSquare size={12} style={s.detailIcon} /><span>通知：{cv.notifiedDoctorName} · {formatTime(cv.notifiedTime || '')}</span></div>}
+          {cv.handledTime && <div style={s.detailItem}><Activity size={12} style={s.detailIcon} /><span>处理：{formatTime(cv.handledTime)}</span></div>}
+          {cv.archivalTime && <div style={s.detailItem}><Archive size={12} style={s.detailIcon} /><span>归档：{formatTime(cv.archivalTime)}</span></div>}
+          {cv.reportMethod && <div style={{ ...s.detailItem, gridColumn: '1 / -1' }}><Phone size={12} style={s.detailIcon} /><span>报告方式：{cv.reportMethod} · 患者反馈：{cv.patientResponse || '—'}</span></div>}
         </div>
+
+        {/* 日志链（展开显示） */}
+        {expanded && cv.logs && cv.logs.length > 0 && (
+          <div style={s.logPanel}>
+            <div style={s.logTitle}><LogOut size={14} /> 生命周期日志</div>
+            {cv.logs.map((log, i) => (
+              <div key={log.id} style={s.logItem}>
+                <div style={s.logDot(STAGE_COLORS[STAGE_KEYS.indexOf(log.toStage || 'detected')])} />
+                <div style={{ flex: 1 }}>
+                  <div style={s.logAction}>{STAGE_ACTION_LABELS[log.action] || log.action} — {log.description}</div>
+                  <div style={s.logMeta}>{log.operatorName} · {formatTime(log.actionTime)}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* 卡片底部 */}
       <div style={s.cardFooter}>
         <div style={s.footerLeft}>
-          {cv.handled && cv.handledTime && (
-            <span>处理时间：{cv.handledTime}</span>
-          )}
+          {cv.notes && <span style={{ fontStyle: 'italic' }}>备注：{cv.notes}</span>}
         </div>
         <div style={s.footerRight}>
-          <button
-            style={{ ...s.actionBtn, background: '#f8fafc', color: '#64748b' }}
-            onClick={e => { e.stopPropagation(); onView() }}
-          >
+          <button style={{ ...s.actionBtn, background: '#f8fafc', color: '#64748b' }} onClick={() => setExpanded(!expanded)}>
+            {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />} 日志
+          </button>
+          <button style={{ ...s.actionBtn, background: '#f8fafc', color: '#64748b' }} onClick={onView}>
             <Eye size={13} /> 详情
           </button>
-          {!cv.handled && (
-            <button
-              style={{ ...s.actionBtn, background: s.orange.backgroundColor, color: s.orange.color }}
-              onClick={e => { e.stopPropagation(); onReport() }}
-            >
-              <Phone size={13} /> 报告处理
-            </button>
-          )}
-          {!cv.handled && (
-            <button
-              style={{ ...s.actionBtn, background: s.green.backgroundColor, color: s.green.color }}
-              onClick={e => { e.stopPropagation(); onMarkHandled() }}
-            >
-              <CheckCircle size={13} /> 标记已处理
-            </button>
+          {!cv.handled && cv.stage !== 'archived' && (
+            <>
+              {!cv.autoEscalation && cv.stage !== 'notified' && (
+                <button style={{ ...s.actionBtn, background: '#fef2f2', color: '#dc2626' }} onClick={onEscalate}>
+                  <ArrowUpCircle size={13} /> 升级
+                </button>
+              )}
+              {nextStageLabel() && (
+                <button style={{ ...s.actionBtn, background: s.blue2, color: '#fff' }} onClick={handleAdvance}>
+                  <ArrowRight size={13} /> {nextStageLabel()}
+                </button>
+              )}
+            </>
           )}
         </div>
       </div>
     </div>
-  )
+  );
+}
+
+// ============== 新增/推进模态框 ==============
+interface ModalProps {
+  cv?: CriticalValue;
+  advanceFrom?: CriticalValue;
+  onSave: (data: Partial<CriticalValue> & { advanceTo?: CriticalStage }) => void;
+  onClose: () => void;
+  mode: 'add' | 'advance' | 'view' | 'escalate';
+}
+
+function CVModal({ cv, advanceFrom, onSave, onClose, mode }: ModalProps) {
+  const [form, setForm] = useState<Record<string, string>>(() => {
+    if (cv) {
+      return {
+        level: cv.level, stage: cv.stage, criticalValueType: cv.criticalValueType,
+        criticalValueContent: cv.criticalValueContent, reportMethod: cv.reportMethod || '电话',
+        patientResponse: cv.patientResponse || '', notes: cv.notes || '',
+        patientOutcome: cv.patientOutcome || '', handledTime: cv.handledTime || '',
+      };
+    }
+    if (advanceFrom) {
+      const next: Record<string, string> = { notes: '', reportMethod: '电话', patientResponse: '' };
+      if (advanceFrom.stage === 'detected') { next.level = advanceFrom.level; next.stage = 'reported'; }
+      else if (advanceFrom.stage === 'reported') { next.stage = 'notified'; next.level = advanceFrom.level; }
+      else if (advanceFrom.stage === 'notified') { next.stage = 'handled'; next.level = advanceFrom.level; }
+      else if (advanceFrom.stage === 'handled') { next.stage = 'archived'; next.level = advanceFrom.level; }
+      return next;
+    }
+    return { level: 'urgent', stage: 'detected', criticalValueType: '', criticalValueContent: '', reportMethod: '电话', patientResponse: '', notes: '', patientOutcome: '', handledTime: '' };
+  });
+
+  const handleChange = (field: string, value: string) => setForm(f => ({ ...f, [field]: value }));
+
+  const handleSubmit = () => {
+    if (mode === 'add') {
+      onSave({ level: form.level as CriticalLevel, stage: form.stage as CriticalStage, criticalValueType: form.criticalValueType, criticalValueContent: form.criticalValueContent, reportMethod: form.reportMethod as '电话', patientResponse: form.patientResponse, notes: form.notes } as any);
+    } else if (mode === 'advance') {
+      onSave({ advanceTo: form.stage as CriticalStage, reportMethod: form.reportMethod as '电话', patientResponse: form.patientResponse, notes: form.notes, patientOutcome: form.patientOutcome } as any);
+    } else if (mode === 'escalate') {
+      onSave({ escalationMessage: form.notes } as any);
+    } else {
+      onClose();
+    }
+  };
+
+  const titleMap = { add: '登记危急值', advance: '推进生命周期', view: '危急值详情', escalate: '手动升级' };
+  const isView = mode === 'view';
+
+  return (
+    <div style={s.modal} onClick={onClose}>
+      <div style={s.modalContent} onClick={e => e.stopPropagation()}>
+        <div style={s.modalHeader}>
+          <div style={s.modalTitle}>{titleMap[mode]}</div>
+          <button style={s.closeBtn} onClick={onClose}><X size={16} /></button>
+        </div>
+        <div style={s.modalBody}>
+          {(mode === 'add' || mode === 'advance') && (
+            <>
+              <div style={s.formGrid}>
+                <div style={s.formGroup}>
+                  <label style={s.formLabel}>危急值等级 *</label>
+                  <select style={s.formSelect} value={form.level} onChange={e => handleChange('level', e.target.value)} disabled={mode === 'advance'}>
+                    <option value="critical">一级危急（15min）</option>
+                    <option value="urgent">二级紧急（30min）</option>
+                    <option value="warning">三级警戒（2h）</option>
+                  </select>
+                </div>
+                {mode === 'advance' && (
+                  <div style={s.formGroup}>
+                    <label style={s.formLabel}>推进至阶段</label>
+                    <select style={s.formSelect} value={form.stage} onChange={e => handleChange('stage', e.target.value)}>
+                      <option value="reported">上报</option>
+                      <option value="notified">通知</option>
+                      <option value="handled">处理</option>
+                      <option value="archived">归档</option>
+                    </select>
+                  </div>
+                )}
+                {mode === 'add' && (
+                  <div style={s.formGroup}>
+                    <label style={s.formLabel}>发现阶段</label>
+                    <select style={s.formSelect} value={form.stage} onChange={e => handleChange('stage', e.target.value)}>
+                      <option value="detected">发现</option>
+                      <option value="reported">上报</option>
+                      <option value="notified">通知</option>
+                    </select>
+                  </div>
+                )}
+                {mode === 'add' && (
+                  <div style={s.formGroup}>
+                    <label style={s.formLabel}>危急类型 *</label>
+                    <input style={s.formInput} placeholder="如：可疑恶性肿瘤" value={form.criticalValueType} onChange={e => handleChange('criticalValueType', e.target.value)} />
+                  </div>
+                )}
+                <div style={{ ...s.formGroup, ...s.formGroupFull }}>
+                  <label style={s.formLabel}>{mode === 'add' ? '危急内容 *' : '补充说明'}</label>
+                  <textarea style={s.formTextarea} placeholder={mode === 'add' ? '描述危急值详情...' : '添加备注...'} value={form.criticalValueContent || form.notes} onChange={e => handleChange(mode === 'add' ? 'criticalValueContent' : 'notes', e.target.value)} />
+                </div>
+                <div style={s.formGroup}>
+                  <label style={s.formLabel}>报告方式</label>
+                  <select style={s.formSelect} value={form.reportMethod} onChange={e => handleChange('reportMethod', e.target.value)}>
+                    <option value="电话">电话</option>
+                    <option value="口头">口头</option>
+                    <option value="书面">书面</option>
+                  </select>
+                </div>
+                <div style={s.formGroup}>
+                  <label style={s.formLabel}>患者结局</label>
+                  <select style={s.formSelect} value={form.patientOutcome} onChange={e => handleChange('patientOutcome', e.target.value)}>
+                    <option value="">— 未选择 —</option>
+                    <option value="继续观察">继续观察</option>
+                    <option value="住院治疗">住院治疗</option>
+                    <option value="手术">手术</option>
+                    <option value="转院">转院</option>
+                    <option value="死亡">死亡</option>
+                    <option value="失访">失访</option>
+                  </select>
+                </div>
+                <div style={{ ...s.formGroup, ...s.formGroupFull }}>
+                  <label style={s.formLabel}>患者/家属反馈</label>
+                  <input style={s.formInput} placeholder="患者或家属的回应..." value={form.patientResponse} onChange={e => handleChange('patientResponse', e.target.value)} />
+                </div>
+              </div>
+            </>
+          )}
+          {mode === 'escalate' && (
+            <div style={s.formGroup}>
+              <label style={s.formLabel}>升级原因说明</label>
+              <textarea style={s.formTextarea} placeholder="说明为什么要手动升级..." value={form.notes} onChange={e => handleChange('notes', e.target.value)} />
+            </div>
+          )}
+          {isView && cv && (
+            <div>
+              <div style={s.formGrid}>
+                <div style={s.formGroup}><label style={s.formLabel}>患者姓名</label><div style={{ padding: '8px 0', color: '#1a3a5c', fontWeight: 600 }}>{cv.patientName}</div></div>
+                <div style={s.formGroup}><label style={s.formLabel}>检查项目</label><div style={{ padding: '8px 0', color: '#1a3a5c' }}>{cv.examItemName}</div></div>
+                <div style={s.formGroup}><label style={s.formLabel}>危急等级</label><div style={{ padding: '8px 0' }}><span style={s.tag(LEVEL_COLORS[cv.level].bg, LEVEL_COLORS[cv.level].color)}>{LEVEL_COLORS[cv.level].label}</span></div></div>
+                <div style={s.formGroup}><label style={s.formLabel}>当前阶段</label><div style={{ padding: '8px 0', color: '#1a3a5c' }}>{STAGE_LABELS[getStageIndex(cv.stage)]}</div></div>
+                <div style={{ ...s.formGroup, ...s.formGroupFull }}><label style={s.formLabel}>危急内容</label><div style={{ padding: '8px 0', color: '#374151', lineHeight: 1.6 }}>{cv.criticalValueContent}</div></div>
+                {cv.patientOutcome && <div style={s.formGroup}><label style={s.formLabel}>患者结局</label><div style={{ padding: '8px 0' }}><span style={s.tag('#f0fdf4', getOutcomeColor(cv.patientOutcome))}>{getOutcomeLabel(cv.patientOutcome)}</span></div></div>}
+              </div>
+              {cv.logs && cv.logs.length > 0 && (
+                <div style={s.logPanel}>
+                  <div style={s.logTitle}><LogOut size={14} /> 完整日志链</div>
+                  {cv.logs.map(log => (
+                    <div key={log.id} style={s.logItem}>
+                      <div style={s.logDot(STAGE_COLORS[STAGE_KEYS.indexOf(log.toStage || 'detected')])} />
+                      <div style={{ flex: 1 }}>
+                        <div style={s.logAction}>{STAGE_ACTION_LABELS[log.action] || log.action} — {log.description}</div>
+                        <div style={s.logMeta}>{log.operatorName} · {formatTime(log.actionTime)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+        <div style={s.modalFooter}>
+          <button style={s.cancelBtn} onClick={onClose}>取消</button>
+          <button style={s.primaryBtn} onClick={handleSubmit}>
+            {mode === 'add' ? '登记' : mode === 'view' ? '关闭' : mode === 'escalate' ? '确认升级' : '推进'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============== 主页面 ==============
+export default function CriticalValuePage() {
+  const [cvs, setCvs] = useState<CriticalValue[]>(() =>
+    initialCriticalValues.map(cv => ({ ...cv }))
+  );
+  const [showModal, setShowModal] = useState(false);
+  const [modalMode, setModalMode] = useState<'add' | 'advance' | 'view' | 'escalate'>('add');
+  const [selectedCv, setSelectedCv] = useState<CriticalValue | null>(null);
+  const [filter, setFilter] = useState<'all' | 'pending' | 'handled' | 'archived'>('all');
+  const [levelFilter, setLevelFilter] = useState<CriticalLevel | 'all'>('all');
+
+  const filtered = useMemo(() => {
+    return cvs.filter(cv => {
+      if (filter === 'pending' && (cv.handled || cv.stage === 'archived')) return false;
+      if (filter === 'handled' && !cv.handled) return false;
+      if (filter === 'archived' && cv.stage !== 'archived') return false;
+      if (levelFilter !== 'all' && cv.level !== levelFilter) return false;
+      return true;
+    });
+  }, [cvs, filter, levelFilter]);
+
+  const stats = useMemo(() => {
+    const now = new Date();
+    const today = now.toISOString().slice(0, 10);
+    return {
+      total: cvs.length,
+      pending: cvs.filter(cv => !cv.handled && cv.stage !== 'archived').length,
+      handled: cvs.filter(cv => cv.handled).length,
+      today: cvs.filter(cv => cv.detectedTime.startsWith(today)).length,
+      critical: cvs.filter(cv => cv.level === 'critical' && !cv.handled).length,
+      autoEscalated: cvs.filter(cv => cv.autoEscalation).length,
+    };
+  }, [cvs]);
+
+  const handleAdd = useCallback((data: Partial<CriticalValue> & { advanceTo?: CriticalStage }) => {
+    const nextId = 'CV' + String(cvs.length + 1).padStart(3, '0');
+    const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const newCv: CriticalValue = {
+      id: nextId, examId: 'EX' + nextId, patientId: 'P' + nextId,
+      patientName: '患者' + nextId, examItemName: '超声检查',
+      criticalValueType: data.criticalValueType || '其他危急值',
+      criticalValueContent: data.criticalValueContent || '',
+      level: data.level || 'urgent', stage: data.stage || 'detected',
+      detectedDoctorId: 'U001', detectedDoctorName: '张建国',
+      detectedTime: now, handled: false, escalationCount: 0,
+      logs: [{ id: 'log_new_1', action: 'detected', description: '登记危急值', actionTime: now, operatorId: 'U001', operatorName: '张建国', toStage: 'detected' }],
+      ...data,
+    };
+    setCvs(prev => [newCv, ...prev]);
+    setShowModal(false);
+  }, [cvs.length]);
+
+  const handleAdvance = useCallback((data: Partial<CriticalValue> & { advanceTo?: CriticalStage }) => {
+    if (!selectedCv) return;
+    const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const nextStage = data.advanceTo || 'reported';
+    const actionLabel: Record<string, string> = { detected: '发现', reported: '上报', notified: '通知', handled: '处理', archived: '归档' };
+    const newLog: CriticalValueLog = {
+      id: 'log_' + Date.now(), action: nextStage === 'archived' ? 'archived' : nextStage === 'handled' ? 'handled' : nextStage === 'notified' ? 'notified' : nextStage === 'reported' ? 'reported' : 'detected',
+      description: `推进至${actionLabel[nextStage]}阶段`, actionTime: now,
+      operatorId: 'U001', operatorName: '张建国', fromStage: selectedCv.stage, toStage: nextStage,
+    };
+    const updated: CriticalValue = {
+      ...selectedCv, stage: nextStage,
+      handled: nextStage === 'handled' || nextStage === 'archived' ? true : selectedCv.handled,
+      handledTime: (nextStage === 'handled' || nextStage === 'archived') ? now : selectedCv.handledTime,
+      archivalTime: nextStage === 'archived' ? now : selectedCv.archivalTime,
+      logs: [...(selectedCv.logs || []), newLog],
+      patientOutcome: (data as any).patientOutcome || selectedCv.patientOutcome,
+      ...(data.reportMethod && { reportMethod: data.reportMethod as '电话' }),
+      ...(data.patientResponse && { patientResponse: data.patientResponse }),
+    };
+    setCvs(prev => prev.map(cv => cv.id === selectedCv.id ? updated : cv));
+    setSelectedCv(null);
+    setShowModal(false);
+  }, [selectedCv]);
+
+  const handleEscalate = useCallback((data: Partial<CriticalValue>) => {
+    if (!selectedCv) return;
+    const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+    const newLog: CriticalValueLog = {
+      id: 'log_' + Date.now(), action: 'escalated',
+      description: `手动升级：${(data as any).escalationMessage || '要求上级处理'}`, actionTime: now,
+      operatorId: 'U001', operatorName: '张建国', fromStage: selectedCv.stage, toStage: selectedCv.stage,
+    };
+    const updated: CriticalValue = {
+      ...selectedCv, autoEscalation: true,
+      escalationCount: (selectedCv.escalationCount || 0) + 1,
+      escalationTime: now,
+      notifiedDoctorId: 'U003', notifiedDoctorName: '科室主任',
+      notifiedTime: now, stage: 'notified',
+      logs: [...(selectedCv.logs || []), newLog],
+    };
+    setCvs(prev => prev.map(cv => cv.id === selectedCv.id ? updated : cv));
+    setSelectedCv(null);
+    setShowModal(false);
+  }, [selectedCv]);
+
+  const openModal = (mode: 'add' | 'advance' | 'view' | 'escalate', cv?: CriticalValue) => {
+    setModalMode(mode);
+    setSelectedCv(cv || null);
+    setShowModal(true);
+  };
+
+  return (
+    <div style={s.root}>
+      {/* 头部 */}
+      <div style={s.header}>
+        <div style={s.headerTitle}><Zap size={24} />危急值全生命周期管理</div>
+        <div style={s.headerSub}>Critical Value Lifecycle Management — {cvs.length} 条记录 · 5阶段闭环追踪</div>
+      </div>
+
+      <div style={s.container}>
+        {/* 统计卡片 */}
+        <div style={s.statsGrid}>
+          <StatCard icon={Database} iconBg="#eff6ff" iconColor="#1d4ed8" value={stats.total} unit="条" label="危急值总数" />
+          <StatCard icon={Clock} iconBg="#fff7ed" iconColor="#ea580c" value={stats.pending} unit="条" label="待处理" />
+          <StatCard icon={CheckCircle} iconBg="#f0fdf4" iconColor="#16a34a" value={stats.handled} unit="条" label="已处理" />
+          <StatCard icon={Calendar} iconBg="#f5f3ff" iconColor="#7c3aed" value={stats.today} unit="条" label="今日新增" />
+          <StatCard icon={Zap} iconBg="#fef2f2" iconColor="#dc2626" value={stats.critical} unit="条" label="一级危急" />
+          <StatCard icon={ArrowUpCircle} iconBg="#fffbeb" iconColor="#d97706" value={stats.autoEscalated} unit="条" label="自动升级" />
+        </div>
+
+        {/* 升级规则说明 */}
+        <div style={{ background: '#fff', borderRadius: 12, padding: '16px 20px', marginBottom: 20, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', border: '1px solid #eef2f7' }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a5c', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}><ShieldAlert size={16} color="#1d4ed8" /> 危急值分级处理时限</div>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {[
+              { level: 'critical', label: '一级危急', color: '#dc2626', bg: '#fef2f2', threshold: 15, desc: '危及生命/疑似恶性肿瘤' },
+              { level: 'urgent', label: '二级紧急', color: '#d97706', bg: '#fffbeb', threshold: 30, desc: '急性病变/需要紧急处理' },
+              { level: 'warning', label: '三级警戒', color: '#16a34a', bg: '#f0fdf4', threshold: 120, desc: '需要关注/随访观察' },
+            ].map(r => (
+              <div key={r.level} style={{ flex: 1, minWidth: 180, padding: 12, borderRadius: 10, background: r.bg, border: `1px solid ${r.color}22` }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: r.color }}>{r.label} — {r.threshold}分钟内处理</div>
+                <div style={{ fontSize: 11, color: '#64748b', marginTop: 4 }}>{r.desc}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* 筛选工具栏 */}
+        <div style={s.filterRow}>
+          <div style={s.filterTabs}>
+            {(['all', 'pending', 'handled', 'archived'] as const).map(f => (
+              <button key={f} style={s.filterTab(filter === f)} onClick={() => setFilter(f)}>
+                {f === 'all' ? '全部' : f === 'pending' ? '待处理' : f === 'handled' ? '已处理' : '已归档'}
+              </button>
+            ))}
+          </div>
+          <div style={s.levelFilter}>
+            {(['all', 'critical', 'urgent', 'warning'] as const).map(l => (
+              <button key={l} style={s.levelBtn(levelFilter === l, l === 'all' ? '#1e40af' : LEVEL_COLORS[l as CriticalLevel].color)} onClick={() => setLevelFilter(l as CriticalLevel | 'all')}>
+                {l === 'all' ? '全等级' : LEVEL_COLORS[l as CriticalLevel].label}
+              </button>
+            ))}
+          </div>
+          <button style={{ ...s.primaryBtn, marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => openModal('add')}>
+            <Plus size={14} /> 登记危急值
+          </button>
+        </div>
+
+        {/* 卡片列表 */}
+        {filtered.length === 0 ? (
+          <div style={s.empty}><Zap size={40} color="#e2e8f0" /><div style={{ marginTop: 12 }}>暂无危急值记录</div></div>
+        ) : (
+          <div style={s.cardList}>
+            {filtered.map(cv => (
+              <CriticalValueCard
+                key={cv.id}
+                cv={cv}
+                onView={() => openModal('view', cv)}
+                onAdvance={() => openModal('advance', cv)}
+                onMarkHandled={() => {
+                  const now = new Date().toISOString().replace('T', ' ').slice(0, 16);
+                  const newLog: CriticalValueLog = { id: 'log_' + Date.now(), action: 'handled', description: '标记处理完成', actionTime: now, operatorId: 'U001', operatorName: '张建国', fromStage: cv.stage, toStage: 'handled' };
+                  setCvs(prev => prev.map(c => c.id === cv.id ? { ...c, handled: true, stage: 'handled', handledTime: now, logs: [...(c.logs || []), newLog] } : c));
+                }}
+                onEscalate={() => openModal('escalate', cv)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* 模态框 */}
+      {showModal && (
+        <CVModal
+          cv={modalMode === 'view' ? selectedCv || undefined : undefined}
+          advanceFrom={modalMode === 'advance' ? selectedCv || undefined : undefined}
+          mode={modalMode}
+          onSave={(data) => {
+            if (modalMode === 'add') handleAdd(data);
+            else if (modalMode === 'advance') handleAdvance(data);
+            else if (modalMode === 'escalate') handleEscalate(data);
+            else setShowModal(false);
+          }}
+          onClose={() => { setShowModal(false); setSelectedCv(null); }}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------- StatCard ----------
+interface StatCardProps { icon: React.ComponentType<any>; iconBg: string; iconColor: string; value: number | string; unit: string; label: string; }
+function StatCard({ icon: Icon, iconBg, iconColor, value, unit, label }: StatCardProps) {
+  return (
+    <div style={s.statCard}>
+      <div style={{ ...s.statIconWrap, background: iconBg }}><Icon size={22} color={iconColor} /></div>
+      <div style={s.statInfo}>
+        <div style={s.statValue}>{value}<span style={{ fontSize: 13, color: '#64748b', fontWeight: 400 }}>{unit}</span></div>
+        <div style={s.statLabel}>{label}</div>
+      </div>
+    </div>
+  );
 }

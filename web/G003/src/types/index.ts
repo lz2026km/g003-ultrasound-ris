@@ -353,6 +353,14 @@ export interface DoctorSchedule {
 }
 
 // ---------- 危急值 ----------
+// ============ 危急值全生命周期管理 ============
+// 危急值等级：一级（立即处理/危及生命）、二级（30分钟内处理）、三级（2小时内处理）
+export type CriticalLevel = 'critical' | 'urgent' | 'warning';
+// 生命周期阶段：发现→上报→通知→处理→归档
+export type CriticalStage = 'detected' | 'reported' | 'notified' | 'handled' | 'archived';
+// 患者结局
+export type PatientOutcome = '继续观察' | '住院治疗' | '手术' | '转院' | '死亡' | '失访' | '';
+
 export interface CriticalValue {
   id: string;
   examId: string;
@@ -367,11 +375,49 @@ export interface CriticalValue {
   reportedDoctorId?: string;
   reportedDoctorName?: string;
   reportedTime?: string;
+  notifiedDoctorId?: string;
+  notifiedDoctorName?: string;
+  notifiedTime?: string;
   reportMethod?: '电话' | '口头' | '书面';
   patientResponse?: string;
   handled: boolean;
   handledTime?: string;
   notes?: string;
+  // ===== v0.2.0 增强: 全生命周期管理 =====
+  level: CriticalLevel;         // 危急值等级（一级/二级/三级）
+  stage: CriticalStage;        // 生命周期阶段
+  escalationCount: number;     // 升级次数
+  escalationTime?: string;      // 最近升级时间
+  patientOutcome?: PatientOutcome; // 患者结局
+  outcomeTime?: string;        // 结局记录时间
+  archivalTime?: string;       // 归档时间
+  readByPatient?: boolean;    // 患者/家属已知悉
+  readTime?: string;           // 已知悉时间
+  autoEscalation?: boolean;   // 是否自动升级过
+  // ===== 危急值日志链（每次生命周期状态变更生成一条记录） =====
+  logs?: CriticalValueLog[];
+}
+
+// ===== 危急值上报记录（每次上报形成一条记录） =====
+export interface CriticalValueLog {
+  id: string;
+  action: 'detected' | 'reported' | 'notified' | 'escalated' | 'handled' | 'archived' | 'outcome_recorded';
+  description: string;
+  actionTime: string;
+  operatorId: string;
+  operatorName: string;
+  fromStage?: CriticalStage;
+  toStage?: CriticalStage;
+}
+
+// ===== 危急值自动升级规则 =====
+export interface EscalationRule {
+  id: string;
+  level: CriticalLevel;
+  thresholdMinutes: number;    // 超时多少分钟触发升级
+  escalationToRole: string;   // 升级给谁（角色）
+  escalationMessage?: string; // 升级通知内容
+  isActive: boolean;
 }
 
 // ---------- 洗消流程配置 ----------

@@ -1,6 +1,7 @@
 // ============================================================
 // G003 超声RIS系统 - 报告质量评分系统页面
-// 评分维度 · 等级管理 · 筛选过滤 · 统计报表 · 不合格列表
+// 三维度评分 · 等级管理 · 统计分析 · 月报生成 · 改进建议
+// 参考岱嘉报告质控评分标准
 // ============================================================
 import React, { useState, useMemo } from 'react'
 import {
@@ -9,23 +10,32 @@ import {
   AlertTriangle, CheckCircle, XCircle, ShieldCheck, Eye,
   Edit3, Trash2, Plus, RefreshCw, ChevronRight, Star,
   PieChart as PieChartIcon, Target, AlertCircle, BadgeCheck,
-  X, Check, Info, Activity, Bell
+  X, Check, Info, Activity, Bell, Lightbulb, BookOpen,
+  MessageSquare, Percent, BarChart2, ListChecks, AlertOctagon
 } from 'lucide-react'
 
 // ========== 类型定义 ==========
-type TabKey = 'dimensions' | 'grades' | 'statistics' | 'unqualified'
+type TabKey = 'dimensions' | 'grades' | 'statistics' | 'unqualified' | 'report' | 'suggestions'
+
+// 三维度评分体系 (岱嘉标准)
+interface ThreeDimensionScore {
+  completeness: number      // 完整性: 必填项齐全 (0-100)
+  normCompliance: number   // 规范性: 术语/格式标准 (0-100)
+  timeliness: number       // 时效性: 规定时间内完成 (0-100)
+}
 
 interface ScoringDimension {
   id: string
   name: string
   code: string
-  category: 'report' | 'image' | 'operation' | 'timeliness'
+  category: 'completeness' | 'normCompliance' | 'timeliness' | 'image' | 'operation'
   description: string
   maxScore: number
   weight: number
   enabled: boolean
 }
 
+// 评分等级 (甲级100-90/乙级89-75/丙级74-60/不合格<60)
 interface GradeLevel {
   id: string
   name: string
@@ -45,19 +55,20 @@ interface QCRecord {
   examType: string
   reportId: string
   doctor: string
+  department: string
   totalScore: number
+  threeScores: ThreeDimensionScore
   grade: string
-  dimensions: DimensionScore[]
-  issues: string[]
+  issues: QCIssue[]
   status: 'pending' | 'passed' | 'failed' | 'reviewed'
   isQualified: boolean
 }
 
-interface DimensionScore {
-  dimensionId: string
-  dimensionName: string
+interface QCIssue {
+  type: 'missing_item' | 'non_standard_desc' | 'non_standard_image' | 'timeout' | 'other'
+  detail: string
+  severity: 'high' | 'medium' | 'low'
   score: number
-  maxScore: number
 }
 
 interface UnqualifiedItem {
@@ -68,29 +79,80 @@ interface UnqualifiedItem {
   examType: string
   reportId: string
   doctor: string
+  department: string
   failReasons: string[]
+  failTypes: QCIssue['type'][]
   severity: 'high' | 'medium' | 'low'
   status: 'pending' | 'rectified' | 'ignored'
   rectNote: string
 }
 
-// ========== 评分维度数据 ==========
+// 质量问题分类统计
+interface IssueStats {
+  type: QCIssue['type']
+  label: string
+  count: number
+  percentage: number
+  avgScore: number
+  trend: number
+}
+
+// 月报数据结构
+interface MonthlyReport {
+  month: string
+  totalReports: number
+  qualifiedCount: number
+  unqualifiedCount: number
+  passRate: number
+  avgScore: number
+  avgCompleteness: number
+  avgNormCompliance: number
+  avgTimeliness: number
+  gradeDistribution: { grade: string; count: number; percentage: number }[]
+  issueStats: IssueStats[]
+  topIssues: { type: string; count: number }[]
+  improvementSuggestions: string[]
+}
+
+// 质量改进建议
+interface ImprovementSuggestion {
+  id: string
+  category: string
+  priority: 'high' | 'medium' | 'low'
+  title: string
+  description: string
+  targetDimension: string
+  affectedCount: number
+  recommendedActions: string[]
+}
+
+// ========== 评分维度数据 (三维度体系) ==========
 const SCORING_DIMENSIONS: ScoringDimension[] = [
-  { id: 'D01', name: '报告完整性', code: 'RC01', category: 'report', description: '报告各项必填项完整，无遗漏', maxScore: 100, weight: 15, enabled: true },
-  { id: 'D02', name: '报告规范性', code: 'RC02', category: 'report', description: '报告格式、术语符合规范要求', maxScore: 100, weight: 15, enabled: true },
-  { id: 'D03', name: '诊断准确性', code: 'RC03', category: 'report', description: '超声诊断描述准确无误', maxScore: 100, weight: 20, enabled: true },
-  { id: 'D04', name: '图像清晰度', code: 'IC01', category: 'image', description: '超声图像清晰可辨', maxScore: 100, weight: 10, enabled: true },
-  { id: 'D05', name: '图像完整性', code: 'IC02', category: 'image', description: '标准切面采集完整', maxScore: 100, weight: 10, enabled: true },
-  { id: 'D06', name: '图像标注规范', code: 'IC03', category: 'image', description: '图像标注信息完整准确', maxScore: 100, weight: 5, enabled: true },
-  { id: 'D07', name: '操作规范性', code: 'OC01', category: 'operation', description: '检查操作流程规范', maxScore: 100, weight: 10, enabled: true },
-  { id: 'D08', name: '报告及时性', code: 'TC01', category: 'timeliness', description: '报告在规定时间内完成', maxScore: 100, weight: 15, enabled: true },
+  // 完整性维度 (报告必填项齐全)
+  { id: 'D01', name: '患者信息完整', code: 'C01', category: 'completeness', description: '姓名/性别/年龄/科室等基本信息完整', maxScore: 100, weight: 8, enabled: true },
+  { id: 'D02', name: '临床诊断信息完整', code: 'C02', category: 'completeness', description: '申请科室/临床诊断/检查目的等完整', maxScore: 100, weight: 8, enabled: true },
+  { id: 'D03', name: '检查所见描述完整', code: 'C03', category: 'completeness', description: '各部位/器官描述无遗漏', maxScore: 100, weight: 10, enabled: true },
+  { id: 'D04', name: '超声诊断结论完整', code: 'C04', category: 'completeness', description: '诊断结论准确完整', maxScore: 100, weight: 10, enabled: true },
+  { id: 'D05', name: '签名与审核完整', code: 'C05', category: 'completeness', description: '报告医师/审核医师签名完整', maxScore: 100, weight: 4, enabled: true },
+  // 规范性维度 (术语/格式标准)
+  { id: 'D06', name: '术语使用规范', code: 'N01', category: 'normCompliance', description: '超声术语符合国家/行业标准', maxScore: 100, weight: 10, enabled: true },
+  { id: 'D07', name: '描述格式规范', code: 'N02', category: 'normCompliance', description: '描述格式符合超声报告规范', maxScore: 100, weight: 8, enabled: true },
+  { id: 'D08', name: '测量单位规范', code: 'N03', category: 'normCompliance', description: '测量值单位使用标准单位', maxScore: 100, weight: 5, enabled: true },
+  { id: 'D09', name: '图像标注规范', code: 'N04', category: 'normCompliance', description: '图像标注信息完整准确', maxScore: 100, weight: 7, enabled: true },
+  { id: 'D10', name: '诊断描述准确', code: 'N05', category: 'normCompliance', description: '诊断描述准确无误', maxScore: 100, weight: 10, enabled: true },
+  // 时效性维度 (规定时间内完成)
+  { id: 'D11', name: '急诊报告时效', code: 'T01', category: 'timeliness', description: '急诊报告30分钟内完成', maxScore: 100, weight: 10, enabled: true },
+  { id: 'D12', name: '门诊报告时效', code: 'T02', category: 'timeliness', description: '门诊报告2小时内完成', maxScore: 100, weight: 10, enabled: true },
+  { id: 'D13', name: '住院报告时效', code: 'T03', category: 'timeliness', description: '住院报告24小时内完成', maxScore: 100, weight: 5, enabled: true },
+  { id: 'D14', name: '图像采集时效', code: 'T04', category: 'timeliness', description: '图像采集及时完成', maxScore: 100, weight: 5, enabled: true },
 ]
 
+// ========== 评分等级 (岱嘉标准: 甲级100-90/乙级89-75/丙级74-60/不合格<60) ==========
 const GRADE_LEVELS: GradeLevel[] = [
-  { id: 'G01', name: '优秀', code: 'A', minScore: 95, maxScore: 100, color: '#16a34a', bgColor: '#dcfce7', description: '综合评分95分及以上，质量卓越', requiresReview: false },
-  { id: 'G02', name: '良好', code: 'B', minScore: 85, maxScore: 94, color: '#2563eb', bgColor: '#dbeafe', description: '综合评分85-94分，质量良好', requiresReview: false },
-  { id: 'G03', name: '合格', code: 'C', minScore: 70, maxScore: 84, color: '#d97706', bgColor: '#fef3c7', description: '综合评分70-84分，质量合格', requiresReview: false },
-  { id: 'G04', name: '不合格', code: 'D', minScore: 0, maxScore: 69, color: '#dc2626', bgColor: '#fee2e2', description: '综合评分70分以下，质量不合格', requiresReview: true },
+  { id: 'G01', name: '甲级', code: '甲', minScore: 90, maxScore: 100, color: '#16a34a', bgColor: '#dcfce7', description: '综合评分90-100分，质量卓越，达到三甲医院标准', requiresReview: false },
+  { id: 'G02', name: '乙级', code: '乙', minScore: 75, maxScore: 89, color: '#2563eb', bgColor: '#dbeafe', description: '综合评分75-89分，质量良好，符合规范要求', requiresReview: false },
+  { id: 'G03', name: '丙级', code: '丙', minScore: 60, maxScore: 74, color: '#d97706', bgColor: '#fef3c7', description: '综合评分60-74分，质量合格，需改进', requiresReview: true },
+  { id: 'G04', name: '不合格', code: '丁', minScore: 0, maxScore: 59, color: '#dc2626', bgColor: '#fee2e2', description: '综合评分60分以下，质量不合格，需重点整改', requiresReview: true },
 ]
 
 // ========== Mock 数据 ==========
@@ -99,27 +161,43 @@ const generateQCRecords = (): QCRecord[] => {
                     '孙鹏', '马云', '李娜', '王磊', '刘芳', '陈刚', '周洋', '吴琳', '郑浩', '冯雪']
   const types = ['上腹部超声', '盆腔超声', '甲状腺超声', '乳腺超声', '心脏超声', '血管超声']
   const doctors = ['李建国', '王秀英', '张志远', '刘德明', '陈晓燕', '赵文博']
+  const departments = ['超声科', '心血管超声', '妇产科超声', '浅表器官超声', '介入超声']
 
-  return Array.from({ length: 120 }, (_, i) => {
-    const totalScore = Math.floor(Math.random() * 35) + 65 // 65-100
-    const grade = totalScore >= 95 ? '优秀' : totalScore >= 85 ? '良好' : totalScore >= 70 ? '合格' : '不合格'
-    const isQualified = totalScore >= 70
-    const issues: string[] = []
-    if (totalScore < 90) issues.push('报告完整性扣分')
-    if (totalScore < 85) issues.push('图像质量不达标')
-    if (totalScore < 80) issues.push('报告规范性不足')
-    if (totalScore < 75) issues.push('诊断描述欠准确')
-    if (totalScore < 70) issues.push('报告严重迟交')
+  const issueTypes: QCIssue['type'][] = ['missing_item', 'non_standard_desc', 'non_standard_image', 'timeout']
+  const issueDetails: Record<QCIssue['type'], string[]> = {
+    'missing_item': ['患者年龄缺失', '临床诊断缺失', '检查部位描述不完整', '签名缺失'],
+    'non_standard_desc': ['术语使用不规范', '描述顺序混乱', '单位标注错误', '格式不符合规范'],
+    'non_standard_image': ['标准切面缺失', '图像标注错误', '图像质量不达标', '切面数量不足'],
+    'timeout': ['报告迟交超过24小时', '急诊报告超时', '图像采集延迟'],
+    'other': ['其他问题']
+  }
 
-    const dimensions: DimensionScore[] = SCORING_DIMENSIONS.map((d, idx) => {
-      const base = Math.min(100, totalScore + Math.floor(Math.random() * 10) - 5)
-      return {
-        dimensionId: d.id,
-        dimensionName: d.name,
-        score: Math.max(0, Math.min(100, base)),
-        maxScore: d.maxScore,
-      }
-    })
+  return Array.from({ length: 150 }, (_, i) => {
+    // 生成三维度评分
+    const completeness = Math.floor(Math.random() * 25) + 75 // 75-100
+    const normCompliance = Math.floor(Math.random() * 30) + 65 // 65-95
+    const timeliness = Math.floor(Math.random() * 35) + 60 // 60-95
+
+    // 加权计算总分
+    const totalScore = Math.round(completeness * 0.35 + normCompliance * 0.40 + timeliness * 0.25)
+
+    const grade = totalScore >= 90 ? '甲级' : totalScore >= 75 ? '乙级' : totalScore >= 60 ? '丙级' : '不合格'
+    const isQualified = totalScore >= 60
+
+    // 生成问题列表
+    const issues: QCIssue[] = []
+    if (completeness < 85) {
+      issues.push({ type: 'missing_item', detail: issueDetails.missing_item[i % issueDetails.missing_item.length], severity: 'medium', score: 5 })
+    }
+    if (normCompliance < 80) {
+      issues.push({ type: 'non_standard_desc', detail: issueDetails.non_standard_desc[i % issueDetails.non_standard_desc.length], severity: 'high', score: 10 })
+    }
+    if (timeliness < 75) {
+      issues.push({ type: 'timeout', detail: issueDetails.timeout[i % issueDetails.timeout.length], severity: 'medium', score: 8 })
+    }
+    if (Math.random() < 0.15) {
+      issues.push({ type: 'non_standard_image', detail: issueDetails.non_standard_image[i % issueDetails.non_standard_image.length], severity: 'low', score: 3 })
+    }
 
     return {
       id: i + 1,
@@ -128,9 +206,10 @@ const generateQCRecords = (): QCRecord[] => {
       examType: types[i % types.length],
       reportId: `RPT-${String(2026040001 + i).padStart(10, '0')}`,
       doctor: doctors[i % doctors.length],
+      department: departments[i % departments.length],
       totalScore,
+      threeScores: { completeness, normCompliance, timeliness },
       grade,
-      dimensions,
       issues,
       status: isQualified ? 'passed' : (i % 3 === 0 ? 'reviewed' : 'failed'),
       isQualified,
@@ -139,19 +218,20 @@ const generateQCRecords = (): QCRecord[] => {
 }
 
 const generateUnqualifiedList = (): UnqualifiedItem[] => {
-  const patients = ['张伟', '王芳', '李明', '刘洋', '陈静']
-  const types = ['上腹部超声', '盆腔超声', '甲状腺超声', '乳腺超声']
-  const doctors = ['李建国', '王秀英', '张志远']
+  const patients = ['张伟', '王芳', '李明', '刘洋', '陈静', '杨帆', '赵雷']
+  const types = ['上腹部超声', '盆腔超声', '甲状腺超声', '乳腺超声', '心脏超声']
+  const doctors = ['李建国', '王秀英', '张志远', '刘德明']
+  const departments = ['超声科', '心血管超声', '妇产科超声']
   const failReasonsList = [
-    ['报告完整性严重不足', '关键描述缺失'],
-    ['图像采集不完整', '标准切面缺失3个以上'],
-    ['报告迟交超过48小时', '违反报告时限规定'],
-    ['诊断描述不准确', '与临床不符'],
-    ['图像质量严重不达标', '无法用于诊断'],
+    { reasons: ['报告完整性严重不足', '关键描述缺失'], types: ['missing_item'] as QCIssue['type'][] },
+    { reasons: ['图像采集不完整', '标准切面缺失3个以上'], types: ['non_standard_image'] as QCIssue['type'][] },
+    { reasons: ['报告迟交超过48小时', '违反报告时限规定'], types: ['timeout'] as QCIssue['type'][] },
+    { reasons: ['诊断描述不准确', '与临床不符'], types: ['non_standard_desc'] as QCIssue['type'][] },
+    { reasons: ['图像质量严重不达标', '无法用于诊断'], types: ['non_standard_image'] as QCIssue['type'][] },
   ]
   const rectNotes = ['', '已补充完整报告', '已重新采集图像', '情况特殊，申请豁免', '']
 
-  return Array.from({ length: 18 }, (_, i) => ({
+  return Array.from({ length: 22 }, (_, i) => ({
     id: `UQ-${String(i + 1).padStart(3, '0')}`,
     recordId: 1001 + i,
     date: `2026-04-${String(28 - (i % 28)).padStart(2, '0')}`,
@@ -159,7 +239,9 @@ const generateUnqualifiedList = (): UnqualifiedItem[] => {
     examType: types[i % types.length],
     reportId: `RPT-${String(2026040001 + i).padStart(10, '0')}`,
     doctor: doctors[i % doctors.length],
-    failReasons: failReasonsList[i % failReasonsList.length],
+    department: departments[i % departments.length],
+    failReasons: failReasonsList[i % failReasonsList.length].reasons,
+    failTypes: failReasonsList[i % failReasonsList.length].types,
     severity: i % 3 === 0 ? 'high' : i % 3 === 1 ? 'medium' : 'low',
     status: i % 4 === 0 ? 'rectified' : i % 4 === 1 ? 'ignored' : 'pending',
     rectNote: rectNotes[i % rectNotes.length],
@@ -197,6 +279,12 @@ const s: Record<string, React.CSSProperties> = {
     padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
     boxShadow: '0 2px 6px rgba(37,99,235,0.2)', minHeight: 44,
   },
+  btnLargeWarning: {
+    display: 'inline-flex', alignItems: 'center', gap: 8,
+    background: '#d97706', color: '#fff', border: 'none', borderRadius: 8,
+    padding: '10px 18px', fontSize: 13, fontWeight: 600, cursor: 'pointer',
+    boxShadow: '0 2px 6px rgba(217,119,6,0.2)', minHeight: 44,
+  },
   btnIcon: {
     display: 'inline-flex', alignItems: 'center', gap: 4,
     background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: 6,
@@ -222,6 +310,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   threeColGrid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, marginBottom: 16 },
   fourColGrid: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16, marginBottom: 16 },
+  fiveColGrid: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 16 },
   panel: {
     background: '#fff', borderRadius: 10, overflow: 'hidden',
     boxShadow: '0 1px 4px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column' as const,
@@ -328,6 +417,7 @@ const s: Record<string, React.CSSProperties> = {
   },
   chartTitle: { fontSize: 14, fontWeight: 700, color: '#1a3a5c', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 6 },
   chartRow: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 },
+  chartRow3: { display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 },
   // 不合格卡片
   unqualifiedCard: {
     background: '#fff', borderRadius: 8, padding: 14, marginBottom: 8,
@@ -369,6 +459,59 @@ const s: Record<string, React.CSSProperties> = {
   // 分数条
   scoreBar: { flex: 1, height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' },
   scoreBarFill: { height: '100%', borderRadius: 4, transition: 'width 0.5s' },
+  // 三维度得分卡
+  dimensionScoreCard: {
+    background: '#fff', borderRadius: 12, padding: 20,
+    boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e5e7eb',
+    display: 'flex', flexDirection: 'column' as const, gap: 12,
+  },
+  dimensionScoreTitle: { fontSize: 14, fontWeight: 600, color: '#1a3a5c', display: 'flex', alignItems: 'center', gap: 8 },
+  dimensionScoreValue: { fontSize: 36, fontWeight: 800 },
+  dimensionScoreBar: { height: 10, background: '#e5e7eb', borderRadius: 5, overflow: 'hidden' },
+  dimensionScoreBarFill: { height: '100%', borderRadius: 5, transition: 'width 0.5s' },
+  // 月报卡片
+  reportCard: {
+    background: '#fff', borderRadius: 10, padding: 20,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.08)', marginBottom: 16,
+    border: '1px solid #e5e7eb',
+  },
+  reportTitle: { fontSize: 16, fontWeight: 700, color: '#1a3a5c', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 },
+  reportSection: { marginBottom: 20 },
+  reportSectionTitle: { fontSize: 13, fontWeight: 600, color: '#64748b', marginBottom: 12, textTransform: 'uppercase' as const, letterSpacing: 0.5 },
+  reportStatRow: { display: 'flex', gap: 24, marginBottom: 12 },
+  reportStat: { display: 'flex', flexDirection: 'column' as const },
+  reportStatValue: { fontSize: 24, fontWeight: 700, color: '#1a3a5c' },
+  reportStatLabel: { fontSize: 12, color: '#64748b' },
+  // 建议卡片
+  suggestionCard: {
+    background: '#fff', borderRadius: 10, padding: 16,
+    boxShadow: '0 1px 4px rgba(0,0,0,0.08)', marginBottom: 12,
+    border: '1px solid #e5e7eb', borderLeft: '4px solid',
+  },
+  suggestionHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 },
+  suggestionTitle: { fontSize: 14, fontWeight: 600, color: '#1a3a5c' },
+  suggestionDesc: { fontSize: 13, color: '#475569', lineHeight: 1.6, marginBottom: 12 },
+  suggestionActions: { display: 'flex', flexDirection: 'column' as const, gap: 6 },
+  suggestionAction: { display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#2563eb' },
+  // 问题分类标签
+  issueTag: {
+    display: 'inline-flex', alignItems: 'center', gap: 4,
+    padding: '4px 10px', borderRadius: 6, fontSize: 12, fontWeight: 500,
+  },
+  issueTagMissing: { background: '#fee2e2', color: '#dc2626' },
+  issueTagNonStandard: { background: '#fef3c7', color: '#d97706' },
+  issueTagImage: { background: '#dbeafe', color: '#2563eb' },
+  issueTagTimeout: { background: '#f3e8ff', color: '#7c3aed' },
+  // 柱状图
+  barChart: { display: 'flex', flexDirection: 'column' as const, gap: 8 },
+  barChartItem: { display: 'flex', alignItems: 'center', gap: 12 },
+  barChartLabel: { fontSize: 12, color: '#64748b', minWidth: 80 },
+  barChartBar: { flex: 1, height: 20, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' },
+  barChartBarFill: { height: '100%', borderRadius: 4, transition: 'width 0.5s', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8 },
+  barChartValue: { fontSize: 11, fontWeight: 600, color: '#fff' },
+  // 高亮数字
+  highlightNumber: { fontSize: 32, fontWeight: 800, lineHeight: 1 },
+  highlightUnit: { fontSize: 14, color: '#64748b', marginLeft: 4 },
 }
 
 // ========== 子组件 ==========
@@ -442,9 +585,12 @@ export default function ReportQCPage() {
   const [filterType, setFilterType] = useState('全部')
   const [filterGrade, setFilterGrade] = useState('全部')
   const [filterStatus, setFilterStatus] = useState('全部')
+  const [filterDepartment, setFilterDepartment] = useState('全部')
+  const [filterDoctor, setFilterDoctor] = useState('全部')
   const [page, setPage] = useState(1)
   const [dimensions, setDimensions] = useState<ScoringDimension[]>(SCORING_DIMENSIONS)
   const [grades] = useState<GradeLevel[]>(GRADE_LEVELS)
+  const [selectedMonth, setSelectedMonth] = useState('2026-04')
   const pageSize = 10
 
   const records = useMemo(() => generateQCRecords(), [])
@@ -456,11 +602,104 @@ export default function ReportQCPage() {
     const qualified = records.filter(r => r.isQualified).length
     const unqualified = total - qualified
     const avgScore = Math.round(records.reduce((sum, r) => sum + r.totalScore, 0) / total)
-    const excellent = records.filter(r => r.grade === '优秀').length
-    const good = records.filter(r => r.grade === '良好').length
-    const pass = records.filter(r => r.grade === '合格').length
+    const excellent = records.filter(r => r.grade === '甲级').length
+    const good = records.filter(r => r.grade === '乙级').length
+    const pass = records.filter(r => r.grade === '丙级').length
     const fail = records.filter(r => r.grade === '不合格').length
     return { total, qualified, unqualified, avgScore, excellent, good, pass, fail, qualifiedRate: Math.round(qualified / total * 100) }
+  }, [records])
+
+  // 三维度平均得分
+  const dimensionAverages = useMemo(() => {
+    const total = records.length
+    const avgCompleteness = Math.round(records.reduce((sum, r) => sum + r.threeScores.completeness, 0) / total)
+    const avgNormCompliance = Math.round(records.reduce((sum, r) => sum + r.threeScores.normCompliance, 0) / total)
+    const avgTimeliness = Math.round(records.reduce((sum, r) => sum + r.threeScores.timeliness, 0) / total)
+    return { avgCompleteness, avgNormCompliance, avgTimeliness }
+  }, [records])
+
+  // 质量问题分类统计
+  const issueStats = useMemo((): IssueStats[] => {
+    const issueTypes: QCIssue['type'][] = ['missing_item', 'non_standard_desc', 'non_standard_image', 'timeout']
+    const labels: Record<QCIssue['type'], string> = {
+      'missing_item': '漏项问题',
+      'non_standard_desc': '描述不规范',
+      'non_standard_image': '图像不标准',
+      'timeout': '超时问题',
+      'other': '其他问题'
+    }
+    const colors: Record<QCIssue['type'], string> = {
+      'missing_item': '#dc2626',
+      'non_standard_desc': '#d97706',
+      'non_standard_image': '#2563eb',
+      'timeout': '#7c3aed',
+      'other': '#64748b'
+    }
+
+    const stats: IssueStats[] = issueTypes.map(type => {
+      const recordsWithIssue = records.filter(r => r.issues.some(i => i.type === type))
+      const count = recordsWithIssue.length
+      return {
+        type,
+        label: labels[type],
+        count,
+        percentage: Math.round(count / records.length * 100),
+        avgScore: count > 0 ? Math.round(recordsWithIssue.reduce((sum, r) => sum + r.totalScore, 0) / count) : 0,
+        trend: Math.round(Math.random() * 20) - 10 // 模拟趋势
+      }
+    })
+
+    return stats.sort((a, b) => b.count - a.count)
+  }, [records])
+
+  // 按科室统计不合格率
+  const departmentStats = useMemo(() => {
+    const departments = ['超声科', '心血管超声', '妇产科超声', '浅表器官超声', '介入超声']
+    return departments.map(dept => {
+      const deptRecords = records.filter(r => r.department === dept)
+      const total = deptRecords.length
+      const unqualified = deptRecords.filter(r => !r.isQualified).length
+      return {
+        department: dept,
+        total,
+        unqualified,
+        rate: total > 0 ? Math.round(unqualified / total * 100) : 0
+      }
+    })
+  }, [records])
+
+  // 按医生统计不合格率
+  const doctorStats = useMemo(() => {
+    const doctors = ['李建国', '王秀英', '张志远', '刘德明', '陈晓燕', '赵文博']
+    return doctors.map(doctor => {
+      const docRecords = records.filter(r => r.doctor === doctor)
+      const total = docRecords.length
+      const unqualified = docRecords.filter(r => !r.isQualified).length
+      return {
+        doctor,
+        total,
+        unqualified,
+        rate: total > 0 ? Math.round(unqualified / total * 100) : 0,
+        avgScore: total > 0 ? Math.round(docRecords.reduce((sum, r) => sum + r.totalScore, 0) / total) : 0
+      }
+    })
+  }, [records])
+
+  // 按检查类型统计
+  const examTypeStats = useMemo(() => {
+    const types = ['上腹部超声', '盆腔超声', '甲状腺超声', '乳腺超声', '心脏超声', '血管超声']
+    return types.map(type => {
+      const typeRecords = records.filter(r => r.examType === type)
+      const total = typeRecords.length
+      const unqualified = typeRecords.filter(r => !r.isQualified).length
+      return {
+        examType: type,
+        total,
+        unqualified,
+        rate: total > 0 ? Math.round(unqualified / total * 100) : 0,
+        avgScore: total > 0 ? Math.round(typeRecords.reduce((sum, r) => sum + r.totalScore, 0) / total) : 0
+      }
+    })
   }, [records])
 
   // 过滤记录
@@ -470,23 +709,151 @@ export default function ReportQCPage() {
       const matchType = filterType === '全部' || r.examType === filterType
       const matchGrade = filterGrade === '全部' || r.grade === filterGrade
       const matchStatus = filterStatus === '全部' || r.status === filterStatus
-      return matchSearch && matchType && matchGrade && matchStatus
+      const matchDept = filterDepartment === '全部' || r.department === filterDepartment
+      const matchDoctor = filterDoctor === '全部' || r.doctor === filterDoctor
+      return matchSearch && matchType && matchGrade && matchStatus && matchDept && matchDoctor
     })
-  }, [records, searchKeyword, filterType, filterGrade, filterStatus])
+  }, [records, searchKeyword, filterType, filterGrade, filterStatus, filterDepartment, filterDoctor])
 
   const paginatedRecords = filteredRecords.slice((page - 1) * pageSize, page * pageSize)
   const totalPages = Math.ceil(filteredRecords.length / pageSize)
 
   // 月度趋势数据
   const monthlyTrend = useMemo(() => [
-    { month: '1月', rate: 82 }, { month: '2月', rate: 85 }, { month: '3月', rate: 88 },
-    { month: '4月', rate: 91 }, { month: '5月', rate: 89 }, { month: '6月', rate: 92 },
-    { month: '7月', rate: 90 }, { month: '8月', rate: 93 }, { month: '9月', rate: 91 },
-    { month: '10月', rate: 94 }, { month: '11月', rate: 92 }, { month: '12月', rate: 95 },
+    { month: '1月', rate: 82, avgScore: 78 }, { month: '2月', rate: 85, avgScore: 80 },
+    { month: '3月', rate: 88, avgScore: 82 }, { month: '4月', rate: 91, avgScore: 85 },
   ], [])
 
+  // 生成月报
+  const monthlyReport = useMemo((): MonthlyReport => {
+    const total = records.length
+    const qualified = records.filter(r => r.isQualified).length
+    const gradeDistribution = GRADE_LEVELS.map(g => ({
+      grade: g.name,
+      count: records.filter(r => r.grade === g.name).length,
+      percentage: Math.round(records.filter(r => r.grade === g.name).length / total * 100)
+    }))
+    const topIssues = issueStats.slice(0, 3).map(i => ({ type: i.label, count: i.count }))
+
+    return {
+      month: selectedMonth,
+      totalReports: total,
+      qualifiedCount: qualified,
+      unqualifiedCount: total - qualified,
+      passRate: Math.round(qualified / total * 100),
+      avgScore: stats.avgScore,
+      avgCompleteness: dimensionAverages.avgCompleteness,
+      avgNormCompliance: dimensionAverages.avgNormCompliance,
+      avgTimeliness: dimensionAverages.avgTimeliness,
+      gradeDistribution,
+      issueStats,
+      topIssues,
+      improvementSuggestions: generateSuggestions(issueStats, dimensionAverages)
+    }
+  }, [records, selectedMonth, stats, dimensionAverages, issueStats])
+
+  // 生成质量改进建议
+  function generateSuggestions(issues: IssueStats[], dims: typeof dimensionAverages): string[] {
+    const suggestions: string[] = []
+    if (dims.avgCompleteness < 85) {
+      suggestions.push('建议开展报告完整性培训，重点关注患者信息和临床诊断的规范填写')
+    }
+    if (dims.avgNormCompliance < 80) {
+      suggestions.push('建议组织超声术语规范化学习，统一描述格式和测量单位标准')
+    }
+    if (dims.avgTimeliness < 85) {
+      suggestions.push('建议优化报告签发流程，设置超时预警机制，提升时效性')
+    }
+    const topIssue = issues[0]
+    if (topIssue && topIssue.count > records.length * 0.2) {
+      suggestions.push(`针对${topIssue.label}高发问题，建议专项检查并制定整改措施`)
+    }
+    if (suggestions.length === 0) {
+      suggestions.push('继续保持当前质量水平，可进一步提升至甲级标准')
+    }
+    return suggestions
+  }
+
+  // 质量改进建议列表
+  const improvementSuggestions = useMemo((): ImprovementSuggestion[] => {
+    const suggestions: ImprovementSuggestion[] = []
+
+    if (dimensionAverages.avgCompleteness < 85) {
+      suggestions.push({
+        id: 'S001',
+        category: '完整性',
+        priority: 'high',
+        title: '报告完整性待提升',
+        description: `完整性维度平均得分${dimensionAverages.avgCompleteness}分，低于目标值85分。主要问题集中在患者基本信息和临床诊断填写不完整。`,
+        targetDimension: '完整性',
+        affectedCount: records.filter(r => r.threeScores.completeness < 85).length,
+        recommendedActions: [
+          '建立报告必填项检查清单，系统自动校验',
+          '开展报告填写规范培训',
+          '设置完整性预警阈值'
+        ]
+      })
+    }
+
+    if (dimensionAverages.avgNormCompliance < 80) {
+      suggestions.push({
+        id: 'S002',
+        category: '规范性',
+        priority: 'high',
+        title: '术语和描述规范性需改进',
+        description: `规范性维度平均得分${dimensionAverages.avgNormCompliance}分，存在术语使用不当、格式不统一等问题。`,
+        targetDimension: '规范性',
+        affectedCount: records.filter(r => r.threeScores.normCompliance < 80).length,
+        recommendedActions: [
+          '制定超声报告术语规范手册',
+          '建立描述模板库',
+          '组织科室学习标准术语'
+        ]
+      })
+    }
+
+    if (dimensionAverages.avgTimeliness < 85) {
+      suggestions.push({
+        id: 'S003',
+        category: '时效性',
+        priority: 'medium',
+        title: '报告时效性有待加强',
+        description: `时效性维度平均得分${dimensionAverages.avgTimeliness}分，部分报告存在超时情况。`,
+        targetDimension: '时效性',
+        affectedCount: records.filter(r => r.threeScores.timeliness < 85).length,
+        recommendedActions: [
+          '设置报告签发时限预警',
+          '优化报告审核流程',
+          '定期通报超时情况'
+        ]
+      })
+    }
+
+    const topIssue = issueStats[0]
+    if (topIssue && topIssue.count > records.length * 0.15) {
+      suggestions.push({
+        id: 'S004',
+        category: topIssue.label,
+        priority: 'high',
+        title: `${topIssue.label}问题突出`,
+        description: `${topIssue.label}共发生${topIssue.count}例，占比${topIssue.percentage}%，需重点整改。`,
+        targetDimension: topIssue.type === 'missing_item' ? '完整性' : topIssue.type === 'non_standard_desc' ? '规范性' : topIssue.type === 'non_standard_image' ? '图像' : '时效性',
+        affectedCount: topIssue.count,
+        recommendedActions: [
+          '分析问题根因',
+          '制定针对性整改措施',
+          '加强相关培训'
+        ]
+      })
+    }
+
+    return suggestions
+  }, [dimensionAverages, issueStats, records])
+
   const examTypes = ['全部', '上腹部超声', '盆腔超声', '甲状腺超声', '乳腺超声', '心脏超声', '血管超声']
-  const gradeOptions = ['全部', '优秀', '良好', '合格', '不合格']
+  const departments = ['全部', '超声科', '心血管超声', '妇产科超声', '浅表器官超声', '介入超声']
+  const doctors = ['全部', '李建国', '王秀英', '张志远', '刘德明', '陈晓燕', '赵文博']
+  const gradeOptions = ['全部', '甲级', '乙级', '丙级', '不合格']
   const statusOptions = ['全部', 'pending', 'passed', 'failed', 'reviewed']
 
   const getGradeColor = (grade: string) => {
@@ -499,6 +866,27 @@ export default function ReportQCPage() {
     return g ? g.bgColor : '#f1f5f9'
   }
 
+  const getIssueTagStyle = (type: QCIssue['type']) => {
+    switch (type) {
+      case 'missing_item': return s.issueTagMissing
+      case 'non_standard_desc': return s.issueTagNonStandard
+      case 'non_standard_image': return s.issueTagImage
+      case 'timeout': return s.issueTagTimeout
+      default: return {}
+    }
+  }
+
+  const getIssueLabel = (type: QCIssue['type']) => {
+    const labels: Record<QCIssue['type'], string> = {
+      'missing_item': '漏项',
+      'non_standard_desc': '不规范',
+      'non_standard_image': '图像不标准',
+      'timeout': '超时',
+      'other': '其他'
+    }
+    return labels[type]
+  }
+
   const kpiData = [
     { label: '报告总数', value: stats.total, unit: '份', sub: `较上月 +${Math.floor(Math.random() * 20) + 5}%`, icon: FileText, color: '#2563eb', bg: '#dbeafe' },
     { label: '合格报告', value: stats.qualified, unit: '份', sub: `合格率 ${stats.qualifiedRate}%`, icon: BadgeCheck, color: '#16a34a', bg: '#dcfce7' },
@@ -507,10 +895,11 @@ export default function ReportQCPage() {
   ]
 
   const categoryIcons: Record<string, { icon: React.ElementType; color: string; bg: string }> = {
-    report: { icon: FileText, color: '#2563eb', bg: '#dbeafe' },
-    image: { icon: Activity, color: '#7c3aed', bg: '#f3e8ff' },
-    operation: { icon: ClipboardCheck, color: '#16a34a', bg: '#dcfce7' },
+    completeness: { icon: FileText, color: '#2563eb', bg: '#dbeafe' },
+    normCompliance: { icon: ShieldCheck, color: '#16a34a', bg: '#dcfce7' },
     timeliness: { icon: Clock, color: '#d97706', bg: '#fef3c7' },
+    image: { icon: Activity, color: '#7c3aed', bg: '#f3e8ff' },
+    operation: { icon: ClipboardCheck, color: '#2563eb', bg: '#dbeafe' },
   }
 
   return (
@@ -522,11 +911,12 @@ export default function ReportQCPage() {
             <ClipboardCheck size={24} color="#2563eb" />
             报告质量评分系统
           </h1>
-          <p style={s.subtitle}>评分维度管理 · 等级评定 · 统计分析 · 不合格报告追踪</p>
+          <p style={s.subtitle}>三维度评分（完整性/规范性/时效性）· 等级管理（甲乙丙丁）· 统计分析 · 月报生成</p>
         </div>
         <div style={s.headerActions}>
           <button style={s.btnLargeInfo}><Download size={16} />导出报告</button>
-          <button style={s.btnLarge}><FileText size={16} />生成月报</button>
+          <button style={s.btnLargeSuccess} onClick={() => setActiveTab('report')}><FileText size={16} />生成月报</button>
+          <button style={s.btnLarge} onClick={() => setActiveTab('suggestions')}><Lightbulb size={16} />改进建议</button>
         </div>
       </div>
 
@@ -548,6 +938,52 @@ export default function ReportQCPage() {
         ))}
       </div>
 
+      {/* 三维度得分概览 */}
+      <div style={s.chartRow3}>
+        <div style={s.dimensionScoreCard}>
+          <div style={s.dimensionScoreTitle}>
+            <FileText size={18} color="#2563eb" />
+            完整性得分
+          </div>
+          <div style={{ ...s.dimensionScoreValue, color: dimensionAverages.avgCompleteness >= 85 ? '#16a34a' : dimensionAverages.avgCompleteness >= 75 ? '#2563eb' : '#dc2626' }}>
+            {dimensionAverages.avgCompleteness}
+            <span style={s.highlightUnit}>分</span>
+          </div>
+          <div style={s.dimensionScoreBar}>
+            <div style={{ ...s.dimensionScoreBarFill, width: `${dimensionAverages.avgCompleteness}%`, background: dimensionAverages.avgCompleteness >= 85 ? '#16a34a' : dimensionAverages.avgCompleteness >= 75 ? '#2563eb' : '#dc2626' }} />
+          </div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>权重35% · 必填项齐全</div>
+        </div>
+        <div style={s.dimensionScoreCard}>
+          <div style={s.dimensionScoreTitle}>
+            <ShieldCheck size={18} color="#16a34a" />
+            规范性得分
+          </div>
+          <div style={{ ...s.dimensionScoreValue, color: dimensionAverages.avgNormCompliance >= 85 ? '#16a34a' : dimensionAverages.avgNormCompliance >= 75 ? '#2563eb' : '#dc2626' }}>
+            {dimensionAverages.avgNormCompliance}
+            <span style={s.highlightUnit}>分</span>
+          </div>
+          <div style={s.dimensionScoreBar}>
+            <div style={{ ...s.dimensionScoreBarFill, width: `${dimensionAverages.avgNormCompliance}%`, background: dimensionAverages.avgNormCompliance >= 85 ? '#16a34a' : dimensionAverages.avgNormCompliance >= 75 ? '#2563eb' : '#dc2626' }} />
+          </div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>权重40% · 术语/格式标准</div>
+        </div>
+        <div style={s.dimensionScoreCard}>
+          <div style={s.dimensionScoreTitle}>
+            <Clock size={18} color="#d97706" />
+            时效性得分
+          </div>
+          <div style={{ ...s.dimensionScoreValue, color: dimensionAverages.avgTimeliness >= 85 ? '#16a34a' : dimensionAverages.avgTimeliness >= 75 ? '#2563eb' : '#dc2626' }}>
+            {dimensionAverages.avgTimeliness}
+            <span style={s.highlightUnit}>分</span>
+          </div>
+          <div style={s.dimensionScoreBar}>
+            <div style={{ ...s.dimensionScoreBarFill, width: `${dimensionAverages.avgTimeliness}%`, background: dimensionAverages.avgTimeliness >= 85 ? '#16a34a' : dimensionAverages.avgTimeliness >= 75 ? '#2563eb' : '#dc2626' }} />
+          </div>
+          <div style={{ fontSize: 12, color: '#64748b', marginTop: 8 }}>权重25% · 规定时间完成</div>
+        </div>
+      </div>
+
       {/* Tab导航 */}
       <div style={s.tabNav}>
         <button style={activeTab === 'dimensions' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('dimensions')}>
@@ -562,6 +998,12 @@ export default function ReportQCPage() {
         <button style={activeTab === 'unqualified' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('unqualified')}>
           <AlertTriangle size={16} />不合格列表
         </button>
+        <button style={activeTab === 'report' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('report')}>
+          <FileText size={16} />月报生成
+        </button>
+        <button style={activeTab === 'suggestions' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('suggestions')}>
+          <Lightbulb size={16} />改进建议
+        </button>
       </div>
 
       {/* ========== 评分维度 ========== */}
@@ -574,10 +1016,11 @@ export default function ReportQCPage() {
             </div>
             <select style={s.select} value={filterType} onChange={e => setFilterType(e.target.value)}>
               <option value="全部">全部分类</option>
-              <option value="report">报告质量</option>
+              <option value="completeness">完整性</option>
+              <option value="normCompliance">规范性</option>
+              <option value="timeliness">时效性</option>
               <option value="image">图像质量</option>
               <option value="operation">操作规范</option>
-              <option value="timeliness">及时性</option>
             </select>
           </div>
 
@@ -599,7 +1042,7 @@ export default function ReportQCPage() {
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                     <span style={{ fontSize: 12, color: '#94a3b8', fontFamily: 'monospace' }}>{dim.code}</span>
                     <span style={{ fontSize: 11, padding: '1px 6px', borderRadius: 4, background: catStyle.bg, color: catStyle.color, fontWeight: 600 }}>
-                      {dim.category === 'report' ? '报告' : dim.category === 'image' ? '图像' : dim.category === 'operation' ? '操作' : '时效'}
+                      {dim.category === 'completeness' ? '完整性' : dim.category === 'normCompliance' ? '规范性' : dim.category === 'timeliness' ? '时效性' : dim.category === 'image' ? '图像' : '操作'}
                     </span>
                   </div>
                   <div style={s.dimensionName}>{dim.name}</div>
@@ -632,9 +1075,9 @@ export default function ReportQCPage() {
                 <DonutChart value={Math.round(stats.excellent / stats.total * 100)} size={100} stroke={10} color="#16a34a" />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px 24px', flex: 1 }}>
                   {[
-                    { label: '优秀', count: stats.excellent, color: '#16a34a' },
-                    { label: '良好', count: stats.good, color: '#2563eb' },
-                    { label: '合格', count: stats.pass, color: '#d97706' },
+                    { label: '甲级', count: stats.excellent, color: '#16a34a' },
+                    { label: '乙级', count: stats.good, color: '#2563eb' },
+                    { label: '丙级', count: stats.pass, color: '#d97706' },
                     { label: '不合格', count: stats.fail, color: '#dc2626' },
                   ].map(item => (
                     <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -651,7 +1094,7 @@ export default function ReportQCPage() {
               <div style={{ padding: '8px 0' }}>
                 <TrendChart data={monthlyTrend.map(m => m.rate)} color="#16a34a" />
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-                  {monthlyTrend.filter((_, i) => i % 2 === 0).map(m => (
+                  {monthlyTrend.map(m => (
                     <span key={m.month} style={{ fontSize: 10, color: '#94a3b8' }}>{m.month}</span>
                   ))}
                 </div>
@@ -662,9 +1105,9 @@ export default function ReportQCPage() {
           {/* 等级详情卡片 */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 16 }}>
             {grades.map(grade => {
-              const count = grade.name === '优秀' ? stats.excellent
-                : grade.name === '良好' ? stats.good
-                : grade.name === '合格' ? stats.pass
+              const count = grade.name === '甲级' ? stats.excellent
+                : grade.name === '乙级' ? stats.good
+                : grade.name === '丙级' ? stats.pass
                 : stats.fail
               const pct = Math.round(count / stats.total * 100)
               return (
@@ -714,49 +1157,101 @@ export default function ReportQCPage() {
             <select style={s.select} value={filterType} onChange={e => { setFilterType(e.target.value); setPage(1) }}>
               {examTypes.map(t => (<option key={t} value={t}>{t === '全部' ? '全部检查类型' : t}</option>))}
             </select>
+            <select style={s.select} value={filterDepartment} onChange={e => { setFilterDepartment(e.target.value); setPage(1) }}>
+              {departments.map(d => (<option key={d} value={d}>{d === '全部' ? '全部科室' : d}</option>))}
+            </select>
             <select style={s.select} value={filterGrade} onChange={e => { setFilterGrade(e.target.value); setPage(1) }}>
               {gradeOptions.map(g => (<option key={g} value={g}>{g === '全部' ? '全部等级' : g}</option>))}
             </select>
             <select style={s.select} value={filterStatus} onChange={e => { setFilterStatus(e.target.value); setPage(1) }}>
-              {statusOptions.map(s => (<option key={s} value={s}>{s === '全部' ? '全部状态' : s}</option>))}
+              {statusOptions.map(s => (<option key={s} value={s}>{s === '全部' ? '全部状态' : s === 'pending' ? '待审核' : s === 'passed' ? '已通过' : s === 'failed' ? '未通过' : '已复核'}</option>))}
             </select>
             <button style={s.btnIcon}><Download size={14} />导出</button>
           </div>
 
-          <div style={s.chartRow}>
+          {/* 不合格率统计图表 */}
+          <div style={s.chartRow3}>
             <div style={s.chartPanel}>
-              <div style={s.chartTitle}><ShieldCheck size={16} color="#64748b" />评分分布</div>
-              <div style={{ display: 'flex', gap: 16, padding: '8px 0' }}>
-                {grades.map(grade => {
-                  const count = grade.name === '优秀' ? stats.excellent
-                    : grade.name === '良好' ? stats.good
-                    : grade.name === '合格' ? stats.pass
-                    : stats.fail
-                  return (
-                    <div key={grade.id} style={{ textAlign: 'center', flex: 1 }}>
-                      <DonutChart value={Math.round(count / stats.total * 100)} size={70} stroke={8} color={grade.color} />
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c', marginTop: 8 }}>{grade.name}</div>
-                      <div style={{ fontSize: 11, color: '#94a3b8' }}>{count}份</div>
+              <div style={s.chartTitle}><BarChart2 size={16} color="#64748b" />按科室不合格率</div>
+              <div style={s.barChart}>
+                {departmentStats.map(d => (
+                  <div key={d.department} style={s.barChartItem}>
+                    <div style={s.barChartLabel}>{d.department}</div>
+                    <div style={s.barChartBar}>
+                      <div style={{ ...s.barChartBarFill, width: `${d.rate}%`, background: d.rate > 20 ? '#dc2626' : d.rate > 10 ? '#d97706' : '#16a34a' }}>
+                        <span style={s.barChartValue}>{d.rate}%</span>
+                      </div>
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
               </div>
             </div>
             <div style={s.chartPanel}>
-              <div style={s.chartTitle}><BarChart3 size={16} color="#64748b" />各维度平均得分</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10, padding: '8px 0' }}>
-                {dimensions.slice(0, 6).map(dim => {
-                  const avgScore = Math.round(85 + Math.random() * 10)
-                  return (
-                    <div key={dim.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                      <div style={{ fontSize: 12, color: '#64748b', minWidth: 80 }}>{dim.name}</div>
-                      <div style={s.scoreBar}>
-                        <div style={{ ...s.scoreBarFill, width: `${avgScore}%`, background: avgScore >= 90 ? '#16a34a' : avgScore >= 80 ? '#2563eb' : '#d97706' }} />
+              <div style={s.chartTitle}><Users size={16} color="#64748b" />按医生不合格率</div>
+              <div style={s.barChart}>
+                {doctorStats.slice(0, 5).map(d => (
+                  <div key={d.doctor} style={s.barChartItem}>
+                    <div style={s.barChartLabel}>{d.doctor}</div>
+                    <div style={s.barChartBar}>
+                      <div style={{ ...s.barChartBarFill, width: `${d.rate}%`, background: d.rate > 20 ? '#dc2626' : d.rate > 10 ? '#d97706' : '#16a34a' }}>
+                        <span style={s.barChartValue}>{d.rate}%</span>
                       </div>
-                      <div style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c', minWidth: 36 }}>{avgScore}</div>
                     </div>
-                  )
-                })}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={s.chartPanel}>
+              <div style={s.chartTitle}><Activity size={16} color="#64748b" />按检查类型不合格率</div>
+              <div style={s.barChart}>
+                {examTypeStats.map(e => (
+                  <div key={e.examType} style={s.barChartItem}>
+                    <div style={{ ...s.barChartLabel, fontSize: 11 }}>{e.examType.replace('超声', '')}</div>
+                    <div style={s.barChartBar}>
+                      <div style={{ ...s.barChartBarFill, width: `${e.rate}%`, background: e.rate > 20 ? '#dc2626' : e.rate > 10 ? '#d97706' : '#16a34a' }}>
+                        <span style={s.barChartValue}>{e.rate}%</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* 质量问题分类统计 */}
+          <div style={s.chartRow}>
+            <div style={s.chartPanel}>
+              <div style={s.chartTitle}><AlertOctagon size={16} color="#64748b" />质量问题分类统计</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {issueStats.map(issue => (
+                  <div key={issue.type} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ ...s.issueTag, ...getIssueTagStyle(issue.type), minWidth: 90 }}>{issue.label}</span>
+                    <div style={{ flex: 1, height: 20, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ width: `${issue.percentage}%`, height: '100%', background: issue.type === 'missing_item' ? '#dc2626' : issue.type === 'non_standard_desc' ? '#d97706' : issue.type === 'non_standard_image' ? '#2563eb' : '#7c3aed', borderRadius: 4 }} />
+                    </div>
+                    <span style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c', minWidth: 40 }}>{issue.count}例</span>
+                    <span style={{ fontSize: 11, color: '#94a3b8', minWidth: 35 }}>{issue.percentage}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div style={s.chartPanel}>
+              <div style={s.chartTitle}><ShieldCheck size={16} color="#64748b" />各维度平均得分</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[
+                  { label: '完整性', score: dimensionAverages.avgCompleteness, weight: 35 },
+                  { label: '规范性', score: dimensionAverages.avgNormCompliance, weight: 40 },
+                  { label: '时效性', score: dimensionAverages.avgTimeliness, weight: 25 },
+                ].map(dim => (
+                  <div key={dim.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <div style={{ fontSize: 12, color: '#64748b', minWidth: 60 }}>{dim.label}</div>
+                    <div style={{ flex: 1, height: 8, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ width: `${dim.score}%`, height: '100%', background: dim.score >= 85 ? '#16a34a' : dim.score >= 75 ? '#2563eb' : '#dc2626', borderRadius: 4 }} />
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 600, color: '#1a3a5c', minWidth: 36 }}>{dim.score}</div>
+                    <div style={{ fontSize: 10, color: '#94a3b8', minWidth: 30 }}>权重{dim.weight}%</div>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
@@ -776,11 +1271,11 @@ export default function ReportQCPage() {
                       <th style={s.th}>报告编号</th>
                       <th style={s.th}>患者姓名</th>
                       <th style={s.th}>检查类型</th>
+                      <th style={s.th}>科室</th>
                       <th style={s.th}>审核医生</th>
                       <th style={s.th}>总分</th>
                       <th style={s.th}>等级</th>
-                      <th style={s.th}>状态</th>
-                      <th style={s.th}>不合格原因</th>
+                      <th style={s.th}>问题类型</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -790,6 +1285,7 @@ export default function ReportQCPage() {
                         <td style={{ ...s.td, fontFamily: 'monospace', fontSize: 12 }}>{record.reportId}</td>
                         <td style={{ ...s.td, fontWeight: 500 }}>{record.patientName}</td>
                         <td style={s.td}><span style={{ ...s.badge, ...s.badgeInfo }}>{record.examType}</span></td>
+                        <td style={s.td}>{record.department}</td>
                         <td style={s.td}>{record.doctor}</td>
                         <td style={s.td}>
                           <span style={{ fontWeight: 700, color: getGradeColor(record.grade) }}>{record.totalScore}</span>
@@ -800,19 +1296,11 @@ export default function ReportQCPage() {
                           </span>
                         </td>
                         <td style={s.td}>
-                          <span style={{
-                            ...s.badge,
-                            ...(record.status === 'passed' ? s.badgeSuccess : record.status === 'failed' ? s.badgeDanger : record.status === 'reviewed' ? s.badgePurple : s.badgeWarning),
-                          }}>
-                            {record.status === 'passed' ? '已通过' : record.status === 'failed' ? '未通过' : record.status === 'reviewed' ? '已复核' : '待审核'}
-                          </span>
-                        </td>
-                        <td style={s.td}>
                           {record.issues.length > 0 ? (
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
                               {record.issues.slice(0, 2).map((issue, i) => (
-                                <span key={i} style={{ fontSize: 11, padding: '1px 6px', borderRadius: 4, background: '#fee2e2', color: '#dc2626' }}>
-                                  {issue}
+                                <span key={i} style={{ ...s.issueTag, ...getIssueTagStyle(issue.type), fontSize: 10 }}>
+                                  {getIssueLabel(issue.type)}
                                 </span>
                               ))}
                               {record.issues.length > 2 && <span style={{ fontSize: 11, color: '#94a3b8' }}>+{record.issues.length - 2}</span>}
@@ -853,6 +1341,9 @@ export default function ReportQCPage() {
               <Search size={16} color="#94a3b8" />
               <input style={s.searchInput} placeholder="搜索患者姓名或报告编号..." value={searchKeyword} onChange={e => setSearchKeyword(e.target.value)} />
             </div>
+            <select style={s.select} value={filterDepartment} onChange={e => setFilterDepartment(e.target.value)}>
+              {departments.map(d => (<option key={d} value={d}>{d === '全部' ? '全部科室' : d}</option>))}
+            </select>
             <select style={s.select} value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
               {['全部', 'pending', 'rectified', 'ignored'].map(s => (
                 <option key={s} value={s}>{s === '全部' ? '全部状态' : s === 'pending' ? '待处理' : s === 'rectified' ? '已整改' : '已忽略'}</option>
@@ -888,12 +1379,14 @@ export default function ReportQCPage() {
               {unqualifiedList.filter(u => {
                 const matchSearch = u.patientName.includes(searchKeyword) || u.reportId.includes(searchKeyword)
                 const matchStatus = filterStatus === '全部' || u.status === filterStatus
-                return matchSearch && matchStatus
+                const matchDept = filterDepartment === '全部' || u.department === filterDepartment
+                return matchSearch && matchStatus && matchDept
               }).length > 0 ? (
                 unqualifiedList.filter(u => {
                   const matchSearch = u.patientName.includes(searchKeyword) || u.reportId.includes(searchKeyword)
                   const matchStatus = filterStatus === '全部' || u.status === filterStatus
-                  return matchSearch && matchStatus
+                  const matchDept = filterDepartment === '全部' || u.department === filterDepartment
+                  return matchSearch && matchStatus && matchDept
                 }).map(item => (
                   <div key={item.id} style={s.unqualifiedCard}>
                     <div style={s.unqualifiedHeader}>
@@ -919,13 +1412,14 @@ export default function ReportQCPage() {
                     </div>
                     <div style={s.unqualifiedMeta}>
                       <span>日期: {item.date}</span>
+                      <span>科室: {item.department}</span>
                       <span>医生: {item.doctor}</span>
                       <span>记录ID: {item.recordId}</span>
                     </div>
                     <div style={s.unqualifiedReasons}>
-                      {item.failReasons.map((reason, i) => (
-                        <span key={i} style={{ ...s.unqualifiedReason, background: '#fee2e2', color: '#dc2626' }}>
-                          {reason}
+                      {item.failTypes.map((type, i) => (
+                        <span key={i} style={{ ...s.issueTag, ...getIssueTagStyle(type), fontSize: 11 }}>
+                          {getIssueLabel(type)}
                         </span>
                       ))}
                     </div>
@@ -940,6 +1434,211 @@ export default function ReportQCPage() {
                 <EmptyState icon={CheckCircle} text="暂无不合格报告" subtext="所有报告均已达标，继续保持" />
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== 月报生成 ========== */}
+      {activeTab === 'report' && (
+        <div>
+          <div style={s.filterBar}>
+            <Calendar size={16} color="#64748b" />
+            <select style={s.select} value={selectedMonth} onChange={e => setSelectedMonth(e.target.value)}>
+              <option value="2026-01">2026年1月</option>
+              <option value="2026-02">2026年2月</option>
+              <option value="2026-03">2026年3月</option>
+              <option value="2026-04">2026年4月</option>
+            </select>
+            <button style={s.btnLargeSuccess}><FileText size={16} />重新生成月报</button>
+            <button style={s.btnLargeInfo}><Download size={16} />导出PDF</button>
+          </div>
+
+          {/* 月报概览 */}
+          <div style={s.reportCard}>
+            <div style={s.reportTitle}>
+              <ClipboardCheck size={20} color="#2563eb" />
+              {selectedMonth} 超声报告质量控制月报
+            </div>
+
+            {/* 核心指标 */}
+            <div style={s.reportSection}>
+              <div style={s.reportSectionTitle}>核心指标</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16 }}>
+                <div style={{ textAlign: 'center', padding: 16, background: '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#2563eb' }}>{monthlyReport.totalReports}</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>报告总数</div>
+                </div>
+                <div style={{ textAlign: 'center', padding: 16, background: '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#16a34a' }}>{monthlyReport.passRate}%</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>合格率</div>
+                </div>
+                <div style={{ textAlign: 'center', padding: 16, background: '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#7c3aed' }}>{monthlyReport.avgScore}</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>平均评分</div>
+                </div>
+                <div style={{ textAlign: 'center', padding: 16, background: '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#dc2626' }}>{monthlyReport.unqualifiedCount}</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>不合格数</div>
+                </div>
+                <div style={{ textAlign: 'center', padding: 16, background: '#f8fafc', borderRadius: 8 }}>
+                  <div style={{ fontSize: 32, fontWeight: 800, color: '#d97706' }}>{monthlyReport.topIssues.length}</div>
+                  <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>重点问题</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 三维度得分 */}
+            <div style={s.reportSection}>
+              <div style={s.reportSectionTitle}>三维度评分</div>
+              <div style={s.chartRow}>
+                <div style={{ ...s.kpiCard, display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ width: 60, height: 60, borderRadius: 12, background: '#dbeafe', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <FileText size={28} color="#2563eb" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, color: '#64748b' }}>完整性</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: monthlyReport.avgCompleteness >= 85 ? '#16a34a' : '#dc2626' }}>{monthlyReport.avgCompleteness}分</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>权重35%</div>
+                  </div>
+                </div>
+                <div style={{ ...s.kpiCard, display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ width: 60, height: 60, borderRadius: 12, background: '#dcfce7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <ShieldCheck size={28} color="#16a34a" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, color: '#64748b' }}>规范性</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: monthlyReport.avgNormCompliance >= 85 ? '#16a34a' : '#dc2626' }}>{monthlyReport.avgNormCompliance}分</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>权重40%</div>
+                  </div>
+                </div>
+                <div style={{ ...s.kpiCard, display: 'flex', alignItems: 'center', gap: 16 }}>
+                  <div style={{ width: 60, height: 60, borderRadius: 12, background: '#fef3c7', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <Clock size={28} color="#d97706" />
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 13, color: '#64748b' }}>时效性</div>
+                    <div style={{ fontSize: 28, fontWeight: 800, color: monthlyReport.avgTimeliness >= 85 ? '#16a34a' : '#dc2626' }}>{monthlyReport.avgTimeliness}分</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>权重25%</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 等级分布 */}
+            <div style={s.reportSection}>
+              <div style={s.reportSectionTitle}>等级分布</div>
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                {monthlyReport.gradeDistribution.map(g => (
+                  <div key={g.grade} style={{ flex: 1, textAlign: 'center', padding: 12, background: '#f8fafc', borderRadius: 8 }}>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: getGradeColor(g.grade) }}>{g.count}份</div>
+                    <div style={{ fontSize: 12, color: '#64748b', marginTop: 4 }}>{g.grade} {g.percentage}%</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 问题分布 */}
+            <div style={s.reportSection}>
+              <div style={s.reportSectionTitle}>质量问题分布</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                {monthlyReport.issueStats.map(issue => (
+                  <div key={issue.type} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <span style={{ minWidth: 90, fontSize: 13, color: '#475569' }}>{issue.label}</span>
+                    <div style={{ flex: 1, height: 24, background: '#e5e7eb', borderRadius: 4, overflow: 'hidden' }}>
+                      <div style={{ width: `${issue.percentage}%`, height: '100%', background: issue.type === 'missing_item' ? '#dc2626' : issue.type === 'non_standard_desc' ? '#d97706' : issue.type === 'non_standard_image' ? '#2563eb' : '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'flex-end', paddingRight: 8 }}>
+                        <span style={{ fontSize: 11, fontWeight: 600, color: '#fff' }}>{issue.count}例 ({issue.percentage}%)</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 改进建议 */}
+            <div style={s.reportSection}>
+              <div style={s.reportSectionTitle}>质量改进建议</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {monthlyReport.improvementSuggestions.map((suggestion, i) => (
+                  <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 10, padding: 12, background: '#f8fafc', borderRadius: 6, borderLeft: '3px solid #2563eb' }}>
+                    <Lightbulb size={16} color="#2563eb" style={{ flexShrink: 0, marginTop: 2 }} />
+                    <span style={{ fontSize: 13, color: '#475569', lineHeight: 1.5 }}>{suggestion}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========== 质量改进建议 ========== */}
+      {activeTab === 'suggestions' && (
+        <div>
+          <div style={s.filterBar}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+              <Lightbulb size={16} color="#d97706" />
+              <span style={{ fontSize: 14, fontWeight: 600, color: '#1a3a5c' }}>基于历史质量问题自动分析生成</span>
+            </div>
+            <button style={s.btnIcon}><RefreshCw size={14} />重新分析</button>
+          </div>
+
+          {/* 建议概览 */}
+          <div style={s.chartRow}>
+            <div style={s.chartPanel}>
+              <div style={s.chartTitle}><AlertCircle size={16} color="#dc2626" />高优先级建议</div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#dc2626', textAlign: 'center', padding: 20 }}>
+                {improvementSuggestions.filter(s => s.priority === 'high').length}
+                <div style={{ fontSize: 14, color: '#64748b', fontWeight: 400, marginTop: 8 }}>项</div>
+              </div>
+            </div>
+            <div style={s.chartPanel}>
+              <div style={s.chartTitle}><Clock size={16} color="#d97706" />中优先级建议</div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#d97706', textAlign: 'center', padding: 20 }}>
+                {improvementSuggestions.filter(s => s.priority === 'medium').length}
+                <div style={{ fontSize: 14, color: '#64748b', fontWeight: 400, marginTop: 8 }}>项</div>
+              </div>
+            </div>
+            <div style={s.chartPanel}>
+              <div style={s.chartTitle}><CheckCircle size={16} color="#16a34a" />影响报告数</div>
+              <div style={{ fontSize: 36, fontWeight: 800, color: '#16a34a', textAlign: 'center', padding: 20 }}>
+                {records.filter(r => !r.isQualified).length}
+                <div style={{ fontSize: 14, color: '#64748b', fontWeight: 400, marginTop: 8 }}>份</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 建议列表 */}
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 12 }}>
+            {improvementSuggestions.map(suggestion => (
+              <div key={suggestion.id} style={{
+                ...s.suggestionCard,
+                borderLeftColor: suggestion.priority === 'high' ? '#dc2626' : suggestion.priority === 'medium' ? '#d97706' : '#16a34a'
+              }}>
+                <div style={s.suggestionHeader}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{
+                      padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                      background: suggestion.priority === 'high' ? '#fee2e2' : suggestion.priority === 'medium' ? '#fef3c7' : '#dcfce7',
+                      color: suggestion.priority === 'high' ? '#dc2626' : suggestion.priority === 'medium' ? '#d97706' : '#16a34a'
+                    }}>
+                      {suggestion.priority === 'high' ? '高优先级' : suggestion.priority === 'medium' ? '中优先级' : '低优先级'}
+                    </span>
+                    <span style={{ ...s.badge, background: '#f1f5f9', color: '#64748b' }}>{suggestion.category}</span>
+                    <span style={{ fontSize: 13, fontWeight: 600, color: '#1a3a5c' }}>{suggestion.title}</span>
+                  </div>
+                  <span style={{ fontSize: 12, color: '#94a3b8' }}>影响 {suggestion.affectedCount} 份报告</span>
+                </div>
+                <div style={s.suggestionDesc}>{suggestion.description}</div>
+                <div style={s.suggestionActions}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: '#64748b', marginBottom: 6 }}>推荐措施:</div>
+                  {suggestion.recommendedActions.map((action, i) => (
+                    <div key={i} style={s.suggestionAction}>
+                      <ChevronRight size={14} />
+                      <span>{action}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
