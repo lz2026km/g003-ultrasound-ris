@@ -362,10 +362,10 @@ const TREND_DATA = [
 ]
 
 const EXAM_TYPE_DATA = [
-  { name: '胃镜', value: 45 },
-  { name: '肠镜', value: 28 },
-  { name: '超声内镜', value: 12 },
-  { name: 'ERCP', value: 8 },
+  { name: '腹部超声', value: 45 },
+  { name: '心脏彩超', value: 28 },
+  { name: '浅表超声', value: 12 },
+  { name: '介入超声', value: 8 },
   { name: '其他', value: 7 },
 ]
 
@@ -379,11 +379,11 @@ const DOCTOR_RANK_DATA = [
 ]
 
 const ENDOSCOPE_USAGE = [
-  { name: 'EG-2990I', usage: 92 },
-  { name: 'EG-2995I', usage: 85 },
-  { name: 'CF-H290I', usage: 78 },
-  { name: 'CF-H260I', usage: 65 },
-  { name: 'PCF-H290TL', usage: 58 },
+  { name: 'US-7500', usage: 92 },
+  { name: 'US-7800', usage: 85 },
+  { name: 'US-3500', usage: 78 },
+  { name: 'US-3200', usage: 65 },
+  { name: 'US-2800', usage: 58 },
 ]
 
 const WARNING_ITEMS = [
@@ -396,12 +396,12 @@ const WARNING_ITEMS = [
 
 const TODAY_TODOS = [
   { time: '08:00', text: '交班会议', done: true, color: s.green },
-  { time: '08:30', text: '胃超声检查 #1023 患者王五', done: true, color: s.green },
-  { time: '09:15', text: '肠镜检查 #1024 患者赵六', done: true, color: s.green },
-  { time: '10:00', text: '超声内镜 #1025 患者刘七', done: false, color: s.orange },
-  { time: '10:45', text: '胃超声检查 #1026 患者陈八', done: false, color: s.blue },
-  { time: '11:30', text: 'ERCP手术 #1027 患者周九', done: false, color: s.purple },
-  { time: '14:00', text: '胃超声检查 #1028 患者吴十', done: false, color: s.blue },
+  { time: '08:30', text: '腹部超声检查 #1023 患者王五', done: true, color: s.green },
+  { time: '09:15', text: '心脏彩超检查 #1024 患者赵六', done: true, color: s.green },
+  { time: '10:00', text: '浅表超声 #1025 患者刘七', done: false, color: s.orange },
+  { time: '10:45', text: '腹部超声检查 #1026 患者陈八', done: false, color: s.blue },
+  { time: '11:30', text: '介入超声手术 #1027 患者周九', done: false, color: s.purple },
+  { time: '14:00', text: '腹部超声检查 #1028 患者吴十', done: false, color: s.blue },
   { time: '15:00', text: '书写昨日报告', done: false, color: s.teal },
   { time: '16:30', text: '洗消室交接班', done: false, color: s.teal },
 ]
@@ -549,7 +549,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* 医生工作量 + 超声使用率 */}
+      {/* 医生工作量 + 超声设备使用率 */}
       <div style={s.chartGrid2}>
         <div style={s.chartCard}>
           <div style={s.chartTitle}>
@@ -658,7 +658,7 @@ export default function DashboardPage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 20, marginTop: 4 }}>
           <ProgressItem label="胃镜" done={18} total={25} color="#3b82f6" />
           <ProgressItem label="肠镜" done={12} total={15} color="#22c55e" />
-          <ProgressItem label="超声内镜" done={4} total={5} color="#8b5cf6" />
+          <ProgressItem label="浅表超声" done={4} total={5} color="#8b5cf6" />
           <ProgressItem label="ERCP" done={2} total={3} color="#f97316" />
         </div>
       </div>
