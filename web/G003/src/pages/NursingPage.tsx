@@ -22,7 +22,7 @@ const nursingRecords = [
   // 术前护理记录
   {
     id: 'NR001', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'pre', subType: 'check', nurseId: 'N001', nurseName: '李美华',
     time: '2026-04-28 08:30',
     content: '术前核查完成，患者身份、手术部位、过敏史确认无误，签署知情同意书',
@@ -30,7 +30,7 @@ const nursingRecords = [
   },
   {
     id: 'NR002', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'pre', subType: 'bowel', nurseId: 'N002', nurseName: '王丽娜',
     time: '2026-04-28 10:00',
     content: '肠道准备评价：清洁度良好，无残余粪便，肠鸣音正常',
@@ -38,7 +38,7 @@ const nursingRecords = [
   },
   {
     id: 'NR003', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'pre', subType: 'iv', nurseId: 'N003', nurseName: '张晓燕',
     time: '2026-04-28 10:30',
     content: '建立左上肢静脉通路，20G留置针，滴速通畅，无渗漏',
@@ -71,23 +71,23 @@ const nursingRecords = [
   // 术中配合记录
   {
     id: 'NR007', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'intra', subType: 'instrument', nurseId: 'N002', nurseName: '王丽娜',
     time: '2026-04-28 11:00',
-    content: '术前器械清点：纱布20块，止血钳12把，弯钳8把，缝针5枚，腹腔镜器械套完整',
+    content: '术前器械清点：纱布20块，止血钳12把，弯钳8把，缝针5枚，超声介入器械套完整',
     status: 'completed', instrumentCount: { gauze: 20, clamp: 12, curved: 8, needle: 5 },
   },
   {
     id: 'NR008', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'intra', subType: 'timeline', nurseId: 'N001', nurseName: '李美华',
     time: '2026-04-28 11:30',
-    content: '手术开始，气腹建立顺利，腹腔探查无转移',
+    content: '手术开始，超声引导定位顺利，腔内探查无转移',
     status: 'completed',
   },
   {
     id: 'NR009', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'intra', subType: 'timeline', nurseId: 'N001', nurseName: '李美华',
     time: '2026-04-28 13:00',
     content: '肿瘤切除完成，术中冰冻回报切缘阴性',
@@ -95,7 +95,7 @@ const nursingRecords = [
   },
   {
     id: 'NR010', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'intra', subType: 'instrument', nurseId: 'N002', nurseName: '王丽娜',
     time: '2026-04-28 15:00',
     content: '关腹前器械清点：数量正确，无遗留，纱布20块，止血钳12把，弯钳8把，缝针5枚',
@@ -120,7 +120,7 @@ const nursingRecords = [
   // 术后交接记录
   {
     id: 'NR013', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'post', subType: 'score', nurseId: 'N001', nurseName: '李美华',
     time: '2026-04-28 16:00',
     content: '术后Steward评分：4分，意识清醒，可自主呼吸，肢体有反应',
@@ -128,7 +128,7 @@ const nursingRecords = [
   },
   {
     id: 'NR014', patientId: 'P001', patientName: '张伟', gender: '男', age: 58,
-    surgeryName: '腹腔镜结肠癌根治术', surgeryType: '腹腔镜', surgeryDate: '2026-04-28',
+    surgeryName: '超声介入手术', surgeryType: '超声介入', surgeryDate: '2026-04-28',
     recordType: 'post', subType: 'sign', nurseId: 'N001', nurseName: '李美华',
     time: '2026-04-28 16:05',
     content: '交接签字：手术室护士李美华与病房护士张晓燕完成交接，生命体征平稳',
@@ -178,7 +178,7 @@ const shiftHandoverData = [
     toNurse: '王丽娜',
     time: '08:00',
     patientCount: 3,
-    criticalPatients: ['张伟-腹腔镜结肠癌根治术', '李芳-甲状腺全切术'],
+    criticalPatients: ['张伟-超声介入手术', '李芳-甲状腺全切术'],
     summary: '早班工作已完成，两位患者术前准备完善，无特殊交接事项',
     pendingTasks: ['等待张伟术后返回病房', '李芳术后监测甲状腺功能'],
     handoverItems: [

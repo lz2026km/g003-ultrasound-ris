@@ -437,9 +437,9 @@ const generateExtraDisinfectionRecords = (base: DisinfectionRecord[]): Disinfect
 
     extra.push({
       id: `DR${String(idx).padStart(3, '0')}`,
-      endoscopeId: e.id,
-      endoscopeName: e.name,
-      endoscopeCode: e.code,
+      deviceId: e.id,
+      deviceName: e.name,
+      deviceCode: e.code,
       processType: processes[(idx - 1) % processes.length],
       collectionTime,
       cleaningStartTime,
@@ -502,7 +502,7 @@ export default function DisinfectionPage() {
   // 新增弹窗
   const [addModal, setAddModal] = useState(false)
   const [newRecord, setNewRecord] = useState<Partial<DisinfectionRecord>>({
-    endoscopeId: '',
+    deviceId: '',
     processType: '机洗',
     status: '待清洗',
     finalResult: '待复检',
@@ -551,8 +551,8 @@ export default function DisinfectionPage() {
     const code = scanCode.trim().toUpperCase()
     const found = records.find(r =>
       r.id.toUpperCase() === code ||
-      r.endoscopeCode.toUpperCase() === code ||
-      r.endoscopeName.toUpperCase().includes(code)
+      r.deviceCode.toUpperCase() === code ||
+      r.deviceName.toUpperCase().includes(code)
     )
     if (found) {
       handleShowDetail(found)
@@ -576,14 +576,14 @@ export default function DisinfectionPage() {
       if (searchKeyword) {
         const kw = searchKeyword.toLowerCase()
         const matchSearch =
-          r.endoscopeName.toLowerCase().includes(kw) ||
-          r.endoscopeCode.toLowerCase().includes(kw) ||
+          r.deviceName.toLowerCase().includes(kw) ||
+          r.deviceCode.toLowerCase().includes(kw) ||
           r.id.toLowerCase().includes(kw) ||
           (r.relatedPatientName?.toLowerCase().includes(kw) ?? false)
         if (!matchSearch) return false
       }
       // 超声探头筛选
-      if (filterEndoscope && r.endoscopeId !== filterEndoscope) return false
+      if (filterEndoscope && r.deviceId !== filterEndoscope) return false
       // 状态筛选
       if (filterStatus && r.status !== filterStatus) return false
       // 日期筛选
@@ -620,17 +620,17 @@ export default function DisinfectionPage() {
 
   // 新增洗消记录
   const handleAddRecord = () => {
-    if (!newRecord.endoscopeId) {
+    if (!newRecord.deviceId) {
       alert('请选择超声探头')
       return
     }
-    const endoscope = endoscopes.find(e => e.id === newRecord.endoscopeId)
+    const endoscope = endoscopes.find(e => e.id === newRecord.deviceId)
     const now = new Date().toISOString().replace('T', ' ').substring(0, 16)
     const record: DisinfectionRecord = {
       id: `DR${String(records.length + 1).padStart(3, '0')}`,
-      endoscopeId: newRecord.endoscopeId,
-      endoscopeName: endoscope?.name || '',
-      endoscopeCode: endoscope?.code || '',
+      deviceId: newRecord.deviceId,
+      deviceName: endoscope?.name || '',
+      deviceCode: endoscope?.code || '',
       processType: newRecord.processType as DisinfectionRecord['processType'],
       collectionTime: now,
       cleaningPerson: newRecord.cleaningPerson || '',
@@ -643,7 +643,7 @@ export default function DisinfectionPage() {
     setRecords([record, ...records])
     setAddModal(false)
     setNewRecord({
-      endoscopeId: '',
+      deviceId: '',
       processType: '机洗',
       status: '待清洗',
       finalResult: '待复检',
@@ -871,8 +871,8 @@ export default function DisinfectionPage() {
                     </span>
                   </td>
                   <td style={s.td}>
-                    <div style={{ fontWeight: 500 }}>{record.endoscopeName}</div>
-                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{record.endoscopeCode}</div>
+                    <div style={{ fontWeight: 500 }}>{record.deviceName}</div>
+                    <div style={{ fontSize: 11, color: '#94a3b8' }}>{record.deviceCode}</div>
                   </td>
                   <td style={s.td}>
                     <span style={{
@@ -1001,11 +1001,11 @@ export default function DisinfectionPage() {
               <div style={s.detailGrid}>
                 <div style={s.detailCard}>
                   <div style={s.detailLabel}>超声探头名称</div>
-                  <div style={s.detailValue}>{detailModal.record.endoscopeName}</div>
+                  <div style={s.detailValue}>{detailModal.record.deviceName}</div>
                 </div>
                 <div style={s.detailCard}>
                   <div style={s.detailLabel}>探头编号</div>
-                  <div style={s.detailValue}>{detailModal.record.endoscopeCode}</div>
+                  <div style={s.detailValue}>{detailModal.record.deviceCode}</div>
                 </div>
                 <div style={s.detailCard}>
                   <div style={s.detailLabel}>流程类型</div>
@@ -1373,8 +1373,8 @@ export default function DisinfectionPage() {
                   <label style={s.formLabel}>超声设备 *</label>
                   <select
                     style={s.formInput}
-                    value={newRecord.endoscopeId}
-                    onChange={e => setNewRecord({ ...newRecord, endoscopeId: e.target.value })}
+                    value={newRecord.deviceId}
+                    onChange={e => setNewRecord({ ...newRecord, deviceId: e.target.value })}
                   >
                     <option value="">请选择超声探头</option>
                     {endoscopes.map(e => (

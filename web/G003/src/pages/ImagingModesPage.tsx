@@ -46,12 +46,12 @@ const imagingModes: ModeInfo[] = [
   },
   {
     id: 'ISE', name: '可变硬度', fullName: 'Incremental Stiffness Enteroscopy',
-    shortDesc: '调控镜身软硬度，改善插入性，便于完成复杂病变检查和治疗',
+    shortDesc: '调控探头硬度，改善组织穿透性，便于完成复杂病变检查和治疗',
     color: '#a371f7', bgColor: '#1a0d2e',
     clinicalUse: ['浅表超声检查', '小肠检查', '复杂病变治疗', '术后粘连患者'],
-    normalFindings: '镜身软硬度可调，插入顺畅，患者不适感降低',
+    normalFindings: '探头硬度可调，穿透性良好，图像质量稳定',
     abnormalFindings: ['硬度不可调', '插入阻力增加'],
-    imageNote: '可变硬度模式：非成像功能，为检查操作提供更好的镜身控制'
+    imageNote: '可变硬度模式：通过调节探头硬度以优化不同深度组织的成像质量'
   },
   {
     id: 'BCE', name: '蓝光电子染色', fullName: 'Blue Coordinate Electronic',

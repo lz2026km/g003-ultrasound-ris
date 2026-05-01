@@ -23,17 +23,17 @@ interface TemplateField {
 interface Template {
   id: string;
   name: string;
-  category: '腹部US' | 'US' | 'US探头' | 'USCP' | '早癌筛查' | '其他';
+  category: '腹部US' | 'US' | '其他';
   description: string;
   fields: TemplateField[];
   usageCount: number;
   lastUsed: string;
   createdBy: string;
   createdAt: string;
-  isProfessional: boolean; // 早癌筛查等专业模板
+  isProfessional: boolean;
 }
 
-// ========== 模板数据（5-8个真实模板） ==========
+// ========== 模板数据 ==========
 const templates: Template[] = [
   {
     id: 'T001',
@@ -53,11 +53,10 @@ const templates: Template[] = [
       { id: 'f5', name: '腹部US编号', type: 'text', required: true },
       { id: 'f6', name: '术前诊断', type: 'text', required: true },
       { id: 'f7', name: '术中诊断', type: 'text', required: true },
-      { id: 'f8', name: '镜下表现', type: 'multiselect', required: false, options: ['慢性胃炎', '糜烂', '溃疡', '息肉', '肿瘤', '反流性肝炎'] },
-      { id: 'f9', name: '活检数目', type: 'number', required: false },
-      { id: 'f10', name: '检查图片', type: 'image', required: false },
-      { id: 'f11', name: '检查医生签名', type: 'signature', required: true },
-      { id: 'f12', name: '报告日期', type: 'date', required: true },
+      { id: 'f8', name: '检查结果', type: 'multiselect', required: false, options: ['正常', '异常', '可疑病变'] },
+      { id: 'f9', name: '检查图片', type: 'image', required: false },
+      { id: 'f10', name: '检查医生签名', type: 'signature', required: true },
+      { id: 'f11', name: '报告日期', type: 'date', required: true },
     ],
   },
   {
@@ -77,174 +76,9 @@ const templates: Template[] = [
       { id: 'f4', name: '检查日期', type: 'date', required: true },
       { id: 'f5', name: 'US编号', type: 'text', required: true },
       { id: 'f6', name: '肠道准备', type: 'select', required: true, options: ['良好', '一般', '差'] },
-      { id: 'f7', name: '插管深度', type: 'text', required: true },
-      { id: 'f8', name: '盲肠到达率', type: 'select', required: true, options: ['是', '否'] },
-      { id: 'f9', name: '息肉位置', type: 'multiselect', required: false, options: ['升结肠', '横结肠', '降结肠', '乙状结肠', '直肠'] },
-      { id: 'f10', name: '息肉大小(mm)', type: 'number', required: false },
-      { id: 'f11', name: '息肉数目', type: 'number', required: false },
-      { id: 'f12', name: '病理结果', type: 'select', required: false, options: ['腺瘤', '增生性息肉', '炎性息肉', '恶性', '未送检'] },
-      { id: 'f13', name: '检查图片', type: 'image', required: false },
-      { id: 'f14', name: '检查医生签名', type: 'signature', required: true },
-    ],
-  },
-  {
-    id: 'T003',
-    name: 'US检查模板',
-    category: 'US探头',
-    description: 'US探头（EUS）检查报告模板，适用于消化道及周围器官检查',
-    usageCount: 456,
-    lastUsed: '2026-04-25',
-    createdBy: '王芳',
-    createdAt: '2025-03-10',
-    isProfessional: false,
-    fields: [
-      { id: 'f1', name: '患者姓名', type: 'text', required: true },
-      { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
-      { id: 'f3', name: '年龄', type: 'number', required: true },
-      { id: 'f4', name: '检查日期', type: 'date', required: true },
-      { id: 'f5', name: 'EUS编号', type: 'text', required: true },
-      { id: 'f6', name: '检查部位', type: 'select', required: true, options: ['食管', '胃', '十二指肠', '直肠', '胰腺', '纵隔'] },
-      { id: 'f7', name: 'US频率(MHz)', type: 'number', required: true },
-      { id: 'f8', name: '病灶大小(mm)', type: 'number', required: false },
-      { id: 'f9', name: '病灶位置', type: 'text', required: false },
-      { id: 'f10', name: '回声特征', type: 'multiselect', required: false, options: ['低回声', '高回声', '等回声', '无回声', '混合回声'] },
-      { id: 'f11', name: '边界', type: 'select', required: false, options: ['清晰', '不清晰'] },
-      { id: 'f12', name: '侵袭深度', type: 'select', required: false, options: ['黏膜层', '黏膜下层', '肌层', '浆膜层', '周围组织'] },
-      { id: 'f13', name: 'EUS诊断', type: 'text', required: true },
-      { id: 'f14', name: 'FNA/FNB', type: 'select', required: false, options: ['是', '否'] },
-      { id: 'f15', name: '穿刺标本', type: 'image', required: false },
-      { id: 'f16', name: '检查医生签名', type: 'signature', required: true },
-    ],
-  },
-  {
-    id: 'T004',
-    name: 'USCP检查模板',
-    category: 'USCP',
-    description: '逆行胰胆管造影（USCP）检查报告模板',
-    usageCount: 328,
-    lastUsed: '2026-04-26',
-    createdBy: '赵强',
-    createdAt: '2025-04-05',
-    isProfessional: false,
-    fields: [
-      { id: 'f1', name: '患者姓名', type: 'text', required: true },
-      { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
-      { id: 'f3', name: '年龄', type: 'number', required: true },
-      { id: 'f4', name: '检查日期', type: 'date', required: true },
-      { id: 'f5', name: 'USCP编号', type: 'text', required: true },
-      { id: 'f6', name: '术前诊断', type: 'text', required: true },
-      { id: 'f7', name: '适应症', type: 'multiselect', required: true, options: ['胆总管结石', '胆管狭窄', '胰管狭窄', '梗阻性黄疸', '胆漏'] },
-      { id: 'f8', name: '手术方式', type: 'multiselect', required: true, options: ['EST', '球囊扩张', '支架置入', '取石', '经皮胆管引流'] },
-      { id: 'f9', name: '乳头切开大小(mm)', type: 'number', required: false },
-      { id: 'f10', name: '支架类型', type: 'select', required: false, options: ['塑料支架', '金属覆膜支架', '金属裸支架'] },
-      { id: 'f11', name: '支架数量', type: 'number', required: false },
-      { id: 'f12', name: '取石数量', type: 'number', required: false },
-      { id: 'f13', name: '并发症', type: 'select', required: false, options: ['无', '轻度胰腺炎', '中度胰腺炎', '出血', '穿孔'] },
-      { id: 'f14', name: '手术图片', type: 'image', required: false },
-      { id: 'f15', name: '操作医生签名', type: 'signature', required: true },
-      { id: 'f16', name: '手术时间(分钟)', type: 'number', required: false },
-    ],
-  },
-  {
-    id: 'T005',
-    name: '消化道早癌筛查模板',
-    category: '早癌筛查',
-    description: '消化道早癌筛查专业模板，包含NBI放大US探头评估、染色US探头等早癌诊断标准字段',
-    usageCount: 678,
-    lastUsed: '2026-04-29',
-    createdBy: '刘伟',
-    createdAt: '2025-01-20',
-    isProfessional: true,
-    fields: [
-      { id: 'f1', name: '患者姓名', type: 'text', required: true },
-      { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
-      { id: 'f3', name: '年龄', type: 'number', required: true },
-      { id: 'f4', name: '检查日期', type: 'date', required: true },
-      { id: 'f5', name: '筛查编号', type: 'text', required: true },
-      { id: 'f6', name: '筛查类型', type: 'select', required: true, options: ['肝占位筛查', '结直肠早癌筛查', '肝癌筛查'] },
-      { id: 'f7', name: '风险等级', type: 'select', required: true, options: ['高危', '中危', '低危'] },
-      { id: 'f8', name: '既往肿瘤史', type: 'select', required: false, options: ['有', '无'] },
-      { id: 'f9', name: '肿瘤家族史', type: 'select', required: false, options: ['有', '无'] },
-      { id: 'f10', name: 'NBI放大US探头', type: 'select', required: false, options: ['是', '否'] },
-      { id: 'f11', name: 'NBI分型', type: 'multiselect', required: false, options: ['Type A', 'Type B1', 'Type B2', 'Type B3', 'Type C1', 'Type C2', 'Type C3'] },
-      { id: 'f12', name: '染色US探头', type: 'select', required: false, options: ['是', '否'] },
-      { id: 'f13', name: '染色剂类型', type: 'select', required: false, options: ['卢戈液', '靛胭脂', '亚甲蓝', '醋酸'] },
-      { id: 'f14', name: 'IPCL分型(食管)', type: 'select', required: false, options: ['Type A', 'Type B1', 'Type B2', 'Type B3', 'Type V'] },
-      { id: 'f15', name: '表面型分类', type: 'select', required: false, options: ['0-I', '0-IIa', '0-IIb', '0-IIc', '0-III'] },
-      { id: 'f16', name: '病变大小(mm)', type: 'number', required: false },
-      { id: 'f17', name: '病变位置', type: 'text', required: false },
-      { id: 'f18', name: '浸润深度预估', type: 'select', required: false, options: ['M', 'SM1', 'SM2', 'MP', 'SS'] },
-      { id: 'f19', name: '早癌诊断', type: 'select', required: false, options: ['阴性', '疑似早癌', '早癌', '进展期癌'] },
-      { id: 'f20', name: '组织病理学', type: 'select', required: false, options: ['炎症', '低级别上皮内瘤变', '高级别上皮内瘤变', '腺癌', '鳞癌'] },
-      { id: 'f21', name: 'US探头下治疗建议', type: 'multiselect', required: false, options: ['US_DISSECTION', 'US_ABLATION', '外科手术', '密切随访', '扩大适应症ESD'] },
-      { id: 'f22', name: '筛查图片', type: 'image', required: false },
-      { id: 'f23', name: '筛查医生签名', type: 'signature', required: true },
-    ],
-  },
-  {
-    id: 'T006',
-    name: '肝占位US_DISSECTION术模板',
-    category: '腹部US',
-    description: '肝占位US黏膜下剥离术（US_DISSECTION）专业模板',
-    usageCount: 234,
-    lastUsed: '2026-04-24',
-    createdBy: '张建国',
-    createdAt: '2025-05-12',
-    isProfessional: true,
-    fields: [
-      { id: 'f1', name: '患者姓名', type: 'text', required: true },
-      { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
-      { id: 'f3', name: '年龄', type: 'number', required: true },
-      { id: 'f4', name: '手术日期', type: 'date', required: true },
-      { id: 'f5', name: 'US_D编号', type: 'text', required: true },
-      { id: 'f6', name: '病变位置', type: 'select', required: true, options: ['胃窦', '胃角', '胃体', '胃底', '贲门', '幽门'] },
-      { id: 'f7', name: '病变部位(具体)', type: 'text', required: true },
-      { id: 'f8', name: '病变大小(mm)', type: 'number', required: true },
-      { id: 'f9', name: '术前病理', type: 'select', required: true, options: ['低级别上皮内瘤变', '高级别上皮内瘤变', '早癌'] },
-      { id: 'f10', name: '术前分期', type: 'select', required: false, options: ['cT1aM', 'cT1bSM1', 'cT1bSM2'] },
-      { id: 'f11', name: '手术时间(分钟)', type: 'number', required: true },
-      { id: 'f12', name: '切除方式', type: 'select', required: true, options: ['整块切除', '分块切除'] },
-      { id: 'f13', name: '整块切除边缘', type: 'select', required: false, options: ['R0切除', 'R1切除', 'Rx切除'] },
-      { id: 'f14', name: '术中并发症', type: 'multiselect', required: false, options: ['出血', '穿孔', '无'] },
-      { id: 'f15', name: '术后病理分期', type: 'select', required: false, options: ['pT1a', 'pT1bSM1', 'pT1bSM2', '更深浸润'] },
-      { id: 'f16', name: '脉管侵犯', type: 'select', required: false, options: ['无', '有'] },
-      { id: 'f17', name: '水平切缘', type: 'select', required: false, options: ['阴性', '阳性', '未评估'] },
-      { id: 'f18', name: '垂直切缘', type: 'select', required: false, options: ['阴性', '阳性', '未评估'] },
-      { id: 'f19', name: '组织类型', type: 'select', required: false, options: ['管状腺癌', '低分化腺癌', '印戒细胞癌', '其他'] },
-      { id: 'f20', name: '分化程度', type: 'select', required: false, options: ['高分化', '中分化', '低分化'] },
-      { id: 'f21', name: '治愈性评估', type: 'select', required: false, options: ['eCura A', 'eCura B', 'eCura C'] },
-      { id: 'f22', name: '手术图片', type: 'image', required: false },
-      { id: 'f23', name: '操作医生签名', type: 'signature', required: true },
-    ],
-  },
-  {
-    id: 'T007',
-    name: '肝囊肿切除模板',
-    category: 'US',
-    description: '肝囊肿US探头下切除术（US_ABLATION/APC）报告模板',
-    usageCount: 567,
-    lastUsed: '2026-04-29',
-    createdBy: '李明华',
-    createdAt: '2025-03-25',
-    isProfessional: false,
-    fields: [
-      { id: 'f1', name: '患者姓名', type: 'text', required: true },
-      { id: 'f2', name: '性别', type: 'select', required: true, options: ['男', '女'] },
-      { id: 'f3', name: '年龄', type: 'number', required: true },
-      { id: 'f4', name: '手术日期', type: 'date', required: true },
-      { id: 'f5', name: '息肉编号', type: 'text', required: true },
-      { id: 'f6', name: '息肉位置', type: 'select', required: true, options: ['盲肠', '升结肠', '肝曲', '横结肠', '脾曲', '降结肠', '乙状结肠', '直肠'] },
-      { id: 'f7', name: '息肉大小(mm)', type: 'number', required: true },
-      { id: 'f8', name: '息肉形态', type: 'select', required: true, options: ['Ip', 'Isp', 'Is', 'IIa', 'IIb', 'IIc', 'LST'] },
-      { id: 'f9', name: '息肉类型', type: 'select', required: true, options: ['腺瘤', '增生性息肉', '炎性息肉', '幼年性息肉', 'P-J息肉'] },
-      { id: 'f10', name: '切除方式', type: 'select', required: true, options: ['冷切除', '热切除', 'US_ABLATION', 'US_DISSECTION', 'APC'] },
-      { id: 'f11', name: '切除数目', type: 'number', required: true },
-      { id: 'f12', name: '完整回收', type: 'select', required: true, options: ['是', '否'] },
-      { id: 'f13', name: '术中并发症', type: 'multiselect', required: false, options: ['出血', '穿孔', '无'] },
-      { id: 'f14', name: '术后病理', type: 'select', required: false, options: ['管状腺瘤', '绒毛状腺瘤', '管状绒毛状腺瘤', '低级别上皮内瘤变', '高级别上皮内瘤变', '癌变'] },
-      { id: 'f15', name: '切缘', type: 'select', required: false, options: ['阴性', '阳性', '无法评估'] },
-      { id: 'f16', name: '手术图片', type: 'image', required: false },
-      { id: 'f17', name: '操作医生签名', type: 'signature', required: true },
+      { id: 'f7', name: '检查结果', type: 'text', required: true },
+      { id: 'f8', name: '检查图片', type: 'image', required: false },
+      { id: 'f9', name: '检查医生签名', type: 'signature', required: true },
     ],
   },
 ];
@@ -277,8 +111,6 @@ const styles: Record<string, React.CSSProperties> = {
   badge: { display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600 },
   badgeGastroscope: { background: '#dbeafe', color: '#1d4ed8' },
   badgeColonoscope: { background: '#dcfce7', color: '#16a34a' },
-  badgeEUS: { background: '#fef3c7', color: '#d97706' },
-  badgeUSCP: { background: '#fee2e2', color: '#dc2626' },
   badgeEarlyCancer: { background: '#fce7f3', color: '#be185d' },
   badgeOther: { background: '#f1f5f9', color: '#64748b' },
   badgeProfessional: { background: '#fef3c7', color: '#b45309', fontSize: 10 },
@@ -338,9 +170,6 @@ const fieldTypeConfig: Record<FieldType, { icon: React.ReactNode; color: string 
 const categoryBadgeMap: Record<string, React.CSSProperties> = {
   '腹部US': styles.badgeGastroscope,
   'US': styles.badgeColonoscope,
-  'US探头': styles.badgeEUS,
-  'USCP': styles.badgeUSCP,
-  '早癌筛查': styles.badgeEarlyCancer,
   '其他': styles.badgeOther,
 };
 
@@ -608,9 +437,6 @@ export default function TemplatePage() {
                 >
                   <option>腹部US</option>
                   <option>US</option>
-                  <option>US探头</option>
-                  <option>USCP</option>
-                  <option>早癌筛查</option>
                   <option>其他</option>
                 </select>
               </div>
@@ -631,7 +457,7 @@ export default function TemplatePage() {
                 checked={editingTemplate.isProfessional}
                 onChange={e => setEditingTemplate({ ...editingTemplate, isProfessional: e.target.checked })}
               />
-              <span style={{ fontSize: 13, color: '#334155' }}>设为专业模板（早癌筛查等高级专业模板）</span>
+              <span style={{ fontSize: 13, color: '#334155' }}>设为专业模板</span>
             </div>
 
             {/* 字段管理 */}
@@ -746,9 +572,6 @@ export default function TemplatePage() {
               <option value="全部">全部分类</option>
               <option>腹部US</option>
               <option>US</option>
-              <option>US探头</option>
-              <option>USCP</option>
-              <option>早癌筛查</option>
               <option>其他</option>
             </select>
           </div>

@@ -865,13 +865,6 @@ export default function HomePage() {
           borderColor={s.purple.color}
           suffix="/ ≥22张"
         />
-        <IndicatorCard
-          label="超声平均退镜"
-          value={stats.monthColonoscopyAvgWithdrawal}
-          unit="分钟"
-          borderColor={s.orange.color}
-          suffix="/ ≥6分钟"
-        />
       </div>
     </div>
   )

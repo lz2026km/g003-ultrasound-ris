@@ -139,7 +139,7 @@ export interface DisinfectionRecord {
   deviceId: string;
   deviceName: string;
   deviceCode: string;
-  processType: '手工清洗' | '机洗' | '高温高压灭菌';
+  processType: '手工清洗' | '机洗' | '高温高压灭菌' | 'EOG灭菌';
   // 各流程步骤时间
   collectionTime?: string;       // 回收时间
   cleaningStartTime?: string;

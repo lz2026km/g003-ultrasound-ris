@@ -929,12 +929,6 @@ export default function StatisticsPage() {
             borderColor={s.purple.color}
           />
           <MonthCard
-            label="超声平均退镜"
-            value={stats.monthColonoscopyAvgWithdrawal}
-            unit="分钟"
-            borderColor={s.orange.color}
-          />
-          <MonthCard
             label="洗消合格率"
             value={stats.monthDisinfectionPassRate}
             unit="%"
@@ -1026,15 +1020,6 @@ export default function StatisticsPage() {
           desc="≥22张为达标"
           color={s.blue.color}
           icon={Microscope}
-        />
-        <QCCard
-          title="超声退镜质控"
-          value={stats.monthColonoscopyAvgWithdrawal}
-          minValue={6}
-          unit="分钟"
-          desc="≥6分钟为达标"
-          color={s.purple.color}
-          icon={Clock}
         />
         <QCCard
           title="洗消流程质控"

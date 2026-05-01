@@ -288,7 +288,7 @@ function AppShell() {
         <div style={s.sidebarFooter}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声影像信息管理系统</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.9.0</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.9.3</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
               onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
           </div>
@@ -310,7 +310,7 @@ function AppShell() {
             </span>
           </div>
           <div style={s.topbarRight}>
-            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.9.0</div>
+            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.9.3</div>
             <div style={s.topbarBadge}>
               <Bell size={20} />
               <span style={s.badge}>1</span>
@@ -401,10 +401,10 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.9.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.9.3 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
-                  全面对标超声RIS行业竞品（蓝网科技/东软/联影/开立/岱嘉），整合所有产品优秀功能；新增感染管理、会诊管理、统计分析、数据上报中心等核心模块；修复预约管理/感染管理/会诊管理/统计分析/数据上报等页面交互bug；基于G004内镜系统页面风格重构为超声科专用界面；配套扩充超声科演示数据（患者/检查/预约/设备/耗材等）
+                  全面对标超声RIS行业竞品（蓝网科技/东软/联影/开立/岱嘉），整合所有产品优秀功能；修复版本管理/会诊管理/统计分析等页面交互bug；**彻底清理所有内镜数据污染**，将G004内镜系统残留数据全面替换为超声RIS数据（检查模板/报告/AI质控标准/会诊描述/护理记录等）；配套扩充超声科演示数据（患者/检查/预约/设备/耗材等）
                 </div>
               </div>
               <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>

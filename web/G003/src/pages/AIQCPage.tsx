@@ -140,62 +140,62 @@ interface QCIssue {
   status: 'pending' | 'resolved' | 'ignored'
 }
 
-// ========== 22张图片标准数据 ==========
-const GASTROSCOPY_STANDARD: QCPhotoStandard = {
-  examType: '电子超声检查',
+// ========== 超声质控标准数据 ==========
+const UPPER_ABDOMINAL_US_STANDARD: QCPhotoStandard = {
+  examType: '上腹部超声检查',
   totalRequired: 22,
   items: [
-    { id: 'G01', name: '食道上段', description: '距门齿约15-20cm，吸气相', required: true, captured: false, quality: 'missing' },
-    { id: 'G02', name: '食道中段', description: '距门齿约25-30cm', required: true, captured: false, quality: 'missing' },
-    { id: 'G03', name: '食道下段', description: '距门齿约35-38cm', required: true, captured: false, quality: 'missing' },
-    { id: 'G04', name: '齿状线（Z线）', description: '清晰显示Z线位置', required: true, captured: false, quality: 'missing' },
-    { id: 'G05', name: '胃底（倒镜）', description: '倒镜观察胃底', required: true, captured: false, quality: 'missing' },
-    { id: 'G06', name: '胃底黏液湖', description: '观察黏液湖性状', required: true, captured: false, quality: 'missing' },
-    { id: 'G07', name: '胃体上部', description: '倒镜观察胃体上部', required: true, captured: false, quality: 'missing' },
-    { id: 'G08', name: '胃体中部', description: '观察胃体中部大弯', required: true, captured: false, quality: 'missing' },
-    { id: 'G09', name: '胃体下部', description: '观察胃体下部', required: true, captured: false, quality: 'missing' },
-    { id: 'G10', name: '胃角（正面）', description: '清晰显示胃角形态', required: true, captured: false, quality: 'missing' },
-    { id: 'G11', name: '胃角（远景）', description: '显示胃角与周围关系', required: true, captured: false, quality: 'missing' },
-    { id: 'G12', name: '胃窦（远景）', description: '显示胃窦全貌', required: true, captured: false, quality: 'missing' },
-    { id: 'G13', name: '胃窦（近景）', description: '近距观察胃窦黏膜', required: true, captured: false, quality: 'missing' },
-    { id: 'G14', name: '幽门（开放）', description: '幽门管开放状态', required: true, captured: false, quality: 'missing' },
-    { id: 'G15', name: '幽门（关闭）', description: '幽门管关闭状态', required: true, captured: false, quality: 'missing' },
-    { id: 'G16', name: '十二指肠球部', description: '显示十二指肠球部', required: true, captured: false, quality: 'missing' },
-    { id: 'G17', name: '十二指肠降部', description: '显示十二指肠降部', required: true, captured: false, quality: 'missing' },
-    { id: 'G18', name: '后壁位（胃体）', description: '胃体后壁', required: false, captured: false, quality: 'missing' },
-    { id: 'G19', name: '小弯位（胃体）', description: '胃体小弯', required: false, captured: false, quality: 'missing' },
-    { id: 'G20', name: '病变部位1', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
-    { id: 'G21', name: '病变部位2', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
-    { id: 'G22', name: 'NBI/色素染色', description: '特殊检查（如有）', required: false, captured: false, quality: 'missing' },
+    { id: 'U01', name: '肝脏左叶', description: '左叶长轴切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U02', name: '肝脏右叶', description: '右叶肋间切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U03', name: '肝门静脉', description: '门静脉主干', required: true, captured: false, quality: 'missing' },
+    { id: 'U04', name: '肝静脉', description: '肝静脉汇合部', required: true, captured: false, quality: 'missing' },
+    { id: 'U05', name: '胆囊（长轴）', description: '胆囊长轴切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U06', name: '胆囊（短轴）', description: '胆囊短轴切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U07', name: '肝外胆管', description: '胆总管显示', required: true, captured: false, quality: 'missing' },
+    { id: 'U08', name: '胰腺（头部）', description: '胰头切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U09', name: '胰腺（体部）', description: '胰体切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U10', name: '胰腺（尾部）', description: '胰尾切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U11', name: '脾脏', description: '脾脏肋间切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U12', name: '左肾（长轴）', description: '左肾长轴切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U13', name: '左肾（短轴）', description: '左肾短轴切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U14', name: '右肾（长轴）', description: '右肾长轴切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U15', name: '右肾（短轴）', description: '右肾短轴切面', required: true, captured: false, quality: 'missing' },
+    { id: 'U16', name: '腹主动脉', description: '腹主动脉长轴', required: true, captured: false, quality: 'missing' },
+    { id: 'U17', name: '下腔静脉', description: '下腔静脉长轴', required: true, captured: false, quality: 'missing' },
+    { id: 'U18', name: '肾脏结构', description: '肾皮质、髓质结构', required: false, captured: false, quality: 'missing' },
+    { id: 'U19', name: '肝裂结构', description: '肝叶分界结构', required: false, captured: false, quality: 'missing' },
+    { id: 'U20', name: '病变部位1', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
+    { id: 'U21', name: '病变部位2', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
+    { id: 'U22', name: 'CDFI模式', description: '彩色多普勒（如适用）', required: false, captured: false, quality: 'missing' },
   ],
 }
 
-const COLONOSCOPY_STANDARD: QCPhotoStandard = {
-  examType: '电子结超声检查',
+const PELVIC_US_STANDARD: QCPhotoStandard = {
+  examType: '盆腔超声检查',
   totalRequired: 22,
   items: [
-    { id: 'C01', name: '肛管', description: '观察肛管病变', required: true, captured: false, quality: 'missing' },
-    { id: 'C02', name: '直肠（远景）', description: '直肠全貌', required: true, captured: false, quality: 'missing' },
-    { id: 'C03', name: '直肠（近景）', description: '直肠黏膜', required: true, captured: false, quality: 'missing' },
-    { id: 'C04', name: '直肠乙状结肠交界', description: '观察交界处', required: true, captured: false, quality: 'missing' },
-    { id: 'C05', name: '乙状结肠（近景）', description: '乙状结肠黏膜', required: true, captured: false, quality: 'missing' },
-    { id: 'C06', name: '乙状结肠（远景）', description: '乙状结肠全貌', required: true, captured: false, quality: 'missing' },
-    { id: 'C07', name: '降结肠', description: '降结肠黏膜', required: true, captured: false, quality: 'missing' },
-    { id: 'C08', name: '脾曲', description: '脾曲通过', required: true, captured: false, quality: 'missing' },
-    { id: 'C09', name: '横结肠（近景）', description: '横结肠黏膜', required: true, captured: false, quality: 'missing' },
-    { id: 'C10', name: '横结肠（远景）', description: '横结肠全貌', required: true, captured: false, 'quality': 'missing' },
-    { id: 'C11', name: '肝曲', description: '肝曲通过', required: true, captured: false, quality: 'missing' },
-    { id: 'C12', name: '升结肠', description: '升结肠黏膜', required: true, captured: false, quality: 'missing' },
-    { id: 'C13', name: '盲肠', description: '盲肠黏膜', required: true, captured: false, quality: 'missing' },
-    { id: 'C14', name: '回盲瓣（正面）', description: '清晰显示回盲瓣', required: true, captured: false, quality: 'missing' },
-    { id: 'C15', name: '回肠末段', description: '回肠末段黏膜', required: true, captured: false, quality: 'missing' },
-    { id: 'C16', name: '阑尾开口', description: '阑尾开口位置', required: true, captured: false, quality: 'missing' },
-    { id: 'C17', name: '退镜观察（直肠）', description: '退镜时直肠观察', required: true, captured: false, quality: 'missing' },
-    { id: 'C18', name: '退镜观察（乙状）', description: '退镜时乙状结肠', required: true, captured: false, quality: 'missing' },
-    { id: 'C19', name: 'BBPS评分图像', description: 'BBPS评分部位', required: false, captured: false, quality: 'missing' },
-    { id: 'C20', name: '病变部位1', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
-    { id: 'C21', name: '病变部位2', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
-    { id: 'C22', name: '染色/NBI图像', description: '特殊检查（如有）', required: false, captured: false, quality: 'missing' },
+    { id: 'P01', name: '膀胱（横切）', description: '膀胱横切面', required: true, captured: false, quality: 'missing' },
+    { id: 'P02', name: '膀胱（纵切）', description: '膀胱纵切面', required: true, captured: false, quality: 'missing' },
+    { id: 'P03', name: '前列腺（横切）', description: '前列腺横切面', required: true, captured: false, quality: 'missing' },
+    { id: 'P04', name: '前列腺（纵切）', description: '前列腺纵切面', required: true, captured: false, quality: 'missing' },
+    { id: 'P05', name: '精囊腺', description: '精囊腺显示', required: true, captured: false, quality: 'missing' },
+    { id: 'P06', name: '子宫（横切）', description: '子宫横切面', required: true, captured: false, quality: 'missing' },
+    { id: 'P07', name: '子宫（纵切）', description: '子宫纵切面', required: true, captured: false, quality: 'missing' },
+    { id: 'P08', name: '子宫内膜', description: '内膜厚度测量', required: true, captured: false, quality: 'missing' },
+    { id: 'P09', name: '右侧卵巢', description: '右卵巢显示', required: true, captured: false, quality: 'missing' },
+    { id: 'P10', name: '左侧卵巢', description: '左卵巢显示', required: true, captured: false, quality: 'missing' },
+    { id: 'P11', name: '双侧附件', description: '附件区扫查', required: true, captured: false, quality: 'missing' },
+    { id: 'P12', name: '直肠窝', description: '道格拉斯窝', required: true, captured: false, quality: 'missing' },
+    { id: 'P13', name: '髂血管', description: '髂血管显示', required: true, captured: false, quality: 'missing' },
+    { id: 'P14', name: '输尿管下段', description: '输尿管盆段', required: true, captured: false, quality: 'missing' },
+    { id: 'P15', name: '盆壁结构', description: '盆壁肌层结构', required: true, captured: false, quality: 'missing' },
+    { id: 'P16', name: '宫颈', description: '宫颈切面', required: true, captured: false, quality: 'missing' },
+    { id: 'P17', name: '阴道上段', description: '阴道穹窿结构', required: true, captured: false, quality: 'missing' },
+    { id: 'P18', name: '卵巢结构', description: '卵泡发育评估', required: false, captured: false, quality: 'missing' },
+    { id: 'P19', name: 'BBPS评分图像', description: '盆底评估（如适用）', required: false, captured: false, quality: 'missing' },
+    { id: 'P20', name: '病变部位1', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
+    { id: 'P21', name: '病变部位2', description: '如有病变需特写', required: false, captured: false, quality: 'missing' },
+    { id: 'P22', name: 'CDFI模式', description: '彩色多普勒（如适用）', required: false, captured: false, quality: 'missing' },
   ],
 }
 
@@ -684,7 +684,7 @@ export default function AIQCPage() {
   const [searchKeyword, setSearchKeyword] = useState('')
   const [filterType, setFilterType] = useState('全部')
   const [page, setPage] = useState(1)
-  const [selectedExamType, setSelectedExamType] = useState<string>('gastroscopy')
+  const [selectedExamType, setSelectedExamType] = useState<string>('upper-abdomen-us')
   const pageSize = 10
 
   const historyRecords = generateHistoryRecords()
@@ -716,9 +716,9 @@ export default function AIQCPage() {
     { label: '模型准确率', value: '94.5', unit: '%', sub: 'CADe-PolypNet', color: '#7c3aed', bg: '#f3e8ff' },
   ]
 
-  // 当前选中的22张图标准
-  const currentStandard = selectedExamType === 'gastroscopy' ? GASTROSCOPY_STANDARD
-    : selectedExamType === 'colonoscopy' ? COLONOSCOPY_STANDARD
+  // 当前选中的超声质控标准
+  const currentStandard = selectedExamType === 'upper-abdomen-us' ? UPPER_ABDOMINAL_US_STANDARD
+    : selectedExamType === 'pelvic-us' ? PELVIC_US_STANDARD
     : EUS_STANDARD
 
   return (
@@ -954,20 +954,20 @@ export default function AIQCPage() {
             <button style={s.btnIcon}><Award size={14} />生成报告</button>
           </div>
 
-          {/* 22张图片标准切换 */}
+          {/* 超声标准切换按钮 */}
           <div style={{ marginBottom: 16 }}>
             <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
               <button
-                style={{ ...s.btnIcon, background: selectedExamType === 'gastroscopy' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'gastroscopy' ? '#fff' : '#475569' }}
-                onClick={() => setSelectedExamType('gastroscopy')}
+                style={{ ...s.btnIcon, background: selectedExamType === 'upper-abdomen-us' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'upper-abdomen-us' ? '#fff' : '#475569' }}
+                onClick={() => setSelectedExamType('upper-abdomen-us')}
               >
-                <Camera size={14} />超声（22张）
+                <Camera size={14} />上腹部超声（22张）
               </button>
               <button
-                style={{ ...s.btnIcon, background: selectedExamType === 'colonoscopy' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'colonoscopy' ? '#fff' : '#475569' }}
-                onClick={() => setSelectedExamType('colonoscopy')}
+                style={{ ...s.btnIcon, background: selectedExamType === 'pelvic-us' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'pelvic-us' ? '#fff' : '#475569' }}
+                onClick={() => setSelectedExamType('pelvic-us')}
               >
-                <Camera size={14} />超声（22张）
+                <Camera size={14} />盆腔超声（22张）
               </button>
               <button
                 style={{ ...s.btnIcon, background: selectedExamType === 'eus' ? '#2563eb' : '#f1f5f9', color: selectedExamType === 'eus' ? '#fff' : '#475569' }}

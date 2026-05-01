@@ -355,7 +355,7 @@ export default function ReportPage() {
   // 模板管理状态
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<ReportTemplate | null>(null)
-  const [templateForm, setTemplateForm] = useState({ name: '', category: '超声' as '超声' | '超声' | '支气管镜' | '其他', content: '' })
+  const [templateForm, setTemplateForm] = useState({ name: '', category: '腹部超声' as '腹部超声' | '浅表器官超声' | '心血管超声' | '妇产科超声' | '介入超声' | '其他', content: '' })
 
   // 统计
   const stats = useMemo(() => ({
@@ -438,7 +438,7 @@ export default function ReportPage() {
   // 模板管理
   const openNewTemplate = () => {
     setEditingTemplate(null)
-    setTemplateForm({ name: '', category: '超声', content: '' })
+    setTemplateForm({ name: '', category: '腹部超声', content: '' })
     setShowTemplateModal(true)
   }
 
@@ -633,7 +633,7 @@ export default function ReportPage() {
                   <option value="">类型</option>
                   <option value="超声">超声</option>
                   <option value="超声">超声</option>
-                  <option value="支气管镜">支气管镜</option>
+                  <option value="介入超声">介入超声</option>
                   <option value="USCP">USCP</option>
                   <option value="超声检查">超声检查</option>
                 </select>
@@ -804,7 +804,7 @@ export default function ReportPage() {
               <div style={s.reportSection}>
                 <div style={s.reportSectionTitle}>检查所见</div>
                 <div style={s.reportGrid}>
-                  <div style={{ ...s.reportField, ...s.reportFieldFull }}><span style={s.reportFieldLabel}>镜下所见</span><span style={s.reportFieldValue} dangerouslySetInnerHTML={{ __html: viewReport.findings.replace(/\n/g, '<br/>') }} /></div>
+                  <div style={{ ...s.reportField, ...s.reportFieldFull }}><span style={s.reportFieldLabel}>超声所见</span><span style={s.reportFieldValue} dangerouslySetInnerHTML={{ __html: viewReport.findings.replace(/\n/g, '<br/>') }} /></div>
                 </div>
               </div>
               <div style={s.reportSection}>
@@ -905,7 +905,7 @@ export default function ReportPage() {
                   <select style={s.select} value={templateForm.category} onChange={e => setTemplateForm(f => ({ ...f, category: e.target.value as typeof templateForm.category }))}>
                     <option value="超声">超声</option>
                     <option value="超声">超声</option>
-                    <option value="支气管镜">支气管镜</option>
+                    <option value="介入超声">介入超声</option>
                     <option value="其他">其他</option>
                   </select>
                 </div>

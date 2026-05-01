@@ -114,7 +114,7 @@ const certificateData: Certificate[] = [
   { id: 'Cert004', name: '临床药师规范化培训证书', holder: '赵强', department: '药剂科', issueDate: '2024-01-10', expiryDate: '2026-01-10', certNumber: 'PHA-2024-0110-0056', status: '已过期', issuer: '药剂科', type: '资格证书' },
   { id: 'Cert005', name: '优秀带教老师荣誉证书', holder: '陈建国', department: '骨科', issueDate: '2026-01-15', expiryDate: '2030-01-15', certNumber: 'HON-2026-0115-0012', status: '有效', issuer: '科教科', type: '荣誉证书' },
   { id: 'Cert006', name: 'CPR操作合格证书', holder: '周婷婷', department: '门诊部', issueDate: '2026-04-28', expiryDate: '2028-04-28', certNumber: 'CPR-2026-0428-0078', status: '待领取', issuer: '急诊科', type: '技能证书' },
-  { id: 'Cert007', name: '腔镜手术操作资质证书', holder: '孙伟', department: '普外科', issueDate: '2025-09-01', expiryDate: '2027-09-01', certNumber: 'LAP-2025-0901-0034', status: '有效', issuer: '普外科', type: '资格证书' },
+  { id: 'Cert007', name: '超声介入操作资质证书', holder: '孙伟', department: '普外科', issueDate: '2025-09-01', expiryDate: '2027-09-01', certNumber: 'LAP-2025-0901-0034', status: '有效', issuer: '普外科', type: '资格证书' },
   { id: 'Cert008', name: '医学影像诊断资质证书', holder: '刘芳', department: '影像科', issueDate: '2026-02-20', expiryDate: '2029-02-20', certNumber: 'IMG-2026-0220-0015', status: '有效', issuer: '影像科', type: '资格证书' },
 ];
 
