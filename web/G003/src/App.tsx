@@ -32,6 +32,9 @@ const DictionaryPage = lazy(() => import('./pages/DictionaryPage'))
 const AuditPage = lazy(() => import('./pages/AuditPage'))
 const MaterialsPage = lazy(() => import('./pages/MaterialsPage'))
 const FollowUpPage = lazy(() => import('./pages/FollowUpPage'))
+const TransfusionPage = lazy(() => import('./pages/TransfusionPage'))
+const ResearchProjectPage = lazy(() => import('./pages/ResearchProjectPage'))
+const TrainingExamPage = lazy(() => import('./pages/TrainingExamPage'))
 const AuthorityPage = lazy(() => import('./pages/AuthorityPage'))
 const ImagePage = lazy(() => import('./pages/ImagePage'))
 const TemplatePage = lazy(() => import('./pages/TemplatePage'))
@@ -214,6 +217,9 @@ const NAV_ITEMS = [
       { path: '/materials', icon: Package, label: '耗材管理' },
       { path: '/equipment-lifecycle', icon: Monitor, label: '设备全生命周期' },
       { path: '/followup', icon: Activity, label: '随访管理' },
+      { path: '/transfusion', icon: Droplets, label: '输血输液' },
+      { path: '/research-project', icon: Database, label: '科研项目' },
+      { path: '/training-exam', icon: GraduationCap, label: '培训考试' },
       { path: '/cancer-screen', icon: AlertTriangle, label: '早癌筛查' },
       { path: '/national-report', icon: ShieldAlert, label: '国家数据上报' },
       { path: '/data-report', icon: Database, label: '数据上报中心' },
@@ -378,6 +384,9 @@ function AppShell() {
               <Route path="/equipment-lifecycle" element={<EquipmentLifecyclePage />} />
               <Route path="/operations" element={<OperationsCenterPage />} />
               <Route path="/disinfection" element={<DisinfectionPage />} />
+              <Route path="/transfusion" element={<TransfusionPage />} />
+              <Route path="/research-project" element={<ResearchProjectPage />} />
+              <Route path="/training-exam" element={<TrainingExamPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
