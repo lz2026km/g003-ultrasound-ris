@@ -305,6 +305,13 @@ export interface StatisticsData {
   // 雷达图数据（新增）
   departmentRadarData: { subject: string; A: number; B: number }[];
   doctorRadarData: { subject: string; A: number; B: number }[];
+  // ===== 多维工作量统计（新增）=====
+  // 设备工作量
+  deviceWorkload: { device: string; count: number; utilization: number }[];
+  // 部位工作量
+  bodyPartWorkload: { bodyPart: string; count: number; percentage: number }[];
+  // 时段工作量
+  timeSlotWorkload: { timeSlot: string; count: number; peakHour: boolean }[];
 }
 
 // ---------- 审计日志 ----------

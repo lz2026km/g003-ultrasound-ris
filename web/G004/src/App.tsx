@@ -1,5 +1,6 @@
 import { useState, lazy, Suspense, createContext, useContext } from 'react'
 import { Routes, Route, Navigate, BrowserRouter, useNavigate, useLocation } from 'react-router-dom'
+import { MWLProvider } from './context/MWLContext'
 
 // Navigate context — 让菜单点击更新 URL
 const NavigateCtx = createContext<(path: string) => void>(() => {})
@@ -358,6 +359,7 @@ function AppShell() {
         {/* 路由 */}
         <div style={s.page}>
           <Suspense fallback={<Loading />}>
+          <MWLProvider>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/worklist" element={<WorklistPage />} />
@@ -407,6 +409,7 @@ function AppShell() {
             <Route path="/operations" element={<OperationsCenterPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+          </MWLProvider>
           </Suspense>
         </div>
       </div>

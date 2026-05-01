@@ -946,8 +946,8 @@ const getPriorityConfig = (priority: string) => {
 
 const getTypeColor = (type: string) => {
   switch (type) {
-    case '超声': return '#2563eb'
-    case '超声': return '#16a34a'
+    case '常规超声': return '#2563eb'
+    case '介入超声': return '#16a34a'
     case '超声检查': return '#ea580c'
     case 'USCP': return '#7c3aed'
     case '胶囊超声': return '#0d9488'

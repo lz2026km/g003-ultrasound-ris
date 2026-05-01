@@ -8,7 +8,7 @@ import {
   Eye, Edit2, ChevronLeft, ChevronRight, Filter, X, RefreshCw,
   FolderOpen, Image, LayoutGrid, List, Plus, Trash2, Copy,
   Download, Upload, EyeOff, Maximize2, Clock, User, Stethoscope,
-  Clipboard, FileBarChart, Palette, Save, ArrowLeft
+  Clipboard, FileBarChart, Palette, Save, ArrowLeft, GitCompare
 } from 'lucide-react'
 import type { EndoscopyReport, ReportStatus, ReportTemplate } from '../types'
 import { initialEndoscopyReports, initialReportTemplates } from '../data/initialData'
@@ -296,6 +296,75 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: 'center', justifyContent: 'center', color: '#64748b',
     fontSize: 13, gap: 8, background: '#f8fafc',
   },
+  // 历史对比
+  compareOverlay: {
+    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    zIndex: 1100,
+  },
+  compareModal: {
+    background: '#fff', borderRadius: 12, width: 1100, maxHeight: '92vh',
+    overflow: 'hidden', display: 'flex', flexDirection: 'column' as const,
+    boxShadow: '0 24px 70px rgba(0,0,0,0.2)',
+  },
+  compareHeader: {
+    padding: '14px 20px', borderBottom: '1px solid #e2e8f0',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    background: '#f8fafc',
+  },
+  compareTitle: { fontSize: 15, fontWeight: 700, color: '#1a3a5c', display: 'flex', alignItems: 'center', gap: 8 },
+  compareBody: { padding: 0, overflowY: 'auto' as const, flex: 1 },
+  compareLayout: { display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0, minHeight: 0 },
+  comparePane: { padding: '16px 20px', borderRight: '1px solid #e2e8f0', overflowY: 'auto' as const },
+  comparePaneLast: { borderRight: 'none' },
+  comparePaneHeader: {
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+    marginBottom: 12, paddingBottom: 10, borderBottom: '2px solid #e2e8f0',
+  },
+  comparePaneLabel: { fontSize: 12, fontWeight: 700, color: '#64748b' },
+  comparePaneDate: { fontSize: 11, color: '#94a3b8' },
+  compareSection: { marginBottom: 14 },
+  compareSectionTitle: {
+    fontSize: 11, fontWeight: 700, color: '#1a3a5c', marginBottom: 6,
+    textTransform: 'uppercase' as const, letterSpacing: '0.5px',
+    background: '#f8fafc', padding: '4px 8px', borderRadius: 4,
+  },
+  compareField: { display: 'flex', flexDirection: 'column' as const, gap: 1, marginBottom: 8 },
+  compareFieldLabel: { fontSize: 11, color: '#94a3b8' },
+  compareFieldValue: { fontSize: 13, color: '#334155', lineHeight: 1.5, whiteSpace: 'pre-wrap' as const },
+  compareFieldFull: { display: 'flex', flexDirection: 'column' as const, gap: 1, marginBottom: 10 },
+  compareDiff: {
+    background: '#fef9c3', border: '1px solid #fde047', borderRadius: 4,
+    padding: '6px 10px', fontSize: 13, color: '#92400e', lineHeight: 1.5,
+    whiteSpace: 'pre-wrap' as const,
+  },
+  compareOld: {
+    background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 4,
+    padding: '6px 10px', fontSize: 13, color: '#991b1b', lineHeight: 1.5,
+    textDecoration: 'line-through', whiteSpace: 'pre-wrap' as const,
+  },
+  compareNew: {
+    background: '#dcfce7', border: '1px solid #86efac', borderRadius: 4,
+    padding: '6px 10px', fontSize: 13, color: '#166534', lineHeight: 1.5,
+    whiteSpace: 'pre-wrap' as const,
+  },
+  compareDivider: {
+    display: 'flex', alignItems: 'center', gap: 8, margin: '12px 0',
+    color: '#94a3b8', fontSize: 11,
+  },
+  compareDividerLine: { flex: 1, height: 1, background: '#e2e8f0' },
+  compareHistorySelect: {
+    border: '1px solid #e2e8f0', borderRadius: 6, padding: '6px 10px',
+    fontSize: 13, color: '#334155', background: '#f8fafc', outline: 'none',
+    cursor: 'pointer', minWidth: 180,
+  },
+  compareFooter: {
+    padding: '12px 20px', borderTop: '1px solid #e2e8f0',
+    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+  },
+  compareLegend: { display: 'flex', gap: 16, fontSize: 11, color: '#64748b' },
+  compareLegendItem: { display: 'flex', alignItems: 'center', gap: 4 },
+  compareLegendDot: { width: 10, height: 10, borderRadius: 2 },
 }
 
 // ---------- 状态配置 ----------
@@ -356,6 +425,56 @@ export default function ReportPage() {
   const [showTemplateModal, setShowTemplateModal] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<ReportTemplate | null>(null)
   const [templateForm, setTemplateForm] = useState({ name: '', category: '胃镜' as '胃镜' | '肠镜' | '支气管镜' | '其他', content: '' })
+
+  // 历史对比状态
+  const [compareReport, setCompareReport] = useState<EndoscopyReport | null>(null)
+  const [historyReport, setHistoryReport] = useState<EndoscopyReport | null>(null)
+
+  // 获取同一患者的历史报告（排除当前报告，按日期降序）
+  const getPatientHistory = (current: EndoscopyReport) => {
+    return reports
+      .filter(r => r.patientId === current.patientId && r.id !== current.id)
+      .sort((a, b) => b.examDate.localeCompare(a.examDate))
+  }
+
+  const openCompare = (r: EndoscopyReport) => {
+    const history = getPatientHistory(r)
+    setCompareReport(r)
+    setHistoryReport(history[0] || null)
+  }
+
+  const closeCompare = () => {
+    setCompareReport(null)
+    setHistoryReport(null)
+  }
+
+  // 简单的文本差异检测（按行比较）
+  const computeDiff = (oldText: string, newText: string): { type: 'same' | 'changed' | 'added' | 'removed'; text: string }[] => {
+    if (!oldText && !newText) return []
+    if (!oldText) return [{ type: 'added', text: newText }]
+    if (!newText) return [{ type: 'removed', text: oldText }]
+
+    const oldLines = oldText.split('\n').filter(l => l.trim())
+    const newLines = newText.split('\n').filter(l => l.trim())
+    const result: { type: 'same' | 'changed' | 'added' | 'removed'; text: string }[] = []
+
+    const maxLen = Math.max(oldLines.length, newLines.length)
+    for (let i = 0; i < maxLen; i++) {
+      const oldLine = oldLines[i]
+      const newLine = newLines[i]
+      if (oldLine === undefined) {
+        result.push({ type: 'added', text: newLine })
+      } else if (newLine === undefined) {
+        result.push({ type: 'removed', text: oldLine })
+      } else if (oldLine !== newLine) {
+        result.push({ type: 'removed', text: oldLine })
+        result.push({ type: 'added', text: newLine })
+      } else {
+        result.push({ type: 'same', text: oldLine })
+      }
+    }
+    return result
+  }
 
   // 统计
   const stats = useMemo(() => ({
@@ -694,6 +813,7 @@ export default function ReportPage() {
                         <td style={s.td} onClick={e => e.stopPropagation()}>
                           <div style={s.actions}>
                             <button style={s.btnIcon} onClick={() => openView(r)}><Eye size={12} /> 查看</button>
+                            <button style={s.btnInfo} onClick={() => openCompare(r)}><GitCompare size={12} /> 对比</button>
                             {r.status === '待审核' && (
                               <button style={s.btnSuccess} onClick={() => openReview(r)}><CheckCircle size={12} /> 审核</button>
                             )}
@@ -924,6 +1044,198 @@ export default function ReportPage() {
               <button style={s.btnCancel} onClick={() => setShowTemplateModal(false)}>取消</button>
               <button style={s.btnApprove} onClick={saveTemplate}><Save size={14} /> 保存模板</button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 历史对比弹窗 */}
+      {compareReport && (
+        <div style={s.compareOverlay} onClick={e => e.target === e.currentTarget && closeCompare()}>
+          <div style={s.compareModal}>
+            <div style={s.compareHeader}>
+              <div style={s.compareTitle}>
+                <GitCompare size={16} color="#1a3a5c" />
+                📊 报告历史对比
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                {compareReport && (
+                  <select
+                    style={s.compareHistorySelect}
+                    value={historyReport?.id || ''}
+                    onChange={e => {
+                      const selected = reports.find(r => r.id === e.target.value)
+                      setHistoryReport(selected || null)
+                    }}
+                  >
+                    <option value="">选择历史报告</option>
+                    {getPatientHistory(compareReport).map(r => (
+                      <option key={r.id} value={r.id}>
+                        {r.examDate} · {r.examItemName} · {r.doctorName}
+                      </option>
+                    ))}
+                  </select>
+                )}
+                <button style={s.modalClose} onClick={closeCompare}><X size={18} /></button>
+              </div>
+            </div>
+            <div style={s.compareBody}>
+              {!historyReport ? (
+                <div style={{ textAlign: 'center', padding: '80px 20px', color: '#94a3b8' }}>
+                  <GitCompare size={48} color="#e2e8f0" style={{ marginBottom: 16 }} />
+                  <div style={{ fontSize: 14, fontWeight: 600, color: '#64748b' }}>暂无历史报告</div>
+                  <div style={{ fontSize: 12, marginTop: 6 }}>该患者没有可对比的历史报告</div>
+                </div>
+              ) : (
+                <div style={s.compareLayout}>
+                  {/* 左栏 - 历史报告（旧） */}
+                  <div style={{ ...s.comparePane, ...s.comparePaneLast }}>
+                    <div style={s.comparePaneHeader}>
+                      <div>
+                        <div style={s.comparePaneLabel}>📋 历史报告</div>
+                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{historyReport.examDate} · {historyReport.examItemName}</div>
+                      </div>
+                      <span style={{ ...s.badge, ...s.badgeReviewed }}>{historyReport.status}</span>
+                    </div>
+
+                    <div style={s.compareSection}>
+                      <div style={s.compareSectionTitle}>基本信息</div>
+                      <div style={s.compareField}><span style={s.compareFieldLabel}>检查项目</span><span style={s.compareFieldValue}>{historyReport.examItemName}</span></div>
+                      <div style={s.compareField}><span style={s.compareFieldLabel}>报告医生</span><span style={s.compareFieldValue}>{historyReport.doctorName}</span></div>
+                    </div>
+
+                    <div style={s.compareSection}>
+                      <div style={s.compareSectionTitle}>主诉与病史</div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>主诉</span>
+                        <span style={s.compareFieldValue}>{historyReport.chiefComplaint || '—'}</span>
+                      </div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>病史</span>
+                        <span style={s.compareFieldValue}>{historyReport.history || '—'}</span>
+                      </div>
+                    </div>
+
+                    <div style={s.compareSection}>
+                      <div style={s.compareSectionTitle}>检查所见</div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>镜下所见</span>
+                        <span style={s.compareFieldValue}>{historyReport.findings || '—'}</span>
+                      </div>
+                    </div>
+
+                    <div style={s.compareSection}>
+                      <div style={s.compareSectionTitle}>诊断与建议</div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>诊断</span>
+                        <span style={s.compareFieldValue}>{historyReport.diagnosis || '—'}</span>
+                      </div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>结论</span>
+                        <span style={s.compareFieldValue}>{historyReport.conclusion || '—'}</span>
+                      </div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>建议</span>
+                        <span style={s.compareFieldValue}>{historyReport.recommendations || '—'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 右栏 - 当前报告（新） */}
+                  <div style={s.comparePane}>
+                    <div style={s.comparePaneHeader}>
+                      <div>
+                        <div style={s.comparePaneLabel}>📋 当前报告</div>
+                        <div style={{ fontSize: 11, color: '#94a3b8', marginTop: 2 }}>{compareReport.examDate} · {compareReport.examItemName}</div>
+                      </div>
+                      <span style={{ ...s.badge, ...(compareReport.status === '待审核' ? s.badgePendingReview : s.badgeReviewed) }}>{compareReport.status}</span>
+                    </div>
+
+                    <div style={s.compareSection}>
+                      <div style={s.compareSectionTitle}>基本信息</div>
+                      <div style={s.compareField}><span style={s.compareFieldLabel}>检查项目</span><span style={s.compareFieldValue}>{compareReport.examItemName}</span></div>
+                      <div style={s.compareField}><span style={s.compareFieldLabel}>报告医生</span><span style={s.compareFieldValue}>{compareReport.doctorName}</span></div>
+                    </div>
+
+                    <div style={s.compareSection}>
+                      <div style={s.compareSectionTitle}>主诉与病史</div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>主诉</span>
+                        {historyReport.chiefComplaint !== compareReport.chiefComplaint ? (
+                          <div style={s.compareDiff}>{compareReport.chiefComplaint || '—'}</div>
+                        ) : (
+                          <span style={s.compareFieldValue}>{compareReport.chiefComplaint || '—'}</span>
+                        )}
+                      </div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>病史</span>
+                        {historyReport.history !== compareReport.history ? (
+                          <div style={s.compareDiff}>{compareReport.history || '—'}</div>
+                        ) : (
+                          <span style={s.compareFieldValue}>{compareReport.history || '—'}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={s.compareSection}>
+                      <div style={s.compareSectionTitle}>检查所见</div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>镜下所见</span>
+                        {historyReport.findings !== compareReport.findings ? (
+                          <div style={s.compareDiff}>{compareReport.findings || '—'}</div>
+                        ) : (
+                          <span style={s.compareFieldValue}>{compareReport.findings || '—'}</span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={s.compareSection}>
+                      <div style={s.compareSectionTitle}>诊断与建议</div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>诊断</span>
+                        {historyReport.diagnosis !== compareReport.diagnosis ? (
+                          <div style={s.compareDiff}>{compareReport.diagnosis || '—'}</div>
+                        ) : (
+                          <span style={s.compareFieldValue}>{compareReport.diagnosis || '—'}</span>
+                        )}
+                      </div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>结论</span>
+                        {historyReport.conclusion !== compareReport.conclusion ? (
+                          <div style={s.compareDiff}>{compareReport.conclusion || '—'}</div>
+                        ) : (
+                          <span style={s.compareFieldValue}>{compareReport.conclusion || '—'}</span>
+                        )}
+                      </div>
+                      <div style={s.compareFieldFull}>
+                        <span style={s.compareFieldLabel}>建议</span>
+                        {historyReport.recommendations !== compareReport.recommendations ? (
+                          <div style={s.compareDiff}>{compareReport.recommendations || '—'}</div>
+                        ) : (
+                          <span style={s.compareFieldValue}>{compareReport.recommendations || '—'}</span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+            {historyReport && (
+              <div style={s.compareFooter}>
+                <div style={s.compareLegend}>
+                  <div style={s.compareLegendItem}>
+                    <div style={{ ...s.compareLegendDot, background: '#fef9c3', border: '1px solid #fde047' }} />
+                    <span>有变化</span>
+                  </div>
+                  <div style={s.compareLegendItem}>
+                    <div style={{ ...s.compareLegendDot, background: '#dcfce7' }} />
+                    <span>新增/未变化</span>
+                  </div>
+                </div>
+                <div style={{ fontSize: 11, color: '#94a3b8' }}>
+                  仅对比同一患者的历史报告 · 共 {getPatientHistory(compareReport).length} 条历史记录
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

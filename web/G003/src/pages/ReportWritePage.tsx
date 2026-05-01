@@ -236,7 +236,7 @@ const QUALITY_CRITERIA: { key: string; label: string; weight: number; check: (r:
     weight: 25,
     check: (r, imgs) => {
       const isGastro = (r.examItemName || '').includes('超声')
-      const min = isGastro ? GASTROSCOPY_MIN_PHOTOS : COLONOSCOPY_MIN_PHOTOS
+      const min = isGastro ? UPPER_ABDOMINAL_MIN_PHOTOS : LOWER_ABDOMINAL_MIN_PHOTOS
       const count = imgs.length
       const score = count === 0 ? 0 : count < min ? 40 : count === min ? 80 : 100
       return { score, detail: `${count}张 / 最少${min}张` }
@@ -984,9 +984,10 @@ const biopsyStatusColor = (status: BiopsySite['status']): string => {
 }
 
 // ---------- 空报告 ----------
-const emptyReport = (exam?: typeof initialUltrasoundExams[0]): Partial<UltrasoundReport> => {
+const emptyReport = (exam?: any): Partial<UltrasoundReport> => {
   const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
   return {
+    id: 'RPT' + Date.now(),
     examId: exam?.id || '',
     patientId: exam?.patientId || '',
     patientName: exam?.patientName || '',
@@ -996,11 +997,11 @@ const emptyReport = (exam?: typeof initialUltrasoundExams[0]): Partial<Ultrasoun
     examDate: exam?.examDate || new Date().toISOString().split('T')[0],
     doctorId: exam?.doctorId || '',
     doctorName: exam?.doctorName || '',
-    chiefComplaint: exam?.findings ? '' : '',
+    chiefComplaint: exam?.chiefComplaint || '',
     history: '',
     diagnosis: '',
     indications: '',
-    anesthesiaMethod: exam?.anesthesiaMethod || '',
+    anesthesiaMethod: '',
     findings: '',
     imageUrls: [],
     biopsyTaken: false,
@@ -1085,12 +1086,12 @@ export default function ReportWritePage() {
   const [annDragStart, setAnnDragStart] = (useState as any)<{ x: number; y: number } | null>(null)
   const annotationColors = ['#dc2626', '#ea580c', '#16a34a', '#2563eb', '#7c3aed', '#fff']
   const isGastro = (editingReport.examItemName || '').includes('超声')
-  const currentStandard = isGastro ? GASTROSCOPY_22_STANDARD : COLONOSCOPY_22_STANDARD
+  const currentStandard = isGastro ? UPPER_ABDOMINAL_22_STANDARD : LOWER_ABDOMINAL_20_STANDARD
   const capturedCount = Math.min(reportImages.length, currentStandard.length)
   const capturedPercent = currentStandard.length > 0 ? Math.round(capturedCount / currentStandard.length * 100) : 0
   const requiredTotal = currentStandard.filter(s => s.required).length
   const requiredCapturedCount = Math.min(
-    reportImages.filter(img => img.isRequired).length,
+    currentStandard.filter(s => s.required).length,
     requiredTotal
   )
   const [hoveredPhrase, setHoveredPhrase] = (useState as any)<string | null>(null)
@@ -1393,13 +1394,15 @@ export default function ReportWritePage() {
     if (errs.length > 0) { setFormErrors(errs); return }
     const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
     const finalImages = reportImages.map(img => img.url)
+    // 生成签名验证号
+    const reportVerifyCode = 'RP' + Date.now().toString().slice(-8)
     if (modalMode === 'new') {
       const id = 'RPT' + Date.now().toString().slice(-6)
-      setReports((prev: UltrasoundReport[]) => [{ ...editingReport, id, status: '待审核', imageUrls: finalImages, createdTime: now, updatedTime: now }, ...prev])
+      setReports((prev: UltrasoundReport[]) => [{ ...editingReport, id, status: '待审核', imageUrls: finalImages, createdTime: now, updatedTime: now, reportDoctorId: 'U001', reportDoctorName: editingReport.doctorName || '张建国', reportTime: now, reportVerificationCode: reportVerifyCode }, ...prev])
     } else {
-      setReports((prev: UltrasoundReport[]) => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: '待审核', updatedTime: now } as UltrasoundReport : r))
+      setReports((prev: UltrasoundReport[]) => prev.map(r => r.id === editingReport.id ? { ...editingReport, imageUrls: finalImages, status: '待审核', updatedTime: now, reportDoctorId: 'U001', reportDoctorName: editingReport.doctorName || '张建国', reportTime: now, reportVerificationCode: reportVerifyCode } as UltrasoundReport : r))
     }
-    setEditingReport(prev => ({ ...prev, status: '待审核' }))
+    setEditingReport(prev => ({ ...prev, status: '待审核', reportDoctorId: 'U001', reportDoctorName: editingReport.doctorName || '张建国', reportTime: now, reportVerificationCode: reportVerifyCode }))
     closeModal()
   }
 
@@ -1407,6 +1410,8 @@ export default function ReportWritePage() {
   const handleAuditReport = () => {
     if (!auditDoctorName.trim()) return
     const now = new Date().toISOString().slice(0, 16).replace('T', ' ')
+    // 生成审核签名验证号
+    const auditVerifyCode = 'AU' + Date.now().toString().slice(-8)
     setReports((prev: UltrasoundReport[]) => prev.map(r => r.id === editingReport.id ? {
       ...r,
       status: '已审核',
@@ -1414,8 +1419,9 @@ export default function ReportWritePage() {
       auditDoctorName: auditDoctorName,
       auditTime: now,
       auditSuggestion: auditSuggestion,
+      auditVerificationCode: auditVerifyCode,
     } as UltrasoundReport : r))
-    setEditingReport(prev => ({ ...prev, status: '已审核', auditDoctorId: 'U002', auditDoctorName: auditDoctorName, auditTime: now, auditSuggestion }))
+    setEditingReport(prev => ({ ...prev, status: '已审核', auditDoctorId: 'U002', auditDoctorName: auditDoctorName, auditTime: now, auditSuggestion: auditSuggestion, auditVerificationCode: auditVerifyCode }))
     setShowAuditModal(false)
     setFormErrors([])
     setSubmitSuccess(true)
@@ -1435,7 +1441,7 @@ export default function ReportWritePage() {
   const getImageQCStatus = () => {
     const count = reportImages.length
     const isGastro = (editingReport.examItemName || '').includes('超声')
-    const min = isGastro ? GASTROSCOPY_MIN_PHOTOS : COLONOSCOPY_MIN_PHOTOS
+    const min = isGastro ? UPPER_ABDOMINAL_MIN_PHOTOS : LOWER_ABDOMINAL_MIN_PHOTOS
     if (count < min) return 'warn'
     if (count === min) return 'ok'
     return 'pass'
@@ -1955,7 +1961,7 @@ export default function ReportWritePage() {
                                       { background: '#dcfce7', color: '#16a34a', border: '1px solid #86efac' }),
                                 }}>
                                   {(editingReport.examItemName || '').includes('超声') ? `超声` : '超声'}：
-                                  {reportImages.length} / {(editingReport.examItemName || '').includes('超声') ? GASTROSCOPY_MIN_PHOTOS : COLONOSCOPY_MIN_PHOTOS} 张
+                                  {reportImages.length} / {(editingReport.examItemName || '').includes('超声') ? UPPER_ABDOMINAL_MIN_PHOTOS : LOWER_ABDOMINAL_MIN_PHOTOS} 张
                                   {imageQCStatus === 'pass' ? ' ✓ 达标' : imageQCStatus === 'ok' ? ' ⚠ 刚好达标' : ' ✗ 不达标'}
                                 </div>
                                 <button style={{ ...s.btnIcon }} onClick={handleImageUpload}>
@@ -2559,8 +2565,34 @@ export default function ReportWritePage() {
                         <ShieldCheck size={13} /> 审核信息
                       </div>
                       <div style={{ fontSize: 13, color: '#047857' }}>
-                        审核医生：{editingReport.auditDoctorName} &nbsp;|&nbsp; 审核时间：{editingReport.auditTime}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <span style={{ background: '#059669', color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>已审核</span>
+                          <span>审核医生：{editingReport.auditDoctorName}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: '#065f46' }}>审核时间：{editingReport.auditTime}</div>
+                        {editingReport.auditVerificationCode && (
+                          <div style={{ fontSize: 11, color: '#047857', marginTop: 2 }}>签名验证号：{editingReport.auditVerificationCode}</div>
+                        )}
                         {editingReport.auditSuggestion && <><br />审核意见：{editingReport.auditSuggestion}</>}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* 报告医师签名信息 */}
+                  {editingReport.reportDoctorName && (
+                    <div style={{ background: '#eff6ff', border: '1px solid #bfdbfe', borderRadius: 6, padding: '12px 16px', marginTop: 8 }}>
+                      <div style={{ fontSize: 12, fontWeight: 600, color: '#1e40af', marginBottom: 6, display: 'flex', alignItems: 'center', gap: 5 }}>
+                        <FileText size={13} /> 报告医师签名
+                      </div>
+                      <div style={{ fontSize: 13, color: '#1e40af' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                          <span style={{ background: '#3b82f6', color: '#fff', padding: '2px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600 }}>报告医师</span>
+                          <span>{editingReport.reportDoctorName}</span>
+                        </div>
+                        <div style={{ fontSize: 12, color: '#1d4ed8' }}>签名时间：{editingReport.reportTime}</div>
+                        {editingReport.reportVerificationCode && (
+                          <div style={{ fontSize: 11, color: '#1e40af', marginTop: 2 }}>签名验证号：{editingReport.reportVerificationCode}</div>
+                        )}
                       </div>
                     </div>
                   )}
@@ -2804,16 +2836,46 @@ export default function ReportWritePage() {
               {/* 审核信息 */}
               {editingReport.auditDoctorName && (
                 <div style={{ marginTop: 16, padding: '8px 12px', background: '#f0fdf4', borderRadius: 6, fontSize: 12, color: '#065f46' }}>
-                  已审核 | 审核医生：{editingReport.auditDoctorName} | 审核时间：{editingReport.auditTime}
-                  {editingReport.auditSuggestion && ` | 审核意见：${editingReport.auditSuggestion}`}
+                  <div style={{ fontWeight: 600, marginBottom: 4 }}>✓ 已审核</div>
+                  <div>审核医师：{editingReport.auditDoctorName}</div>
+                  <div>审核时间：{editingReport.auditTime}</div>
+                  {editingReport.auditVerificationCode && (
+                    <div style={{ fontSize: 11, color: '#047857' }}>签名验证号：{editingReport.auditVerificationCode}</div>
+                  )}
+                  {editingReport.auditSuggestion && <div>审核意见：{editingReport.auditSuggestion}</div>}
                 </div>
               )}
 
-              {/* 签名 */}
-              <div style={s.printSignature}>
-                <div>报告医师：___________</div>
-                <div>审核医师：{editingReport.auditDoctorName || '___________'}</div>
-                <div>日期：___________</div>
+              {/* 电子签名区域 */}
+              <div style={{ marginTop: 20, display: 'flex', justifyContent: 'flex-end' }}>
+                <div style={{ textAlign: 'right', fontSize: 12 }}>
+                  {/* 报告医师签名 */}
+                  {editingReport.reportDoctorName && (
+                    <div style={{ marginBottom: 12, padding: '8px 12px', background: '#eff6ff', borderRadius: 6, border: '1px solid #bfdbfe' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <span style={{ background: '#3b82f6', color: '#fff', padding: '1px 5px', borderRadius: 3, fontSize: 10 }}>报告医师</span>
+                        <span style={{ fontWeight: 600, color: '#1e40af' }}>{editingReport.reportDoctorName}</span>
+                      </div>
+                      <div style={{ color: '#1d4ed8' }}>签名时间：{editingReport.reportTime}</div>
+                      {editingReport.reportVerificationCode && (
+                        <div style={{ fontSize: 11, color: '#1e40af' }}>验证号：{editingReport.reportVerificationCode}</div>
+                      )}
+                    </div>
+                  )}
+                  {/* 审核医师签名 */}
+                  {editingReport.auditDoctorName && (
+                    <div style={{ padding: '8px 12px', background: '#f0fdf4', borderRadius: 6, border: '1px solid #bbf7d0' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                        <span style={{ background: '#059669', color: '#fff', padding: '1px 5px', borderRadius: 3, fontSize: 10 }}>审核医师</span>
+                        <span style={{ fontWeight: 600, color: '#065f46' }}>{editingReport.auditDoctorName}</span>
+                      </div>
+                      <div style={{ color: '#047857' }}>签名时间：{editingReport.auditTime}</div>
+                      {editingReport.auditVerificationCode && (
+                        <div style={{ fontSize: 11, color: '#065f46' }}>验证号：{editingReport.auditVerificationCode}</div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div style={s.printFooter}>

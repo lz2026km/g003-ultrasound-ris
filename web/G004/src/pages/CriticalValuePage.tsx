@@ -21,7 +21,7 @@ const s: Record<string, React.CSSProperties> = {
   // 统计行
   statRow: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
+    gridTemplateColumns: 'repeat(6, 1fr)',
     gap: 16,
     marginBottom: 24,
   },
@@ -253,6 +253,9 @@ const s: Record<string, React.CSSProperties> = {
   blue: { backgroundColor: '#eff6ff', color: '#3b82f6', borderColor: '#bfdbfe' },
   purple: { backgroundColor: '#f5f3ff', color: '#8b5cf6', borderColor: '#ddd6fe' },
   gray: { backgroundColor: '#f8fafc', color: '#64748b', borderColor: '#e2e8f0' },
+  // 超时预警色
+  urgentRed: { backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#f87171' },
+  timeoutOrange: { backgroundColor: '#ffedd5', color: '#ea580c', borderColor: '#fb923c' },
 }
 
 // ---------- 颜色常量 ----------
@@ -402,6 +405,33 @@ export default function CriticalValuePage() {
     return colors[idx]
   }
 
+  // 计算超时状态
+  const getTimeoutStatus = (cv: CriticalValue): 'normal' | 'warning' | 'urgent' => {
+    if (cv.handled) return 'normal'
+    const detected = new Date(cv.detectedTime.replace(' ', 'T'))
+    const now = new Date()
+    const minutes = (now.getTime() - detected.getTime()) / (1000 * 60)
+    if (minutes >= 60) return 'urgent'  // 60分钟以上：紧急
+    if (minutes >= 30) return 'warning'  // 30分钟以上：标红
+    return 'normal'
+  }
+
+  // 计算平均响应时间（分钟）
+  const avgResponseTime = (() => {
+    const handled = criticalValues.filter(cv => cv.handled && cv.handledTime)
+    if (handled.length === 0) return null
+    const total = handled.reduce((sum, cv) => {
+      const detected = new Date(cv.detectedTime.replace(' ', 'T'))
+      const handledTime = new Date(cv.handledTime!.replace(' ', 'T'))
+      return sum + (handledTime.getTime() - detected.getTime()) / (1000 * 60)
+    }, 0)
+    return Math.round(total / handled.length)
+  })()
+
+  // 超时统计
+  const overdue30 = criticalValues.filter(cv => !cv.handled && getTimeoutStatus(cv) === 'warning').length
+  const overdue60 = criticalValues.filter(cv => !cv.handled && getTimeoutStatus(cv) === 'urgent').length
+
   return (
     <div style={s.root}>
       {/* 标题 */}
@@ -446,7 +476,36 @@ export default function CriticalValuePage() {
           unit="例"
           label="今日新增"
         />
+        <StatCard
+          icon={Clock}
+          iconBg={s.timeoutOrange.backgroundColor as string}
+          iconColor={s.timeoutOrange.color as string}
+          value={overdue30}
+          unit="例"
+          label="超30分钟待处理"
+        />
+        <StatCard
+          icon={AlertTriangle}
+          iconBg={s.urgentRed.backgroundColor as string}
+          iconColor={s.urgentRed.color as string}
+          value={overdue60}
+          unit="例"
+          label="超60分钟紧急"
+        />
       </div>
+
+      {/* 平均响应时间 */}
+      {avgResponseTime !== null && (
+        <div style={{ marginBottom: 16, padding: '12px 16px', background: '#eff6ff', borderRadius: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <Clock size={16} color="#3b82f6" />
+          <span style={{ fontSize: 13, color: '#334155' }}>
+            平均响应时间：<strong style={{ color: '#3b82f6' }}>{avgResponseTime}</strong> 分钟
+          </span>
+          <span style={{ fontSize: 12, color: '#94a3b8', marginLeft: 8 }}>
+            （已处理 {handled} 例）
+          </span>
+        </div>
+      )}
 
       {/* 操作行 */}
       <div style={s.actionRow}>
@@ -493,6 +552,7 @@ export default function CriticalValuePage() {
               onReport={() => openReportModal(cv)}
               onMarkHandled={() => markHandled(cv)}
               getAvatarColor={getAvatarColor}
+              timeoutStatus={getTimeoutStatus(cv)}
             />
           ))
         )}
@@ -767,17 +827,27 @@ interface CriticalValueCardProps {
   onReport: () => void
   onMarkHandled: () => void
   getAvatarColor: (name: string) => string
+  timeoutStatus?: 'normal' | 'warning' | 'urgent'
 }
 
-function CriticalValueCard({ cv, isExpanded, onToggle, onView, onReport, onMarkHandled, getAvatarColor }: CriticalValueCardProps) {
+function CriticalValueCard({ cv, isExpanded, onToggle, onView, onReport, onMarkHandled, getAvatarColor, timeoutStatus }: CriticalValueCardProps) {
   const typeColor = TYPE_COLORS[cv.criticalValueType] || s.blue
   const statusColor = cv.handled ? s.green : s.orange
+
+  // 超时样式覆盖
+  const timeoutBg = timeoutStatus === 'urgent' ? s.urgentRed.backgroundColor
+    : timeoutStatus === 'warning' ? s.timeoutOrange.backgroundColor
+    : undefined
+  const timeoutBorder = timeoutStatus === 'urgent' ? s.urgentRed.color
+    : timeoutStatus === 'warning' ? s.timeoutOrange.color
+    : typeColor.color
 
   return (
     <div
       style={{
         ...s.card,
-        borderLeftColor: typeColor.color,
+        borderLeftColor: timeoutBorder,
+        background: timeoutBg || '#fff',
       }}
     >
       {/* 卡片头部 */}
@@ -792,6 +862,11 @@ function CriticalValueCard({ cv, isExpanded, onToggle, onView, onReport, onMarkH
           </div>
         </div>
         <div style={s.cardTags}>
+          {timeoutStatus === 'urgent' && (
+            <span style={{ ...s.tag, background: s.urgentRed.backgroundColor, color: s.urgentRed.color }}>
+              <AlertTriangle size={11} /> 紧急处理
+            </span>
+          )}
           <span style={{ ...s.tag, background: typeColor.backgroundColor, color: typeColor.color }}>
             <AlertTriangle size={11} /> {cv.criticalValueType}
           </span>

@@ -208,12 +208,18 @@ export interface UltrasoundReport {
   conclusion: string;
   // 建议
   recommendations: string;
+  // 报告医师签名
+  reportDoctorId?: string;
+  reportDoctorName?: string;
+  reportTime?: string;
+  reportVerificationCode?: string;
   // 审核
   status: ReportStatus;
   auditDoctorId?: string;
   auditDoctorName?: string;
   auditTime?: string;
   auditSuggestion?: string;
+  auditVerificationCode?: string;
   // 打印/发布
   printedTime?: string;
   publishedTime?: string;
@@ -234,6 +240,7 @@ export interface ReportTemplate {
   id: string;
   name: string;
   category: '腹部超声' | '浅表器官超声' | '心血管超声' | '妇产科超声' | '介入超声' | '其他';
+  level: 'default' | 'dept' | 'personal'; // default=默认模板, dept=科室模板, personal=个人模板
   content: string;
   createdBy: string;
   usageCount: number;

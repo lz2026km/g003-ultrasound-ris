@@ -9,7 +9,7 @@ import {
   ShieldCheck, BarChart3, ClipboardCheck, BookOpen, Shield, ListChecks,
   Menu, X, Stethoscope, LogOut, Bell, Package, ShieldAlert, AlertTriangle,
   Camera, UserCheck, AlertCircle, GraduationCap, UsersRound, Database,
-  Scan, Heart, Thermometer, Droplets
+  Scan, Heart, Thermometer, Droplets, Video, ClipboardList
 } from 'lucide-react'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -24,6 +24,7 @@ const DisinfectionPage = lazy(() => import('./pages/DisinfectionPage'))
 const StatisticsPage = lazy(() => import('./pages/StatisticsPage'))
 const QCPage = lazy(() => import('./pages/QCPage'))
 const DictionaryPage = lazy(() => import('./pages/DictionaryPage'))
+const TermLibraryPage = lazy(() => import('./pages/TermLibraryPage'))
 const AuditPage = lazy(() => import('./pages/AuditPage'))
 const WorklistPage = lazy(() => import('./pages/WorklistPage'))
 const SchedulePage = lazy(() => import('./pages/SchedulePage'))
@@ -42,6 +43,7 @@ const AIQCPage = lazy(() => import('./pages/AIQCPage'))
 const StatsEnhancedPage = lazy(() => import('./pages/StatsEnhancedPage'))
 const DisinfectionTracePage = lazy(() => import('./pages/DisinfectionTracePage'))
 const ConsultationPage = lazy(() => import('./pages/ConsultationPage'))
+const RemoteConsultationPage = lazy(() => import('./pages/RemoteConsultationPage'))
 const InfectionPage = lazy(() => import('./pages/InfectionPage'))
 const NationalReportPage = lazy(() => import('./pages/NationalReportPage'))
 const InsuranceAuditPage = lazy(() => import('./pages/InsuranceAuditPage'))
@@ -54,6 +56,8 @@ const OperationsCenterPage = lazy(() => import('./pages/OperationsCenterPage'))
 const DicomViewerPage = lazy(() => import('./pages/DicomViewerPage'))
 const CostAnalysisPage = lazy(() => import('./pages/CostAnalysisPage'))
 const ImagingModesPage = lazy(() => import('./pages/ImagingModesPage'))
+const ReportQCPage = lazy(() => import('./pages/ReportQCPage'))
+const ProbeManagementPage = lazy(() => import('./pages/ProbeManagementPage'))
 
 const SkeletonBlock = ({ width = '100%', height = 20, style = {} }: { width?: string | number, height?: number, style?: React.CSSProperties }) => (
   <div style={{
@@ -191,6 +195,7 @@ const NAV_ITEMS = [
     section: '超声设备',
     items: [
       { path: '/ultrasound', icon: Activity, label: '超声设备' },
+      { path: '/probe-management', icon: Scan, label: '探头管理' },
       { path: '/disinfection', icon: ShieldCheck, label: '洗消追溯' },
       { path: '/disinfection-trace', icon: ShieldCheck, label: '洗消追溯增强' },
     ],
@@ -200,8 +205,10 @@ const NAV_ITEMS = [
     items: [
       { path: '/ai-qc', icon: BarChart3, label: 'AI质控中心' },
       { path: '/qc', icon: ClipboardCheck, label: '质量控制' },
+      { path: '/report-qc', icon: ClipboardCheck, label: '报告质量评分' },
       { path: '/infection', icon: AlertCircle, label: '感染管理' },
       { path: '/consultation', icon: UserCheck, label: '会诊管理' },
+      { path: '/remote-consultation', icon: Video, label: '远程会诊' },
     ],
   },
   {
@@ -214,12 +221,13 @@ const NAV_ITEMS = [
       { path: '/cost-analysis', icon: BarChart3, label: '成本效益分析' },
       { path: '/authority', icon: ShieldAlert, label: '权限管理' },
       { path: '/dictionary', icon: BookOpen, label: '数据字典' },
+      { path: '/term-library', icon: BookOpen, label: '术语词库' },
       { path: '/audit', icon: Shield, label: '审计日志' },
       { path: '/materials', icon: Package, label: '耗材管理' },
       { path: '/equipment-lifecycle', icon: Microscope, label: '设备全生命周期' },
       { path: '/followup', icon: Activity, label: '随访管理' },
       { path: '/national-report', icon: ShieldAlert, label: '国家数据上报' },
-      { path: '/data-report', icon: Database, label: '数据上报中心' },
+      { path: '/data-report', icon: Database, label: '卫健委数据上报' },
       { path: '/insurance-audit', icon: ShieldCheck, label: '医保审核' },
       { path: '/research', icon: Database, label: '临床数据中心' },
     ],
@@ -288,7 +296,7 @@ function AppShell() {
         <div style={s.sidebarFooter}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声影像信息管理系统</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.9.3</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.10.0</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
               onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
           </div>
@@ -310,7 +318,7 @@ function AppShell() {
             </span>
           </div>
           <div style={s.topbarRight}>
-            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.9.3</div>
+            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.10.0</div>
             <div style={s.topbarBadge}>
               <Bell size={20} />
               <span style={s.badge}>1</span>
@@ -346,10 +354,13 @@ function AppShell() {
             <Route path="/critical-value" element={<CriticalValuePage />} />
             <Route path="/critical-alert" element={<CriticalAlertPage />} />
             <Route path="/ultrasound" element={<UltrasoundPage />} />
+            <Route path="/probe-management" element={<ProbeManagementPage />} />
             <Route path="/disinfection" element={<DisinfectionPage />} />
             <Route path="/statistics" element={<StatisticsPage />} />
             <Route path="/qc" element={<QCPage />} />
+            <Route path="/report-qc" element={<ReportQCPage />} />
             <Route path="/dictionary" element={<DictionaryPage />} />
+            <Route path="/term-library" element={<TermLibraryPage />} />
             <Route path="/audit" element={<AuditPage />} />
             <Route path="/materials" element={<MaterialsPage />} />
             <Route path="/followup" element={<FollowUpPage />} />
@@ -364,6 +375,7 @@ function AppShell() {
             <Route path="/stats-enhanced" element={<StatsEnhancedPage />} />
             <Route path="/disinfection-trace" element={<DisinfectionTracePage />} />
             <Route path="/consultation" element={<ConsultationPage />} />
+            <Route path="/remote-consultation" element={<RemoteConsultationPage />} />
             <Route path="/infection" element={<InfectionPage />} />
             <Route path="/national-report" element={<NationalReportPage />} />
             <Route path="/insurance-audit" element={<InsuranceAuditPage />} />
@@ -401,10 +413,10 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.9.3 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.10.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
-                  全面对标超声RIS行业竞品（蓝网科技/东软/联影/开立/岱嘉），整合所有产品优秀功能；修复版本管理/会诊管理/统计分析等页面交互bug；**彻底清理所有内镜数据污染**，将G004内镜系统残留数据全面替换为超声RIS数据（检查模板/报告/AI质控标准/会诊描述/护理记录等）；配套扩充超声科演示数据（患者/检查/预约/设备/耗材等）
+                  全面对标超声RIS行业竞品（蓝网科技/东软/联影/开立/岱嘉），整合所有产品优秀功能：词库辅助输入、模板分级管理(三级)、报告历史对比(可视化)、报告审核电子签名、危急值超时预警(30/60分钟)、工作量多维统计(医师/设备/部位/时段)、DICOM MWL强化(五步状态机/HL7模拟)、5G远程会诊模块、探头使用维护管理、卫健委数据上报接口；彻底清理所有内镜数据污染；配套扩充超声科演示数据
                 </div>
               </div>
               <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
