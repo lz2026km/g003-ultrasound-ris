@@ -4,7 +4,7 @@ import {
   Activity, AlertTriangle, CheckCircle, XCircle, Clock, Shield,
   ClipboardCheck, Heart, Droplets, Wind, User, FileText,
   ArrowRight, TrendingUp, Minus, ChevronRight, Info,
-  PauseCircle, Ban, Bell, Wind, Stethoscope, ListChecks,
+  PauseCircle, Ban, Bell, Stethoscope, ListChecks,
   AlertCircle, Eye, Armchair, Scale, Thermometer, Droplet,
   ClipboardList, MessageSquare, UserCheck, ShieldAlert
 } from 'lucide-react';
