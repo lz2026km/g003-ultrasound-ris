@@ -404,9 +404,17 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.2.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.3.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
+                  大幅扩充模拟数据：50名患者档案、80条检查记录、20+份超声报告、30条预约记录。数据完全符合超声科室规范，涵盖心血管/腹部/妇产/浅表/血管/介入/肌肉骨骼等多种超声检查类型，附真实超声描述性报告和诊断建议。彻底清除内镜数据残留，所有数据ID格式统一为US202504XXXX。
+                </div>
+              </div>
+              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
+                  v0.2.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（历史版本）</span>
+                </div>
+                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
                   核心流程升级：患者检查全流程闭环、DICOM增强、AI质控、统计图表ECharts、科室运营大屏
                 </div>
               </div>
@@ -416,14 +424,6 @@ function AppShell() {
                 </div>
                 <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
                   智慧超声RIS信息管理系统 v0.1.0 首发版本，基于G004内镜系统架构全面重构。集成患者管理、预约登记、检查执行、报告书写、叫号分诊、图像采集、数据统计等核心模块。对标蓝网科技、东软医疗US-RIS、联影医疗、开立医疗、岱嘉超声RIS等全网竞品，汇聚所有产品优点于一体。
-                </div>
-              </div>
-              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
-                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                  v0.0.1 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（开发版本）</span>
-                </div>
-                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                  项目初始化，架构设计与竞品分析阶段。
                 </div>
               </div>
             </div>

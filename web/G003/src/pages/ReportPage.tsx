@@ -1,5 +1,5 @@
 // @ts-nocheck
-// G003 超声RIS - 报告管理页面 v0.2.0 增强版
+// G003 超声RIS - 报告管理页面 v0.3.0
 import { useState, useMemo } from 'react'
 import {
   FileText, Search, Download, CheckCircle, Eye, Printer, Filter,
@@ -15,25 +15,25 @@ import { mockReports } from '../data/initialData'
 // 扩展mockReports数据以支持新功能
 const extendedReports = mockReports.map((r, i) => ({
   ...r,
-  reportId: r.id || `R${String(i + 1).padStart(3, '0')}`,
-  reportDoctor: r.doctor || '李明辉',
+  reportId: r.id || `RPT${String(i + 1).padStart(4, '0')}`,
+  reportDoctor: r.doctor || '张建华',
   reviewDoctor: r.reviewer || '',
   reportTime: r.signTime || r.createTime || '2025-05-07 10:00',
-  qualityScore: ['甲级', '乙级', '丙级', '不合格'][Math.floor(Math.random() * 4)],
+  qualityScore: r.qualityScore || ['甲级', '乙级', '丙级'][Math.floor(Math.random() * 3)],
   completionHours: Math.round(Math.random() * 48 * 10) / 10,
 }))
 
-// 添加更多模拟数据
+// 添加更多模拟数据（使用合规超声患者ID）
 const allReports = [
   ...extendedReports,
-  { id: 'R003', reportId: 'R003', examId: 'E003', patientId: 'P003', patientName: '王五', examType: '浅表器官超声', examDate: '2025-05-07', status: '待审核', reportDoctor: '张伟', reviewDoctor: '', reportTime: '2025-05-07 11:30', qualityScore: '甲级', completionHours: 1.5 },
-  { id: 'R004', reportId: 'R004', examId: 'E004', patientId: 'P004', patientName: '赵丽', examType: '妇产科超声', examDate: '2025-05-07', status: '已打印', reportDoctor: '李明辉', reviewDoctor: '张主任', reportTime: '2025-05-07 10:30', qualityScore: '乙级', completionHours: 2.0 },
-  { id: 'R005', reportId: 'R005', examId: 'E005', patientId: 'P005', patientName: '孙伟', examType: '心血管超声', examDate: '2025-05-07', status: '已归档', reportDoctor: '王晓燕', reviewDoctor: '张主任', reportTime: '2025-05-07 14:00', qualityScore: '甲级', completionHours: 3.0 },
-  { id: 'R006', reportId: 'R006', examId: 'E006', patientId: 'P006', patientName: '周梅', examType: '腹部超声', examDate: '2025-05-07', status: '待书写', reportDoctor: '刘强', reviewDoctor: '', reportTime: '', qualityScore: '', completionHours: 0 },
-  { id: 'R007', reportId: 'R007', examId: 'E007', patientId: 'P007', patientName: '吴杰', examType: '外周血管超声', examDate: '2025-05-07', status: '待审核', reportDoctor: '陈静', reviewDoctor: '', reportTime: '2025-05-07 15:00', qualityScore: '乙级', completionHours: 1.0 },
-  { id: 'R008', reportId: 'R008', examId: 'E008', patientId: 'P008', patientName: '郑华', examType: '介入超声', examDate: '2025-05-07', status: '已审核', reportDoctor: '李明辉', reviewDoctor: '王主任', reportTime: '2025-05-07 12:00', qualityScore: '甲级', completionHours: 2.5 },
-  { id: 'R009', reportId: 'R009', examId: 'E009', patientId: 'P009', patientName: '冯磊', examType: '浅表器官超声', examDate: '2025-05-07', status: '已打印', reportDoctor: '张伟', reviewDoctor: '张主任', reportTime: '2025-05-07 13:30', qualityScore: '丙级', completionHours: 4.0 },
-  { id: 'R010', reportId: 'R010', examId: 'E010', patientId: 'P010', patientName: '褚琳', examType: '心血管超声', examDate: '2025-05-07', status: '待审核', reportDoctor: '王晓燕', reviewDoctor: '', reportTime: '2025-05-07 16:00', qualityScore: '乙级', completionHours: 0.8 },
+  { id: 'RPT2025040021', reportId: 'RPT2025040021', examId: 'EXM2025040021', patientId: 'US2025040015', patientName: '黄晓东', examType: '浅表器官超声', examDate: '2025-05-07', status: '待审核', reportDoctor: '张伟', reviewDoctor: '', reportTime: '2025-05-07 11:30', qualityScore: '甲级', completionHours: 1.5 },
+  { id: 'RPT2025040022', reportId: 'RPT2025040022', examId: 'EXM2025040022', patientId: 'US2025040016', patientName: '林海燕', examType: '妇产科超声', examDate: '2025-05-07', status: '已打印', reportDoctor: '王晓燕', reviewDoctor: '张建华', reportTime: '2025-05-07 10:30', qualityScore: '乙级', completionHours: 2.0 },
+  { id: 'RPT2025040023', reportId: 'RPT2025040023', examId: 'EXM2025040023', patientId: 'US2025040019', patientName: '韩志鹏', examType: '肌肉骨骼超声', examDate: '2025-05-07', status: '已归档', reportDoctor: '张伟', reviewDoctor: '张建华', reportTime: '2025-05-07 14:00', qualityScore: '甲级', completionHours: 3.0 },
+  { id: 'RPT2025040024', reportId: 'RPT2025040024', examId: 'EXM2025040024', patientId: 'US2025040020', patientName: '宋雅琴', examType: '浅表器官超声', examDate: '2025-05-07', status: '待书写', reportDoctor: '刘强', reviewDoctor: '', reportTime: '', qualityScore: '', completionHours: 0 },
+  { id: 'RPT2025040025', reportId: 'RPT2025040025', examId: 'EXM2025040025', patientId: 'US2025040022', patientName: '邓桂香', examType: '腹部超声', examDate: '2025-05-07', status: '待审核', reportDoctor: '陈静', reviewDoctor: '', reportTime: '2025-05-07 15:00', qualityScore: '乙级', completionHours: 1.0 },
+  { id: 'RPT2025040026', reportId: 'RPT2025040026', examId: 'EXM2025040026', patientId: 'US2025040024', patientName: '田秀兰', examType: '妇产科超声', examDate: '2025-05-07', status: '已审核', reportDoctor: '李明辉', reviewDoctor: '张建华', reportTime: '2025-05-07 12:00', qualityScore: '甲级', completionHours: 2.5 },
+  { id: 'RPT2025040027', reportId: 'RPT2025040027', examId: 'EXM2025040027', patientId: 'US2025040026', patientName: '蒋丽娟', examType: '浅表器官超声', examDate: '2025-05-07', status: '已打印', reportDoctor: '张伟', reviewDoctor: '张建华', reportTime: '2025-05-07 13:30', qualityScore: '丙级', completionHours: 4.0 },
+  { id: 'RPT2025040028', reportId: 'RPT2025040028', examId: 'EXM2025040028', patientId: 'US2025040027', patientName: '白建国', examType: '外周血管超声', examDate: '2025-05-07', status: '待审核', reportDoctor: '王晓燕', reviewDoctor: '', reportTime: '2025-05-07 16:00', qualityScore: '乙级', completionHours: 0.8 },
 ]
 
 const s: Record<string, React.CSSProperties> = {

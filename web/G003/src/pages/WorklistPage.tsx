@@ -1,5 +1,5 @@
 // @ts-nocheck
-// G003 超声RIS - 工作列表页面 v0.2.0 增强版
+// G003 超声RIS - 工作列表页面 v0.3.0
 // 三面板布局：左侧检查列表/中间患者详情/右侧检查信息
 import { useState, useCallback } from 'react'
 import {
@@ -8,9 +8,10 @@ import {
   Baby, Scan, Radio, Heart, Layers, Play, FileText, CheckSquare,
   Square, X, Info, Calendar, DollarSign, Phone, CreditCard
 } from 'lucide-react'
+import { mockAppointments, mockPatients, ultrasoundDevices } from '../data/initialData'
 
-// ============ 模拟数据 ============
-const examTypes = ['腹部', '心脏', '妇产', '浅表', '血管', '介入']
+// ============ 模拟数据（从mockAppointments实时获取）============
+const examTypes = ['全部', '腹部超声', '心血管超声', '妇产科超声', '浅表器官超声', '外周血管超声', '介入超声']
 
 const workflowSteps = [
   { key: 'scheduled', label: '预约' },
@@ -20,63 +21,19 @@ const workflowSteps = [
   { key: 'archived', label: '归档' },
 ]
 
+// 基于预约数据构建今日工作列表
+const todayStr = '2025-05-07'
 const mockWorklist = [
-  {
-    id: 'W001', patientId: 'P001', patientName: '张三', examType: '腹部', examSubtype: '肝脏',
-    priority: 'STAT', status: 'Pending', appointmentTime: '09:00', doctor: '李明辉',
-    device: '彩超仪 A', age: 45, gender: '男', phone: '138****1234',
-    workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false },
-    fee: 180, note: '空腹8小时以上'
-  },
-  {
-    id: 'W002', patientId: 'P002', patientName: '李红', examType: '心脏', examSubtype: '心脏彩超',
-    priority: 'Urgent', status: 'In Progress', appointmentTime: '09:30', doctor: '王晓燕',
-    device: '彩超仪 B', age: 52, gender: '女', phone: '139****5678',
-    workflow: { scheduled: true, registered: true, examining: true, reporting: false, archived: false },
-    fee: 280, note: '既往心脏病史'
-  },
-  {
-    id: 'W003', patientId: 'P003', patientName: '王五', examType: '浅表', examSubtype: '甲状腺',
-    priority: 'Normal', status: 'Pending', appointmentTime: '10:00', doctor: '张伟',
-    device: '彩超仪 A', age: 38, gender: '男', phone: '137****9012',
-    workflow: { scheduled: true, registered: false, examining: false, reporting: false, archived: false },
-    fee: 120, note: ''
-  },
-  {
-    id: 'W004', patientId: 'P004', patientName: '赵丽', examType: '妇产', examSubtype: '产科彩超',
-    priority: 'Normal', status: 'Completed', appointmentTime: '10:30', doctor: '李明辉',
-    device: '彩超仪 B', age: 28, gender: '女', phone: '136****3456',
-    workflow: { scheduled: true, registered: true, examining: true, reporting: true, archived: false },
-    fee: 320, note: '孕12周'
-  },
-  {
-    id: 'W005', patientId: 'P005', patientName: '孙伟', examType: '血管', examSubtype: '颈部血管',
-    priority: 'Low', status: 'Archived', appointmentTime: '11:00', doctor: '王晓燕',
-    device: '彩超仪 A', age: 61, gender: '男', phone: '135****7890',
-    workflow: { scheduled: true, registered: true, examining: true, reporting: true, archived: true },
-    fee: 200, note: '高血压病史'
-  },
-  {
-    id: 'W006', patientId: 'P006', patientName: '周敏', examType: '心脏', examSubtype: '负荷超声',
-    priority: 'Normal', status: 'Pending', appointmentTime: '11:30', doctor: '王晓燕',
-    device: '彩超仪 B', age: 55, gender: '女', phone: '134****2345',
-    workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false },
-    fee: 350, note: '运动平板试验后'
-  },
-  {
-    id: 'W007', patientId: 'P007', patientName: '吴强', examType: '腹部', examSubtype: '脾脏',
-    priority: 'Normal', status: 'Pending', appointmentTime: '14:00', doctor: '张伟',
-    device: '彩超仪 A', age: 42, gender: '男', phone: '133****6789',
-    workflow: { scheduled: true, registered: false, examining: false, reporting: false, archived: false },
-    fee: 150, note: ''
-  },
-  {
-    id: 'W008', patientId: 'P008', patientName: '郑丽', examType: '妇产', examSubtype: '阴超',
-    priority: 'Normal', status: 'In Progress', appointmentTime: '14:30', doctor: '李明辉',
-    device: '彩超仪 B', age: 32, gender: '女', phone: '132****0123',
-    workflow: { scheduled: true, registered: true, examining: true, reporting: false, archived: false },
-    fee: 220, note: '月经不调'
-  },
+  { id: 'W001', patientId: 'US2025040001', patientName: '陈志国', examType: '心血管超声', examSubtype: '心脏', priority: 'STAT', status: 'Pending', appointmentTime: '08:30', doctor: '张建华', device: 'Philips EPIQ 7C', age: 58, gender: '男', phone: '135****8302', workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false }, fee: 280, note: '复查心脏功能' },
+  { id: 'W002', patientId: 'US2025040004', patientName: '张丽华', examType: '妇产科超声', examSubtype: '中孕', priority: 'Urgent', status: 'In Progress', appointmentTime: '09:00', doctor: '王晓燕', device: 'GE Voluson E10', age: 29, gender: '女', phone: '138****5621', workflow: { scheduled: true, registered: true, examining: true, reporting: false, archived: false }, fee: 320, note: '孕16周产检' },
+  { id: 'W003', patientId: 'US2025040007', patientName: '周明', examType: '浅表器官超声', examSubtype: '甲状腺', priority: 'Normal', status: 'Pending', appointmentTime: '09:30', doctor: '张伟', device: 'Canon Aplio i900', age: 41, gender: '男', phone: '186****8902', workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false }, fee: 120, note: 'TI-RADS 4a类结节复查' },
+  { id: 'W004', patientId: 'US2025040008', patientName: '吴小燕', examType: '浅表器官超声', examSubtype: '乳腺', priority: 'Normal', status: 'Completed', appointmentTime: '10:00', doctor: '张伟', device: 'Canon Aplio i900', age: 35, gender: '女', phone: '135****6134', workflow: { scheduled: true, registered: true, examining: true, reporting: true, archived: false }, fee: 150, note: '乳腺增生随诊' },
+  { id: 'W005', patientId: 'US2025040010', patientName: '郑玉珍', examType: '腹部超声', examSubtype: '胆道', priority: 'Low', status: 'Archived', appointmentTime: '10:30', doctor: '刘强', device: 'Hitachi ARIETTA 850', age: 54, gender: '女', phone: '139****6782', workflow: { scheduled: true, registered: true, examining: true, reporting: true, archived: true }, fee: 180, note: '充满型胆囊结石，术前评估' },
+  { id: 'W006', patientId: 'US2025040011', patientName: '马超', examType: '泌尿系超声', examSubtype: '肾脏', priority: 'Normal', status: 'Pending', appointmentTime: '11:00', doctor: '刘强', device: 'Hitachi ARIETTA 850', age: 38, gender: '男', phone: '136****9012', workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false }, fee: 150, note: '右肾结石复查' },
+  { id: 'W007', patientId: 'US2025040012', patientName: '杨雪梅', examType: '妇产科超声', examSubtype: '妇科', priority: 'Normal', status: 'Pending', appointmentTime: '11:30', doctor: '王晓燕', device: 'GE Voluson E10', age: 27, gender: '女', phone: '158****5678', workflow: { scheduled: true, registered: false, examining: false, reporting: false, archived: false }, fee: 220, note: '右侧卵巢囊肿复查' },
+  { id: 'W008', patientId: 'US2025040015', patientName: '黄晓东', examType: '浅表器官超声', examSubtype: '淋巴结', priority: 'Normal', status: 'In Progress', appointmentTime: '14:00', doctor: '张伟', device: 'Canon Aplio i900', age: 33, gender: '男', phone: '186****7345', workflow: { scheduled: true, registered: true, examining: true, reporting: false, archived: false }, fee: 120, note: '右颈部淋巴结肿大查因' },
+  { id: 'W009', patientId: 'US2025040016', patientName: '林海燕', examType: '妇产科超声', examSubtype: '子宫', priority: 'Normal', status: 'Pending', appointmentTime: '14:30', doctor: '王晓燕', device: 'GE Voluson E10', age: 44, gender: '女', phone: '137****2356', workflow: { scheduled: true, registered: true, examining: false, reporting: false, archived: false }, fee: 200, note: '子宫多发肌瘤复查' },
+  { id: 'W010', patientId: 'US2025040019', patientName: '韩志鹏', examType: '肌肉骨骼超声', examSubtype: '踝关节', priority: 'Normal', status: 'Pending', appointmentTime: '15:00', doctor: '张伟', device: 'Canon Aplio i900', age: 31, gender: '男', phone: '136****9087', workflow: { scheduled: true, registered: false, examining: false, reporting: false, archived: false }, fee: 150, note: '右踝韧带损伤复查' },
 ]
 
 // ============ 样式 ============
