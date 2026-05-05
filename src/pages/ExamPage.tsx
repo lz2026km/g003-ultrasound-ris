@@ -28,7 +28,7 @@ type ScanScene = '急诊' | 'ICU' | '床旁' | '手术室' | '体检'
 interface Equipment {
   id: string
   name: string
-  type: '主机' | '镜体' | '光源' | '显示器' | 'recorder' | '附件'
+  type: '主机' | '镜体' | '光源' | '显示器' | 'recorder' | '附件' | '便携超声' | '工作站' | '探头'
   status: EquipmentStatus
   assignedTo?: string
   room?: string
@@ -917,20 +917,20 @@ const DEFAULT_ORDERS: Omit<OrderItem, 'id' | 'completed'>[] = [
 ]
 
 // 质控阈值
-const GASTRORAPHY_MIN_PHOTOS = 22
-const COLONOSCOPY_MIN_WITHDRAWAL = 6
+const ULTRASOUND_MIN_IMAGES = 22
+const ULTRASOUND_MIN_DURATION = 6
 
 // 设备初始数据
 const INITIAL_EQUIPMENT: Equipment[] = [
-  { id: 'EQ-001', name: 'Olympus CV-290', type: '主机', status: '使用中', assignedTo: '检查室1', room: '检查室1', lastMaintenance: '2026-03-15', nextMaintenance: '2026-06-15', usageCount: 142 },
-  { id: 'EQ-002', name: 'Olympus GIF-H260', type: '镜体', status: '使用中', assignedTo: '检查室1', room: '检查室1', lastMaintenance: '2026-03-20', nextMaintenance: '2026-05-20', usageCount: 89 },
-  { id: 'EQ-003', name: 'Olympus CLV-290SL', type: '光源', status: '空闲', lastMaintenance: '2026-04-01', nextMaintenance: '2026-07-01', usageCount: 56 },
-  { id: 'EQ-004', name: 'Sony 24寸显示屏', type: '显示器', status: '使用中', assignedTo: '检查室1', room: '检查室1', lastMaintenance: '2026-02-10', nextMaintenance: '2026-05-10', usageCount: 203 },
-  { id: 'EQ-005', name: 'Fujifilm EP-6000', type: '主机', status: '空闲', lastMaintenance: '2026-03-25', nextMaintenance: '2026-06-25', usageCount: 78 },
-  { id: 'EQ-006', name: 'Pentax ED34-i10', type: '镜体', status: '维护中', lastMaintenance: '2026-04-10', nextMaintenance: '2026-04-28', usageCount: 112 },
-  { id: 'EQ-007', name: 'ERBE ICC200', type: '主机', status: '使用中', assignedTo: '检查室3', room: '检查室3', lastMaintenance: '2026-03-05', nextMaintenance: '2026-06-05', usageCount: 95 },
-  { id: 'EQ-008', name: '黑光高清 recorder', type: 'recorder', status: '空闲', lastMaintenance: '2026-04-15', nextMaintenance: '2026-07-15', usageCount: 34 },
-  { id: 'EQ-009', name: '圈套器/止血钳套装', type: '附件', status: '使用中', assignedTo: '检查室2', room: '检查室2', lastMaintenance: '2026-04-18', nextMaintenance: '2026-05-18', usageCount: 67 },
+  { id: 'EQ-001', name: 'GE Voluson E10', type: '主机', status: '使用中', assignedTo: '超声室1', room: '超声室1', lastMaintenance: '2026-03-15', nextMaintenance: '2026-06-15', usageCount: 142 },
+  { id: 'EQ-002', name: 'Philips EPIQ 7', type: '主机', status: '使用中', assignedTo: '超声室1', room: '超声室1', lastMaintenance: '2026-03-20', nextMaintenance: '2026-05-20', usageCount: 89 },
+  { id: 'EQ-003', name: 'Mindray DC-95', type: '主机', status: '空闲', lastMaintenance: '2026-04-01', nextMaintenance: '2026-07-01', usageCount: 56 },
+  { id: 'EQ-004', name: '迈瑞便携式 M9', type: '便携超声', status: '使用中', assignedTo: '急诊超声室', room: '急诊超声室', lastMaintenance: '2026-02-10', nextMaintenance: '2026-05-10', usageCount: 203 },
+  { id: 'EQ-005', name: 'Philips CX50', type: '便携超声', status: '空闲', lastMaintenance: '2026-03-25', nextMaintenance: '2026-06-25', usageCount: 78 },
+  { id: 'EQ-006', name: 'Sonosite MicroMaxx', type: '便携超声', status: '维护中', lastMaintenance: '2026-04-10', nextMaintenance: '2026-04-28', usageCount: 112 },
+  { id: 'EQ-007', name: 'Canon Aplio i900', type: '主机', status: '使用中', assignedTo: '超声室3', room: '超声室3', lastMaintenance: '2026-03-05', nextMaintenance: '2026-06-05', usageCount: 95 },
+  { id: 'EQ-008', name: '超声工作站 ZS-400', type: '工作站', status: '空闲', lastMaintenance: '2026-04-15', nextMaintenance: '2026-07-15', usageCount: 34 },
+  { id: 'EQ-009', name: '探头套装（腹部/浅表/心脏）', type: '探头', status: '使用中', assignedTo: '超声室2', room: '超声室2', lastMaintenance: '2026-04-18', nextMaintenance: '2026-05-18', usageCount: 67 },
 ]
 
 // 质量评分维度配置
@@ -2206,7 +2206,7 @@ export default function ExamPage() {
       <div style={s.header}>
         <div>
           <h1 style={s.title}>检查执行工作台</h1>
-          <p style={s.subtitle}>智慧消化专科诊疗平台 · 检查执行与质控</p>
+          <p style={s.subtitle}>超声影像检查工作台 · 检查执行与质量控制</p>
         </div>
         <div style={s.headerActions}>
           <button style={{ ...s.btn, ...s.btnGhost }}>
@@ -2522,21 +2522,21 @@ export default function ExamPage() {
               </div>
               <div style={s.qcInfo}>
                 <div style={s.qcLabel}>US检查</div>
-                <div style={s.qcValue}>≥ {GASTRORAPHY_MIN_PHOTOS} 张</div>
+                <div style={s.qcValue}>≥ {ULTRASOUND_MIN_IMAGES} 张</div>
                 <div style={s.qcProgress}>
                   <div style={{
                     ...s.qcProgressFill,
-                    width: `${Math.min(100, (livePhotoCount / GASTRORAPHY_MIN_PHOTOS) * 100)}%`,
-                    background: livePhotoCount >= GASTRORAPHY_MIN_PHOTOS ? '#22c55e' : '#f97316',
+                    width: `${Math.min(100, (livePhotoCount / ULTRASOUND_MIN_IMAGES) * 100)}%`,
+                    background: livePhotoCount >= ULTRASOUND_MIN_IMAGES ? '#22c55e' : '#f97316',
                   }} />
                 </div>
               </div>
               <div style={{
                 ...s.qcBadge,
-                background: livePhotoCount >= GASTRORAPHY_MIN_PHOTOS ? COLORS.green.bg : COLORS.orange.bg,
-                color: livePhotoCount >= GASTRORAPHY_MIN_PHOTOS ? COLORS.green.color : COLORS.orange.color,
+                background: livePhotoCount >= ULTRASOUND_MIN_IMAGES ? COLORS.green.bg : COLORS.orange.bg,
+                color: livePhotoCount >= ULTRASOUND_MIN_IMAGES ? COLORS.green.color : COLORS.orange.color,
               }}>
-                {livePhotoCount >= GASTRORAPHY_MIN_PHOTOS ? '合格' : `${livePhotoCount}/${GASTRORAPHY_MIN_PHOTOS}`}
+                {livePhotoCount >= ULTRASOUND_MIN_IMAGES ? '合格' : `${livePhotoCount}/${ULTRASOUND_MIN_IMAGES}`}
               </div>
             </div>
 
@@ -2547,21 +2547,21 @@ export default function ExamPage() {
               </div>
               <div style={s.qcInfo}>
                 <div style={s.qcLabel}>US退镜时间</div>
-                <div style={s.qcValue}>≥ {COLONOSCOPY_MIN_WITHDRAWAL} 分钟</div>
+                <div style={s.qcValue}>≥ {ULTRASOUND_MIN_DURATION} 分钟</div>
                 <div style={s.qcProgress}>
                   <div style={{
                     ...s.qcProgressFill,
-                    width: `${Math.min(100, (liveWithdrawalTime / COLONOSCOPY_MIN_WITHDRAWAL) * 100)}%`,
-                    background: liveWithdrawalTime >= COLONOSCOPY_MIN_WITHDRAWAL ? '#22c55e' : '#f97316',
+                    width: `${Math.min(100, (liveWithdrawalTime / ULTRASOUND_MIN_DURATION) * 100)}%`,
+                    background: liveWithdrawalTime >= ULTRASOUND_MIN_DURATION ? '#22c55e' : '#f97316',
                   }} />
                 </div>
               </div>
               <div style={{
                 ...s.qcBadge,
-                background: liveWithdrawalTime >= COLONOSCOPY_MIN_WITHDRAWAL ? COLORS.green.bg : COLORS.orange.bg,
-                color: liveWithdrawalTime >= COLONOSCOPY_MIN_WITHDRAWAL ? COLORS.green.color : COLORS.orange.color,
+                background: liveWithdrawalTime >= ULTRASOUND_MIN_DURATION ? COLORS.green.bg : COLORS.orange.bg,
+                color: liveWithdrawalTime >= ULTRASOUND_MIN_DURATION ? COLORS.green.color : COLORS.orange.color,
               }}>
-                {liveWithdrawalTime >= COLONOSCOPY_MIN_WITHDRAWAL ? '合格' : `${liveWithdrawalTime}分`}
+                {liveWithdrawalTime >= ULTRASOUND_MIN_DURATION ? '合格' : `${liveWithdrawalTime}分`}
               </div>
             </div>
 
@@ -2723,7 +2723,7 @@ export default function ExamPage() {
               <strong>{activeExam?.patientName}</strong> 的检查即将完成<br/>
               检查室：{selectedRoom}<br/>
               采集图像：{capturedImages.length} 张<br/>
-              质控：US {livePhotoCount >= GASTRORAPHY_MIN_PHOTOS ? '✓ 合格' : `✗ ${livePhotoCount}/${GASTRORAPHY_MIN_PHOTOS}`}
+              质控：US {livePhotoCount >= ULTRASOUND_MIN_IMAGES ? '✓ 合格' : `✗ ${livePhotoCount}/${ULTRASOUND_MIN_IMAGES}`}
             </div>
             <div style={{ fontSize: 13, color: '#64748b', marginBottom: 8 }}>
               请确认检查小结已填写

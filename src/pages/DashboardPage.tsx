@@ -387,7 +387,7 @@ const ENDOSCOPE_USAGE = [
 ]
 
 const WARNING_ITEMS = [
-  { name: '一次性活检钳', stock: 12, min: 50 },
+  { name: '超声耦合剂', stock: 12, min: 50 },
   { name: '圈套器', stock: 8, min: 30 },
   { name: '注射针', stock: 5, min: 20 },
   { name: '止血夹', stock: 15, min: 40 },

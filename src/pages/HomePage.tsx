@@ -419,7 +419,7 @@ const CLINICAL_FEEDS = [
   { id: 2, type: 'report', icon: FileText, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '检查报告完成', desc: '王建国 — 浅表超声检查（操作：赵主任）', time: '10:18', badge: '报告', badgeBg: '#eff6ff', badgeColor: '#3b82f6' },
   { id: 3, type: 'disinfect', icon: Syringe, iconBg: '#f0fdfa', iconColor: '#14b8a6', title: '超声探头洗消完成', desc: '腹部超声 #3 洗消完成，可投入使用', time: '09:55', badge: '洗消', badgeBg: '#f0fdfa', badgeColor: '#14b8a6' },
   { id: 4, type: 'appoint', icon: CalendarClock, iconBg: '#f5f3ff', iconColor: '#8b5cf6', title: '新增预约', desc: '张明 — 超声检查，预约时间 14:00', time: '09:40', badge: '预约', badgeBg: '#f5f3ff', badgeColor: '#8b5cf6' },
-  { id: 5, type: 'critical', icon: HeartPulse, iconBg: '#fff7ed', iconColor: '#f97316', title: '麻醉复苏提醒', desc: '患者赵磊 — 丙泊酚麻醉复苏中，预计15分钟', time: '09:22', badge: '麻醉', badgeBg: '#fff7ed', badgeColor: '#f97316' },
+  { id: 5, type: 'critical', icon: HeartPulse, iconBg: '#fff7ed', iconColor: '#f97316', title: '超声检查异常', desc: '患者赵磊 — 腹部超声见异常回声，建议密切随访', time: '09:22', badge: '异常', badgeBg: '#fff7ed', badgeColor: '#f97316' },
 ]
 
 // 医生工作台
@@ -428,7 +428,7 @@ const WORKBENCH_TASKS = [
   { icon: Syringe, title: '待洗消超声探头', count: 6, total: 12, bg: '#f0fdfa', color: '#14b8a6', path: '/disinfection' },
   { icon: AlertCircle, title: '危急值处理', count: 2, total: 5, bg: '#fef2f2', color: '#ef4444', path: '/critical-value' },
   { icon: CalendarClock, title: '今日预约', count: 12, total: 20, bg: '#f5f3ff', color: '#8b5cf6', path: '/appointments' },
-  { icon: HeartPulse, title: '麻醉复苏', count: 3, total: 8, bg: '#fff7ed', color: '#f97316', path: '/recovery' },
+  { icon: HeartPulse, title: '危急值跟踪', count: 3, total: 8, bg: '#fff7ed', color: '#f97316', path: '/critical-value' },
   { icon: MessageSquare, title: '随访提醒', count: 5, total: 10, bg: '#f0fdf4', color: '#22c55e', path: '/followup' },
 ]
 
@@ -443,7 +443,7 @@ const KPI_DATA = [
 // ===== 预警通知中心 =====
 const ALERT_NOTIFICATIONS = [
   { id: 1, type: 'critical', icon: AlertOctagon, iconBg: '#fef2f2', iconColor: '#ef4444', title: '超声探头洗消超时预警', desc: '腹部超声 #2 洗消时间超过标准流程30分钟，需重新洗消', time: '10:45', badge: '危急', badgeBg: '#fef2f2', badgeColor: '#ef4444', level: 'critical' },
-  { id: 2, type: 'warning', icon: AlertTriangle, iconBg: '#fff7ed', iconColor: '#f97316', title: '耗材库存不足', desc: '一次性活检钳库存仅剩 12 把，建议尽快补货', time: '09:30', badge: '警告', badgeBg: '#fff7ed', badgeColor: '#f97316', level: 'warning' },
+  { id: 2, type: 'warning', icon: AlertTriangle, iconBg: '#fff7ed', iconColor: '#f97316', title: '耗材库存不足', desc: '超声耦合剂库存仅剩 12 瓶，建议尽快补货', time: '09:30', badge: '警告', badgeBg: '#fff7ed', badgeColor: '#f97316', level: 'warning' },
   { id: 3, type: 'info', icon: Info, iconBg: '#eff6ff', iconColor: '#3b82f6', title: '设备维护提醒', desc: '电子腹部超声 EG-2990I 累计使用时长达到 800 小时，需进行维护', time: '08:00', badge: '通知', badgeBg: '#eff6ff', badgeColor: '#3b82f6', level: 'info' },
   { id: 4, type: 'warning', icon: BellRing, iconBg: '#fff7ed', iconColor: '#f97316', title: '患者随访逾期', desc: '患者王磊浅表超声复查逾期 7 天，请及时联系患者', time: '昨天', badge: '提醒', badgeBg: '#fff7ed', badgeColor: '#f97316', level: 'warning' },
   { id: 5, type: 'info', icon: PackageSearch, iconBg: '#f5f3ff', iconColor: '#8b5cf6', title: '新耗材入库待验收', desc: '采购订单 PO-2026-0428 到达仓库，请及时验收', time: '昨天', badge: '信息', badgeBg: '#f5f3ff', badgeColor: '#8b5cf6', level: 'info' },
@@ -456,12 +456,12 @@ const TODAY_TODOS = [
   { id: 3, text: '参加科室疑难病例讨论会', tag: '会议', tagBg: '#fef2f2', tagColor: '#ef4444', time: '14:00', done: false },
   { id: 4, text: '腹部超声 #1 使用后洗消交接', tag: '洗消', tagBg: '#f0fdfa', tagColor: '#14b8a6', time: '11:30', done: false },
   { id: 5, text: '完成本周质量控制数据上报', tag: '质控', tagBg: '#fff7ed', tagColor: '#f97316', time: '16:00', done: false },
-  { id: 6, text: '查看患者赵磊麻醉复苏情况', tag: '麻醉', tagBg: '#f0fdf4', tagColor: '#22c55e', time: '09:45', done: true },
+  { id: 6, text: '审核患者李红霞腹部超声活检申请单', tag: '审核', tagBg: '#f0fdf4', tagColor: '#22c55e', time: '09:45', done: true },
 ]
 
 // ===== 版本信息 =====
 const VERSION_INFO = [
-  { label: '系统版本', value: 'G004 v0.12.0', tag: '最新', tagBeta: false, icon: Package },
+  { label: '系统版本', value: 'G003 v0.14.0', tag: '最新', tagBeta: false, icon: Package },
   { label: '前端框架', value: 'React 18.2.0', tag: null, tagBeta: false, icon: Wrench },
   { label: '图表库', value: 'Recharts 2.10.0', tag: null, tagBeta: false, icon: BarChart3 },
   { label: '图标库', value: 'Lucide React 0.294.0', tag: null, tagBeta: false, icon: HardDrive },

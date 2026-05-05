@@ -102,7 +102,7 @@ const EFFICIENCY_DATA = {
 }
 
 const ALERT_MATERIALS = [
-  { name: '活检钳', stock: 12, threshold: 20 },
+  { name: '超声探头套', stock: 12, threshold: 20 },
   { name: '圈套器', stock: 5, threshold: 15 },
   { name: '注射针', stock: 8, threshold: 25 },
   { name: '止血夹', stock: 3, threshold: 10 },

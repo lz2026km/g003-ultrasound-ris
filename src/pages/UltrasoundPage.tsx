@@ -1415,7 +1415,7 @@ export default function EndoscopePage() {
                         style={s.input}
                         value={editingEndoscope.name ?? ""}
                         onChange={e => handleField('name', e.target.value)}
-                        placeholder="如：Olympus彩色多普勒超声"
+                        placeholder="如：GE Voluson E10 彩色多普勒超声"
                       />
                     </div>
                     {/* 设备编号 */}
@@ -1445,7 +1445,7 @@ export default function EndoscopePage() {
                         style={s.input}
                         value={editingEndoscope.manufacturer ?? ""}
                         onChange={e => handleField('manufacturer', e.target.value)}
-                        placeholder="如：Olympus"
+                        placeholder="如：GE Voluson"
                       />
                     </div>
                     {/* 类型 */}
