@@ -1,11 +1,13 @@
 {
   "name": "g003-ultrasound-ris",
-  "version": "0.13.0",
-  "description": "智慧超声影像信息管理系统（超声RIS）",
+  "version": "0.15.0",
+  "description": "智慧超声影像信息管理系统（超声RIS） - v0.15.0: 远程超声(实时)+DRG/DIP+维修工单+医保智能审核",
   "scripts": {
     "dev": "vite --port 5190",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "build": "vite build",
+    "build:strict": "tsc && vite build",
+    "preview": "vite preview",
+    "deploy": "vite build && gh-pages -d dist"
   },
   "dependencies": {
     "lucide-react": "^0.344.0",

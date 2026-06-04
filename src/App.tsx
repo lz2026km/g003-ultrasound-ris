@@ -9,7 +9,7 @@ import {
   ShieldCheck, BarChart3, ClipboardCheck, BookOpen, Shield, ListChecks,
   Menu, X, Stethoscope, LogOut, Bell, Package, ShieldAlert, AlertTriangle,
   Camera, UserCheck, AlertCircle, GraduationCap, UsersRound, Database,
-  Scan, Heart, Thermometer, Droplets, Video, ClipboardList
+  Scan, Heart, Thermometer, Droplets, Video, ClipboardList, Wrench, DollarSign, Wifi, Sliders
 } from 'lucide-react'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
@@ -59,6 +59,11 @@ const ImagingModesPage = lazy(() => import('./pages/ImagingModesPage'))
 const ReportQCPage = lazy(() => import('./pages/ReportQCPage'))
 const ProbeManagementPage = lazy(() => import('./pages/ProbeManagementPage'))
 const ExamFlowPage = lazy(() => import('./pages/ExamFlowPage'))
+// v0.9.0 新增模块
+const RemoteUltrasoundPage = lazy(() => import('./pages/RemoteUltrasoundPage'))
+const DRGDIPPage = lazy(() => import('./pages/DRGDIPPage'))
+const WorkOrderPage = lazy(() => import('./pages/WorkOrderPage'))
+const MedicalAuditPage = lazy(() => import('./pages/MedicalAuditPage'))
 
 const SkeletonBlock = ({ width = '100%', height = 20, style = {} }: { width?: string | number, height?: number, style?: React.CSSProperties }) => (
   <div style={{
@@ -199,6 +204,7 @@ const NAV_ITEMS = [
       { path: '/probe-management', icon: Scan, label: '探头管理' },
       { path: '/disinfection', icon: ShieldCheck, label: '洗消追溯' },
       { path: '/disinfection-trace', icon: ShieldCheck, label: '洗消追溯增强' },
+      { path: '/workorder', icon: Wrench, label: '维修工单' },
     ],
   },
   {
@@ -210,6 +216,7 @@ const NAV_ITEMS = [
       { path: '/infection', icon: AlertCircle, label: '感染管理' },
       { path: '/consultation', icon: UserCheck, label: '会诊管理' },
       { path: '/remote-consultation', icon: Video, label: '远程会诊' },
+      { path: '/remote-ultrasound', icon: Wifi, label: '远程超声（实时）' },
     ],
   },
   {
@@ -231,6 +238,8 @@ const NAV_ITEMS = [
       { path: '/national-report', icon: ShieldAlert, label: '国家数据上报' },
       { path: '/data-report', icon: Database, label: '卫健委数据上报' },
       { path: '/insurance-audit', icon: ShieldCheck, label: '医保审核' },
+      { path: '/medical-audit', icon: ShieldCheck, label: '医保智能审核' },
+      { path: '/drg-dip', icon: DollarSign, label: 'DRG/DIP控费' },
       { path: '/research', icon: Database, label: '临床数据中心' },
     ],
   },
@@ -298,7 +307,7 @@ function AppShell() {
         <div style={s.sidebarFooter}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声影像信息管理系统</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.14.0</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.15.0</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
               onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
           </div>
@@ -320,7 +329,7 @@ function AppShell() {
             </span>
           </div>
           <div style={s.topbarRight}>
-            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.14.0</div>
+            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.15.0</div>
             <div style={s.topbarBadge}>
               <Bell size={20} />
               <span style={s.badge}>1</span>
@@ -391,6 +400,11 @@ function AppShell() {
             <Route path="/equipment-lifecycle" element={<EquipmentLifecyclePage />} />
             <Route path="/operations" element={<OperationsCenterPage />} />
             <Route path="/exam-flow" element={<ExamFlowPage />} />
+            {/* v0.9.0 新增 */}
+            <Route path="/remote-ultrasound" element={<RemoteUltrasoundPage />} />
+            <Route path="/drg-dip" element={<DRGDIPPage />} />
+            <Route path="/workorder" element={<WorkOrderPage />} />
+            <Route path="/medical-audit" element={<MedicalAuditPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
           </Suspense>
@@ -416,10 +430,10 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.14.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.15.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
-                  全面对标超声RIS行业竞品（蓝网科技/东软/联影/开立/岱嘉），整合所有产品优秀功能：词库辅助输入、模板分级管理(三级)、报告历史对比(可视化)、报告审核电子签名、危急值超时预警(30/60分钟)、工作量多维统计(医师/设备/部位/时段)、DICOM MWL强化(五步状态机/HL7模拟)、5G远程会诊模块、探头使用维护管理、卫健委数据上报接口；彻底清理所有内镜数据污染；配套扩充超声科演示数据
+                  v0.9.0 四大核心模块上线：1) 远程超声（实时）- 5G WebRTC+探头反控+5G云存储+录播管理+边缘节点；2) DRG/DIP医保控费 - 376 ADRG分组+6000+病种+病案质控+费用预测+控费建议；3) 维修工单 - 工单流转+巡检计划+配件库存+设备健康度+SLA管理；4) 医保智能审核 - 事前/事中/事后审核+248条规则+申诉管理
                 </div>
               </div>
               <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
