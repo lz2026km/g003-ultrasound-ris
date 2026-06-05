@@ -1,5 +1,5 @@
 import { useState, lazy, Suspense, createContext, useContext } from 'react'
-import { Routes, Route, Navigate, BrowserRouter, useNavigate, useLocation } from 'react-router-dom'
+import { Routes, Route, Navigate, HashRouter, useNavigate, useLocation } from 'react-router-dom'
 
 const NavigateCtx = createContext<(path: string) => void>(() => {})
 export const useNav = () => useContext(NavigateCtx)
@@ -257,9 +257,9 @@ const NAV_ITEMS = [
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <AppShell />
-    </BrowserRouter>
+    </HashRouter>
   )
 }
 
