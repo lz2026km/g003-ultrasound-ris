@@ -60,7 +60,7 @@ const s: Record<string, React.CSSProperties> = {
   cols: { display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 },
 
   // ===== 左栏 200px（窄） =====
-  leftCol: { width: 200, background: '#1e293b', color: '#cbd5e1', display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0, borderRight: '1px solid #334155' },
+  leftCol: { width: 180, background: '#1e293b', color: '#cbd5e1', display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0, borderRight: '1px solid #334155' },
   leftSection: { borderBottom: '1px solid #334155', overflow: 'hidden' },
   leftSectionTitle: { padding: '7px 12px', fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase' as const, letterSpacing: 0.8, display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#0f172a', cursor: 'pointer', userSelect: 'none' as const, minHeight: 32 },
   leftSectionContent: { padding: '3px 6px 5px', maxHeight: 160, overflowY: 'auto' as const },
@@ -72,7 +72,7 @@ const s: Record<string, React.CSSProperties> = {
   workArea: { display: 'flex', flex: 1, overflow: 'hidden', minHeight: 0 },
 
   // 影像区 **60%** = 864px（**主操作区**）
-  imageArea: { width: '60%', background: '#000', display: 'flex', flexDirection: 'column', position: 'relative', minWidth: 0, borderRight: '1px solid #334155' },
+  imageArea: { width: '70%', background: '#000', display: 'flex', flexDirection: 'column', position: 'relative', minWidth: 0, borderRight: '1px solid #334155' },
   imageToolbar: { padding: '5px 8px', background: '#1e293b', display: 'flex', gap: 4, alignItems: 'center', borderBottom: '1px solid #334155', flexWrap: 'wrap' as const, flexShrink: 0 },
   imageToolBtn: { padding: '4px 8px', borderRadius: 4, fontSize: 12, color: '#cbd5e1', cursor: 'pointer', border: 'none', background: 'transparent', display: 'flex', alignItems: 'center', gap: 3, minHeight: 26 },
   imageToolBtnActive: { padding: '4px 8px', borderRadius: 4, fontSize: 12, color: C.white, cursor: 'pointer', border: 'none', background: C.accent, display: 'flex', alignItems: 'center', gap: 3, minHeight: 26 },
@@ -97,7 +97,7 @@ const s: Record<string, React.CSSProperties> = {
   reportSectionTitle: { fontSize: 12, fontWeight: 700, color: C.primary, marginBottom: 6, display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
 
   // ===== 右栏 280px（窄） =====
-  rightCol: { width: 280, background: C.white, borderLeft: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 },
+  rightCol: { width: 240, background: C.white, borderLeft: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', overflow: 'hidden', flexShrink: 0 },
   rightTabs: { display: 'flex', borderBottom: `1px solid ${C.border}`, background: '#fafbfc', flexShrink: 0 },
   rightTab: { flex: 1, padding: '8px 4px', fontSize: 12, color: C.textLight, cursor: 'pointer', border: 'none', background: 'transparent', fontWeight: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, borderBottom: '2px solid transparent' },
   rightTabActive: { flex: 1, padding: '8px 4px', fontSize: 12, color: C.primary, cursor: 'pointer', border: 'none', background: C.white, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 3, borderBottom: `2px solid ${C.primary}` },
@@ -307,7 +307,7 @@ export default function ReportWritePagePro() {
                   <Activity size={64} color="#475569" />
                   <div style={{ marginTop: 14, fontSize: 18, color: '#94a3b8' }}>实时超声影像</div>
                   <div style={{ marginTop: 4, fontSize: 14, color: '#64748b' }}>{currentProtocol.name}</div>
-                  <div style={{ marginTop: 12, fontSize: 12, color: '#64748b' }}>864 × 1008 px 工作区</div>
+                  <div style={{ marginTop: 12, fontSize: 12, color: '#64748b' }}>1050 × 1008 px 工作区</div>
                 </div>
                 <span style={s.imageParams}>深度:{currentProtocol.depth}cm 增益:72 频率:{currentProtocol.frequency} TGC:5</span>
               </div>
