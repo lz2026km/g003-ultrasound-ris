@@ -1,4 +1,23 @@
-import { useState, lazy, Suspense, createContext, useContext } from 'react'
+import { useState, lazy, Suspense, createContext, useContext, Component } from 'react'
+
+// ErrorBoundary - 防止组件崩溃导致整个页面无法交互
+class ErrorBoundary extends Component<{children: React.ReactNode}, {hasError: boolean; error?: string}> {
+  constructor(props: any) { super(props); this.state = { hasError: false } }
+  static getDerivedStateFromError(error: any) { return { hasError: true, error: String(error) } }
+  componentDidCatch(error: any, errorInfo: any) { console.error('App Error:', error, errorInfo) }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 40, textAlign: 'center' }}>
+          <h2 style={{ color: '#dc2626' }}>⚠️ 组件加载出错</h2>
+          <p style={{ color: '#64748b' }}>{this.state.error}</p>
+          <button onClick={() => this.setState({ hasError: false })} style={{ padding: '10px 20px', background: '#1a365d', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', marginTop: 16 }}>重试</button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
+}
 import { Routes, Route, Navigate, HashRouter, useNavigate, useLocation } from 'react-router-dom'
 
 const NavigateCtx = createContext<(path: string) => void>(() => {})
@@ -63,7 +82,7 @@ const ExamFlowPage = lazy(() => import('./pages/ExamFlowPage'))
 const RemoteUltrasoundPage = lazy(() => import('./pages/RemoteUltrasoundPage'))
 const DRGDIPPage = lazy(() => import('./pages/DRGDIPPage'))
 const WorkOrderPage = lazy(() => import('./pages/WorkOrderPage'))
-// v0.18.5 专业报告工作站
+// v0.18.6 专业报告工作站
 const ReportWritePagePro = lazy(() => import('./pages/ReportWritePagePro'))
 const MedicalAuditPage = lazy(() => import('./pages/MedicalAuditPage'))
 
@@ -258,7 +277,9 @@ const NAV_ITEMS = [
 function App() {
   return (
     <HashRouter>
-      <AppShell />
+      <ErrorBoundary>
+        <AppShell />
+      </ErrorBoundary>
     </HashRouter>
   )
 }
@@ -310,7 +331,7 @@ function AppShell() {
         <div style={s.sidebarFooter}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声影像信息管理系统</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.18.5</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.18.6</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
               onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
           </div>
@@ -332,7 +353,7 @@ function AppShell() {
             </span>
           </div>
           <div style={s.topbarRight}>
-            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.18.5</div>
+            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.18.6</div>
             <div style={s.topbarBadge}>
               <Bell size={20} />
               <span style={s.badge}>1</span>
@@ -434,7 +455,7 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 480, overflowY: 'auto' }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.18.5 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.18.6 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
                   v0.9.0 四大核心模块上线：1) 远程超声（实时）- 5G WebRTC+探头反控+5G云存储+录播管理+边缘节点；2) DRG/DIP医保控费 - 376 ADRG分组+6000+病种+病案质控+费用预测+控费建议；3) 维修工单 - 工单流转+巡检计划+配件库存+设备健康度+SLA管理；4) 医保智能审核 - 事前/事中/事后审核+248条规则+申诉管理

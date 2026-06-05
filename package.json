@@ -1,6 +1,6 @@
 {
   "name": "g003-ultrasound-ris",
-  "version": "0.18.5",
+  "version": "0.18.6",
   "description": "智慧超声影像信息管理系统（超声RIS） - v0.16.0: 布局合理化+全模块 + v0.9.0四大核心模块",
   "scripts": {
     "dev": "vite --port 5190",
