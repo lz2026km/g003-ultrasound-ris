@@ -4,5 +4,6 @@
  */
 
 export { PlaneDetector, PLANE_LIBRARY } from './PlaneDetector';
-export { PlaneScorer, QualityScore } from './PlaneScorer';
+export { PlaneScorer } from
+export type { QualityScore } from './PlaneScorer';
 export type { PlaneType, PlaneDetection } from '../types';

@@ -1,6 +1,6 @@
 {
   "name": "g003-ultrasound-ris",
-  "version": "0.18.8",
+  "version": "0.18.9",
   "description": "智慧超声影像信息管理系统（超声RIS） - v0.16.0: 布局合理化+全模块 + v0.9.0四大核心模块",
   "scripts": {
     "dev": "vite --port 5190",
@@ -17,10 +17,13 @@
     "recharts": "^2.15.4"
   },
   "devDependencies": {
+    "@types/node": "^25.9.1",
     "@types/react": "^18.2.0",
     "@types/react-dom": "^18.2.0",
     "@vitejs/plugin-react": "^4.2.0",
+    "@vitest/ui": "^4.1.8",
     "typescript": "^5.3.0",
-    "vite": "^5.1.0"
+    "vite": "^5.1.0",
+    "vitest": "^4.1.8"
   }
 }

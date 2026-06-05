@@ -3,4 +3,5 @@
  */
 
 export { SEGLoader } from './SEGLoader';
-export { SEGViewer, OverlayOptions } from './SEGViewer';
+export { SEGViewer } from './SEGViewer';
+export type { OverlayOptions } from './SEGViewer';

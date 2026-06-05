@@ -113,8 +113,8 @@ export class AIStream {
           () => this.reportGenerator.generate(context, measurements),
           onProgress
         );
-        this.report.generatedText = reportData.generatedText;
-        measurements = this.collectMeasurements(reportData);
+        if (reportData) { this.report.generatedText = reportData.generatedText; }
+        if (reportData) { measurements = this.collectMeasurements(reportData); }
       }
 
       qualityResult = await this.executeStep(
@@ -131,17 +131,17 @@ export class AIStream {
 
       this.report.quality = {
         imageQuality: {
-          score: qualityResult.image?.star ?? 0,
-          issues: qualityResult.image?.issues ?? [],
-          suggestions: qualityResult.image?.suggestions ?? []
+          score: qualityResult?.image?.star ?? 0,
+          issues: qualityResult?.image?.issues ?? [],
+          suggestions: qualityResult?.image?.suggestions ?? []
         },
         reportQuality: {
-          completeness: qualityResult.report?.metrics.completeness ?? 0,
-          consistency: qualityResult.report?.metrics.consistency ?? 0,
-          standardization: qualityResult.report?.metrics.standardization ?? 0,
-          issues: qualityResult.report?.issues ?? []
+          completeness: qualityResult?.report?.metrics.completeness ?? 0,
+          consistency: qualityResult?.report?.metrics.consistency ?? 0,
+          standardization: qualityResult?.report?.metrics.standardization ?? 0,
+          issues: qualityResult?.report?.issues ?? []
         },
-        overall: qualityResult.overall
+        overall: qualityResult?.overall ?? 0
       };
     } else if (this.config.enableLLMGeneration) {
       // 仅 LLM 生成

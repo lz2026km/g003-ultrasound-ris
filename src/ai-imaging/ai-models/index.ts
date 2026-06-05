@@ -2,4 +2,5 @@
  * AI模型管理模块入口
  */
 
-export { ModelManager, AIModel, registerDefaultModels } from './ModelManager';
+export { ModelManager, registerDefaultModels } from './ModelManager';
+export type { AIModel } from './ModelManager';

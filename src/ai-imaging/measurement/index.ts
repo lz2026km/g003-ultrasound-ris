@@ -2,4 +2,5 @@
  * 自动测量模块入口
  */
 
-export { BiometricMeasure, FetalMeasurement } from './BiometricMeasure';
+export { BiometricMeasure } from './BiometricMeasure';
+export type { FetalMeasurement } from './BiometricMeasure';
