@@ -1,7 +1,7 @@
 {
   "name": "g003-ultrasound-ris",
-  "version": "0.15.0",
-  "description": "智慧超声影像信息管理系统（超声RIS） - v0.15.0: 远程超声(实时)+DRG/DIP+维修工单+医保智能审核",
+  "version": "0.16.0",
+  "description": "智慧超声影像信息管理系统（超声RIS） - v0.16.0: 布局合理化+全模块 + v0.9.0四大核心模块",
   "scripts": {
     "dev": "vite --port 5190",
     "build": "vite build",
