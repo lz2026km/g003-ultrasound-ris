@@ -9,7 +9,7 @@ import {
   ShieldCheck, BarChart3, ClipboardCheck, BookOpen, Shield, ListChecks,
   Menu, X, Stethoscope, LogOut, Bell, Package, ShieldAlert, AlertTriangle,
   Camera, UserCheck, AlertCircle, GraduationCap, UsersRound, Database,
-  Scan, Heart, Thermometer, Droplets, Video, ClipboardList, Wrench, DollarSign, Wifi, Sliders
+  Scan, Heart, Thermometer, Droplets, Video, ClipboardList, Wrench, DollarSign, Wifi, Sliders, Brain
 } from 'lucide-react'
 
 const HomePage = lazy(() => import('./pages/HomePage'))
