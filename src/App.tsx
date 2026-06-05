@@ -427,7 +427,7 @@ function AppShell() {
                 lineHeight: 1,
               }}>×</button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 480, overflowY: 'auto' }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
                   v0.15.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
@@ -436,7 +436,31 @@ function AppShell() {
                   v0.9.0 四大核心模块上线：1) 远程超声（实时）- 5G WebRTC+探头反控+5G云存储+录播管理+边缘节点；2) DRG/DIP医保控费 - 376 ADRG分组+6000+病种+病案质控+费用预测+控费建议；3) 维修工单 - 工单流转+巡检计划+配件库存+设备健康度+SLA管理；4) 医保智能审核 - 事前/事中/事后审核+248条规则+申诉管理
                 </div>
               </div>
-              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '#e2e8f0' }}>
+              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
+                  v0.14.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（竞品整合版）</span>
+                </div>
+                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
+                  全面对标超声RIS行业竞品（蓝网科技/东软/联影/开立/岱嘉），整合所有产品优秀功能：词库辅助输入、模板分级管理(三级)、报告历史对比(可视化)、报告审核电子签名、危急值超时预警(30/60分钟)、工作量多维统计(医师/设备/部位/时段)、DICOM MWL强化(五步状态机/HL7模拟)、5G远程会诊模块、探头使用维护管理、卫健委数据上报接口；彻底清理所有内镜数据污染；配套扩充超声科演示数据
+                </div>
+              </div>
+              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
+                  v0.13.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（超声RIS独立版）</span>
+                </div>
+                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
+                  G003超声RIS正式从G004内镜系统拆分独立，初始化47个核心业务模块，包含：首页仪表盘、工作列表、预约管理、患者管理、排班管理、检查管理、报告管理、危急值管理、质控统计、AI辅助诊断、设备台账、物资管理、护理管理、运营大屏、知识词库、继续教育等；基础DICOM浏览与测量工具；200+医学术语/24套报告模板
+                </div>
+              </div>
+              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
+                  v0.8.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（AI原生版）</span>
+                </div>
+                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
+                  AIStream智能工作流 + 影像AI模块：对标联影uSONIQUE AIStream，实现4步流水线（识别→测量→评价→生成）；切面识别（PlaneDetector + PlaneScorer）；智能测量（MeasureEngine + 规则库）；LLM流式报告生成（基于MiniMax-M3）；图像质量+报告质量双轨评价（0-100分+5维度）；影像AI：DICOM SEG查看器+甲状腺/乳腺/颈动脉/肝脏4个病灶检测器+胎儿生物测量（BiometricMeasure）；开启G003从「功能齐全」到「AI原生」的战略升维
+                </div>
+              </div>
+              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
                 <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
                   v0.1.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（初始版本）</span>
                 </div>
