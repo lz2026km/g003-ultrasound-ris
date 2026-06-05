@@ -22,13 +22,15 @@
  */
 
 import React, { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   FileText, Stethoscope, Activity, BookOpen, History, ShieldCheck,
   Save, Printer, Send, Mic, MicOff, Camera, Ruler, Image, Type,
   Check, ChevronDown, ChevronRight, Sparkles, Plus, AlertTriangle,
   Brain, Award, Network, BookMarked, Target, Lightbulb, ExternalLink,
   Database, ListChecks, GitBranch, RefreshCw, FileCheck, CheckCircle2,
-  ArrowRight, Crosshair, Edit3, Clock, TrendingUp, Cpu, Stethoscope as Steth
+  ArrowRight, Crosshair, Edit3, Clock, TrendingUp, Cpu, Stethoscope as Steth,
+  X, Home, Maximize2, Minimize2
 } from 'lucide-react'
 
 import {
@@ -47,7 +49,7 @@ const C = {
 
 // 1920×1080 像素级优化：每个 padding/margin 都经过计算
 const s: Record<string, React.CSSProperties> = {
-  root: { display: 'flex', flexDirection: 'column', height: 'calc(100vh - 60px)', background: '#f0f4f8', fontSize: 16, fontFamily: '"Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif', overflow: 'hidden' },
+  root: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 9999, display: 'flex', flexDirection: 'column', background: '#f0f4f8', fontSize: 16, fontFamily: '"Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif', overflow: 'hidden' },
 
   // ===== 顶栏 1920×68 =====
   topbar: { background: C.white, padding: '10px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', zIndex: 100, position: 'relative', flexShrink: 0 },
@@ -158,6 +160,8 @@ const MEASUREMENTS = [
 ]
 
 export default function ReportWritePagePro() {
+  const navigate = useNavigate()
+
   const [centerTab, setCenterTab] = useState('work')
   const [rightTab, setRightTab] = useState('cdss')
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
@@ -188,15 +192,23 @@ export default function ReportWritePagePro() {
       {/* ===== 顶栏 1920×68 ===== */}
       <div style={s.topbar}>
         <div style={s.topbarLeft}>
+          <button
+            style={{ ...s.btn, background: 'rgba(255,255,255,0.15)', color: C.white, border: '1px solid rgba(255,255,255,0.3)' }}
+            onClick={() => navigate('/')}
+            title="返回主界面"
+          >
+            <Home size={15} /> 返回主界面
+          </button>
+          <div style={{ width: 1, height: 28, background: 'rgba(255,255,255,0.3)', margin: '0 6px' }} />
           <div style={s.reportId}>RPT-2026-0605-001</div>
-          <span style={s.patientChip}><FileText size={15} /> {CURRENT_PATIENT.name} | {CURRENT_PATIENT.age}岁 {CURRENT_PATIENT.gender}</span>
+          <span style={{ ...s.patientChip, background: 'rgba(255,255,255,0.15)', color: C.white, border: '1px solid rgba(255,255,255,0.3)' }}><FileText size={15} /> {CURRENT_PATIENT.name} | {CURRENT_PATIENT.age}岁 {CURRENT_PATIENT.gender}</span>
           <span style={{ ...s.statusChip, background: '#fef3c7', color: C.warning }}>● 书写中</span>
           <span style={{ ...s.scoreChip, background: qualityScore >= 90 ? C.success : C.warning }}>质控 {qualityScore}</span>
         </div>
         <div style={s.topbarRight}>
-          <button style={{ ...s.btn, ...s.btnOutline }}><History size={14} /> v3</button>
-          <button style={{ ...s.btn, ...s.btnOutline }}><Printer size={14} /> 打印</button>
-          <button style={{ ...s.btn, ...s.btnOutline }}><Save size={14} /> 暂存</button>
+          <button style={{ ...s.btn, background: 'rgba(255,255,255,0.15)', color: C.white, border: '1px solid rgba(255,255,255,0.3)' }}><History size={14} /> v3</button>
+          <button style={{ ...s.btn, background: 'rgba(255,255,255,0.15)', color: C.white, border: '1px solid rgba(255,255,255,0.3)' }}><Printer size={14} /> 打印</button>
+          <button style={{ ...s.btn, background: 'rgba(255,255,255,0.15)', color: C.white, border: '1px solid rgba(255,255,255,0.3)' }}><Save size={14} /> 暂存</button>
           <button style={{ ...s.btn, ...s.btnSuccess }}><Send size={14} /> 提交审核</button>
         </div>
       </div>
