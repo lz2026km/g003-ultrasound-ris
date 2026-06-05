@@ -63,7 +63,7 @@ const ExamFlowPage = lazy(() => import('./pages/ExamFlowPage'))
 const RemoteUltrasoundPage = lazy(() => import('./pages/RemoteUltrasoundPage'))
 const DRGDIPPage = lazy(() => import('./pages/DRGDIPPage'))
 const WorkOrderPage = lazy(() => import('./pages/WorkOrderPage'))
-// v0.17.2 专业报告工作站
+// v0.18.0 专业报告工作站
 const ReportWritePagePro = lazy(() => import('./pages/ReportWritePagePro'))
 const MedicalAuditPage = lazy(() => import('./pages/MedicalAuditPage'))
 
@@ -310,7 +310,7 @@ function AppShell() {
         <div style={s.sidebarFooter}>
           <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声影像信息管理系统</div>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.17.2</div>
+            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.18.0</div>
             <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
               onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
           </div>
@@ -332,7 +332,7 @@ function AppShell() {
             </span>
           </div>
           <div style={s.topbarRight}>
-            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.17.2</div>
+            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.18.0</div>
             <div style={s.topbarBadge}>
               <Bell size={20} />
               <span style={s.badge}>1</span>
@@ -434,7 +434,7 @@ function AppShell() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 480, overflowY: 'auto' }}>
               <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
                 <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.17.2 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+                  v0.18.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
                 </div>
                 <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
                   v0.9.0 四大核心模块上线：1) 远程超声（实时）- 5G WebRTC+探头反控+5G云存储+录播管理+边缘节点；2) DRG/DIP医保控费 - 376 ADRG分组+6000+病种+病案质控+费用预测+控费建议；3) 维修工单 - 工单流转+巡检计划+配件库存+设备健康度+SLA管理；4) 医保智能审核 - 事前/事中/事后审核+248条规则+申诉管理
