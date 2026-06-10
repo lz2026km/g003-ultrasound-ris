@@ -2,7 +2,7 @@
 // G003 超声RIS系统 - AI智能质控中心页面（完整增强版）
 // 图像质量自动评分 · 22张图片标准检测 · 质控指标仪表盘 · 质控统计报表
 // ============================================================
-import React, { useState, useMemo, useCallback } from 'react'
+import React, { useState, useMemo, useCallback, useEffect } from 'react'
 import {
   Shield, AlertTriangle, CheckCircle, Award, Activity, Calendar,
   Filter, Download, ChevronRight, Clock, Image, FileText, TrendingUp,
@@ -14,8 +14,10 @@ import {
   CameraOff, Contrast, Layers2,
   BarChart, ArrowUp, ArrowDown, EyeOff, FileCheck, ClipboardList
 } from 'lucide-react'
+import { mockApi } from '../data/mockApi'
+
 // ========== 常量与类型 ==========
-type TabKey = 'realtime' | 'history' | 'scoring' | 'models' | 'dashboard' | 'reports'
+type TabKey = 'realtime' | 'history' | 'scoring' | 'models' | 'dashboard' | 'reports' | 'pathology'
 
 interface ImageQCResult {
   id: string
@@ -773,6 +775,10 @@ export default function AIQCPage() {
         <button style={activeTab === 'models' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('models')}>
           <Cpu size={16} />AI模型
         </button>
+        {/* v0.19.4 P0-2: 影像-病理符合率质控 Tab */}
+        <button style={activeTab === 'pathology' ? s.tabBtnActive : s.tabBtn} onClick={() => setActiveTab('pathology')}>
+          <FileCheck size={16} />影像-病理符合率
+        </button>
       </div>
 
       {/* ========== 实时检测 ========== */}
@@ -1257,6 +1263,175 @@ export default function AIQCPage() {
                 </div>
               </div>
             ))}
+          </div>
+        </>
+      )}
+
+      {/* ========== v0.19.4 P0-2: 影像-病理符合率质控 ========== */}
+      {activeTab === 'pathology' && <PathologyQCTab />}
+    </div>
+  )
+}
+
+// v0.19.4 P0-2: 影像-病理符合率质控 Tab 子组件
+function PathologyQCTab() {
+  const [records, setRecords] = useState<any[]>([])
+  const [stats, setStats] = useState<any>(null)
+  const [filter, setFilter] = useState('all')
+  const [keyword, setKeyword] = useState('')
+  const [loading, setLoading] = useState(false)
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const filters: any = {}
+      if (filter !== 'all') filters.matchLevel = filter
+      if (keyword) filters.keyword = keyword
+      const [listRes, statsRes] = await Promise.all([
+        mockApi.getPathologyQCList(filters),
+        mockApi.getPathologyQCStats(),
+      ])
+      setRecords(listRes.items)
+      setStats(statsRes)
+    } finally {
+      setLoading(false)
+    }
+  }
+  useEffect(() => { fetchData() }, [filter])
+  const matchColor = (lvl: string) =>
+    lvl === '完全符合' ? '#16a34a' : lvl === '基本符合' ? '#2563eb' : lvl === '不符合' ? '#dc2626' : '#94a3b8'
+  return (
+    <div>
+      {/* 头部筛选 */}
+      <div style={{ display: 'flex', gap: 12, marginBottom: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {['all', '完全符合', '基本符合', '不符合', '待定'].map(f => (
+            <button key={f}
+              onClick={() => setFilter(f)}
+              style={{
+                padding: '6px 12px', fontSize: 12, borderRadius: 6, border: '1px solid #e2e8f0', cursor: 'pointer',
+                background: filter === f ? '#6366f1' : '#fff', color: filter === f ? '#fff' : '#475569',
+                fontWeight: filter === f ? 600 : 400,
+              }}
+            >{f === 'all' ? '全部' : f}</button>
+          ))}
+        </div>
+        <input
+          style={{ flex: 1, minWidth: 200, padding: '6px 10px', fontSize: 12, border: '1px solid #cbd5e1', borderRadius: 6, outline: 'none' }}
+          placeholder="搜索患者姓名/记录ID/检查ID..."
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && fetchData()}
+        />
+        <button onClick={fetchData} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 14px', fontSize: 12, borderRadius: 6, border: 'none', background: '#6366f1', color: '#fff', cursor: 'pointer', fontWeight: 600 }}>
+          <Search size={12} />查询
+        </button>
+        <button onClick={fetchData} style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 14px', fontSize: 12, borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', color: '#475569', cursor: 'pointer' }}>
+          <RefreshCw size={12} />刷新
+        </button>
+      </div>
+      {loading && <div style={{ padding: 40, textAlign: 'center', color: '#94a3b8' }}>加载中...</div>}
+      {!loading && stats && (
+        <>
+          {/* 5 大指标卡 */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 12, marginBottom: 18 }}>
+            <div style={{ background: '#fff', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>总病例</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#1a3a5c' }}>{stats.totalCases}</div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb', borderLeft: '4px solid #16a34a' }}>
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>完全符合</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#16a34a' }}>{stats.fullMatch}</div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb', borderLeft: '4px solid #2563eb' }}>
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>基本符合</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#2563eb' }}>{stats.basicMatch}</div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb', borderLeft: '4px solid #dc2626' }}>
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>不符合</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#dc2626' }}>{stats.mismatch}</div>
+            </div>
+            <div style={{ background: '#fff', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb', borderLeft: '4px solid #6366f1' }}>
+              <div style={{ fontSize: 12, color: '#64748b', marginBottom: 6 }}>总符合率</div>
+              <div style={{ fontSize: 24, fontWeight: 800, color: '#6366f1' }}>{stats.matchRate}%</div>
+            </div>
+          </div>
+          {/* 医生 + 模态 双维度排行 */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 18 }}>
+            <div style={{ background: '#fff', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a5c', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <User size={14} />医生符合率排行（Top 5）
+              </div>
+              {stats.byDoctor.slice(0, 5).map((d: any, i: number) => (
+                <div key={d.doctorName} style={{ display: 'flex', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid #f1f5f9' }}>
+                  <span style={{ width: 24, height: 24, borderRadius: 12, background: i < 3 ? '#fef3c7' : '#f1f5f9', color: i < 3 ? '#d97706' : '#94a3b8', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, marginRight: 10 }}>{i + 1}</span>
+                  <span style={{ flex: 1, fontSize: 13 }}>{d.doctorName}</span>
+                  <span style={{ fontSize: 11, color: '#94a3b8', marginRight: 10 }}>{d.total} 例</span>
+                  <span style={{ fontSize: 14, fontWeight: 700, color: d.matchRate >= 80 ? '#16a34a' : d.matchRate >= 60 ? '#d97706' : '#dc2626' }}>{d.matchRate}%</span>
+                </div>
+              ))}
+            </div>
+            <div style={{ background: '#fff', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a5c', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+                <Activity size={14} />检查模态符合率
+              </div>
+              {stats.byModality.map((m: any) => (
+                <div key={m.modality} style={{ marginBottom: 10 }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 12, marginBottom: 4 }}>
+                    <span>{m.modality}</span>
+                    <span style={{ fontWeight: 600, color: m.matchRate >= 80 ? '#16a34a' : m.matchRate >= 60 ? '#d97706' : '#dc2626' }}>{m.matchRate}%</span>
+                  </div>
+                  <div style={{ height: 6, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden' }}>
+                    <div style={{ width: `${m.matchRate}%`, height: '100%', background: m.matchRate >= 80 ? '#16a34a' : m.matchRate >= 60 ? '#d97706' : '#dc2626' }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          {/* 记录表格 */}
+          <div style={{ background: '#fff', borderRadius: 10, padding: 16, border: '1px solid #e5e7eb' }}>
+            <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a5c', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 6 }}>
+              <FileText size={14} />影像-病理符合记录（共 {records.length} 条，显示前 50）
+            </div>
+            <div style={{ maxHeight: 480, overflowY: 'auto' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+                <thead>
+                  <tr style={{ background: '#f8fafc', position: 'sticky', top: 0 }}>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>记录ID</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>检查ID</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>患者</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>影像所见</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>影像诊断</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>病理诊断</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>符合等级</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>符合分</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>病理医院</th>
+                    <th style={{ padding: '8px 10px', textAlign: 'left', fontWeight: 600, color: '#475569', borderBottom: '2px solid #e2e8f0' }}>报告医生</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {records.slice(0, 50).map((r: any) => (
+                    <tr key={r.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                      <td style={{ padding: '6px 10px', color: '#1a3a5c' }}>{r.id}</td>
+                      <td style={{ padding: '6px 10px' }}>{r.examId}</td>
+                      <td style={{ padding: '6px 10px' }}>{r.patientName}</td>
+                      <td style={{ padding: '6px 10px', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={r.imagingFindings}>{r.imagingFindings}</td>
+                      <td style={{ padding: '6px 10px' }}>{r.imagingConclusion}</td>
+                      <td style={{ padding: '6px 10px' }}>{r.pathologyDiagnosis}</td>
+                      <td style={{ padding: '6px 10px' }}>
+                        <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: 11, fontWeight: 600, background: matchColor(r.matchLevel) + '20', color: matchColor(r.matchLevel) }}>
+                          {r.matchLevel}
+                        </span>
+                      </td>
+                      <td style={{ padding: '6px 10px' }}>
+                        <span style={{ fontWeight: 700, color: matchColor(r.matchLevel) }}>{r.matchScore}</span>
+                      </td>
+                      <td style={{ padding: '6px 10px' }}>{r.pathologyHospital}</td>
+                      <td style={{ padding: '6px 10px' }}>{r.doctorName}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </>
       )}

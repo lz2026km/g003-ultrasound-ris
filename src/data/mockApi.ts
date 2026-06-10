@@ -382,6 +382,163 @@ export async function generateStructuredReport(
 }
 
 // ============================================================
+// v0.19.4 P0-2: 影像-病理符合率质控（对标联影 AI PACS + 华声 AI 质控）
+// ============================================================
+export interface PathologyRecord {
+  id: string
+  examId: string                  // 关联检查
+  patientId: string
+  patientName: string
+  imagingFindings: string          // 影像所见
+  imagingConclusion: string       // 影像诊断
+  pathologyDiagnosis: string       // 病理诊断
+  pathologyReportNo: string       // 病理报告号
+  pathologyDate: string
+  pathologyHospital: string        // 病理送检医院
+  matchLevel: '完全符合' | '基本符合' | '不符合' | '待定'
+  matchScore: number              // 0-100
+  discrepancyNote?: string        // 不符合备注
+  doctorId: string
+  doctorName: string
+  createdAt: string
+}
+
+export interface PathologyQCStats {
+  totalCases: number              // 总病例
+  fullMatch: number               // 完全符合
+  basicMatch: number              // 基本符合
+  mismatch: number                // 不符合
+  pending: number                 // 待定
+  matchRate: number               // 符合率 %
+  mismatchRate: number            // 不符合率 %
+  byDoctor: { doctorName: string; total: number; matchRate: number }[]
+  byModality: { modality: string; total: number; matchRate: number }[]
+  monthly: { month: string; total: number; matchRate: number; mismatch: number }[]
+}
+
+/** 影像-病理符合率记录（mock 200 条）*/
+export async function getPathologyQCList(filters: {
+  matchLevel?: string
+  modality?: string
+  dateFrom?: string
+  dateTo?: string
+  keyword?: string
+} = {}) {
+  await delay()
+  const doctors = ['王志远', '李素芬', '张明', '陈晓东', '刘欢']
+  const modalities = ['腹部超声', '心脏超声', '妇产超声', '浅表超声', '血管超声']
+  const hospitals = ['本院病理科', '协和医院病理科', '301医院病理科', '省肿瘤医院病理科']
+  const matchLevels: PathologyRecord['matchLevel'][] = ['完全符合', '基本符合', '不符合', '待定']
+  const matches: PathologyRecord[] = []
+  for (let i = 0; i < 200; i++) {
+    const r = (Math.sin(i * 13.37) + 1) / 2 // 0-1 伪随机
+    const lvl = r > 0.6 ? '完全符合' : r > 0.3 ? '基本符合' : r > 0.1 ? '不符合' : '待定'
+    const score = lvl === '完全符合' ? 90 + Math.floor(r * 10) : lvl === '基本符合' ? 70 + Math.floor(r * 20) : lvl === '不符合' ? 30 + Math.floor(r * 30) : 0
+    matches.push({
+      id: `P${String(i + 1).padStart(4, '0')}`,
+      examId: `E${String(1000 + i).padStart(5, '0')}`,
+      patientId: `P${String(10000 + i).padStart(6, '0')}`,
+      patientName: `患者${String(i + 1).padStart(3, '0')}`,
+      imagingFindings: lvl === '不符合' ? '影像提示占位性病变，大小约 2.5×1.8cm' : '检查区域结构清晰，未见明显占位性病变',
+      imagingConclusion: lvl === '不符合' ? '考虑良性肿瘤可能' : '超声检查未见明显异常',
+      pathologyDiagnosis: lvl === '不符合' ? '恶性肿瘤（腺癌）' : lvl === '基本符合' ? '良性肿瘤（腺瘤）' : '未见恶性细胞',
+      pathologyReportNo: `B${String(20240000 + i)}`,
+      pathologyDate: `2024-${String(Math.floor(i / 20) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}`,
+      pathologyHospital: hospitals[i % hospitals.length],
+      matchLevel: lvl,
+      matchScore: score,
+      discrepancyNote: lvl === '不符合' ? '影像误判为良性，病理证实恶性，建议复盘' : '',
+      doctorId: `D${(i % 5) + 1}`,
+      doctorName: doctors[i % doctors.length],
+      createdAt: `2024-${String(Math.floor(i / 20) + 1).padStart(2, '0')}-${String((i % 28) + 1).padStart(2, '0')}T10:00:00Z`,
+    })
+  }
+  let filtered = matches
+  if (filters.matchLevel) filtered = filtered.filter(m => m.matchLevel === filters.matchLevel)
+  if (filters.modality) filtered = filtered.filter((_, idx) => modalities[idx % modalities.length] === filters.modality)
+  if (filters.keyword) {
+    const k = filters.keyword.toLowerCase()
+    filtered = filtered.filter(m =>
+      m.patientName.toLowerCase().includes(k) ||
+      m.id.toLowerCase().includes(k) ||
+      m.examId.toLowerCase().includes(k)
+    )
+  }
+  return {
+    items: filtered,
+    total: filtered.length,
+    modalities,
+  }
+}
+
+/** 影像-病理符合率统计（仪表盘）*/
+export async function getPathologyQCStats() {
+  await delay()
+  const list = await getPathologyQCList()
+  const total = list.items.length
+  const fullMatch = list.items.filter(m => m.matchLevel === '完全符合').length
+  const basicMatch = list.items.filter(m => m.matchLevel === '基本符合').length
+  const mismatch = list.items.filter(m => m.matchLevel === '不符合').length
+  const pending = list.items.filter(m => m.matchLevel === '待定').length
+  const matchRate = total > 0 ? Math.round(((fullMatch + basicMatch) / total) * 1000) / 10 : 0
+  const mismatchRate = total > 0 ? Math.round((mismatch / total) * 1000) / 10 : 0
+  // 医生维度
+  const doctorMap: Record<string, { total: number; match: number }> = {}
+  list.items.forEach(m => {
+    if (!doctorMap[m.doctorName]) doctorMap[m.doctorName] = { total: 0, match: 0 }
+    doctorMap[m.doctorName].total++
+    if (m.matchLevel === '完全符合' || m.matchLevel === '基本符合') doctorMap[m.doctorName].match++
+  })
+  const byDoctor = Object.entries(doctorMap).map(([doctorName, v]) => ({
+    doctorName,
+    total: v.total,
+    matchRate: v.total > 0 ? Math.round((v.match / v.total) * 1000) / 10 : 0,
+  })).sort((a, b) => b.matchRate - a.matchRate)
+  // 模态维度
+  const modalityMap: Record<string, { total: number; match: number }> = {}
+  list.items.forEach((_, idx) => {
+    const mod = list.modalities[idx % list.modalities.length]
+    if (!modalityMap[mod]) modalityMap[mod] = { total: 0, match: 0 }
+    modalityMap[mod].total++
+    if (list.items[idx].matchLevel === '完全符合' || list.items[idx].matchLevel === '基本符合') modalityMap[mod].match++
+  })
+  const byModality = Object.entries(modalityMap).map(([modality, v]) => ({
+    modality,
+    total: v.total,
+    matchRate: v.total > 0 ? Math.round((v.match / v.total) * 1000) / 10 : 0,
+  })).sort((a, b) => b.matchRate - a.matchRate)
+  // 月度趋势
+  const monthMap: Record<string, { total: number; match: number; mismatch: number }> = {}
+  list.items.forEach(m => {
+    const month = m.createdAt.substring(0, 7)
+    if (!monthMap[month]) monthMap[month] = { total: 0, match: 0, mismatch: 0 }
+    monthMap[month].total++
+    if (m.matchLevel === '完全符合' || m.matchLevel === '基本符合') monthMap[month].match++
+    if (m.matchLevel === '不符合') monthMap[month].mismatch++
+  })
+  const monthly = Object.entries(monthMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([month, v]) => ({
+      month,
+      total: v.total,
+      matchRate: v.total > 0 ? Math.round((v.match / v.total) * 1000) / 10 : 0,
+      mismatch: v.mismatch,
+    }))
+  return {
+    totalCases: total,
+    fullMatch,
+    basicMatch,
+    mismatch,
+    pending,
+    matchRate,
+    mismatchRate,
+    byDoctor,
+    byModality,
+    monthly,
+  }
+}
+
+// ============================================================
 // 统一导出
 // ============================================================
 export const mockApi = {
@@ -393,6 +550,8 @@ export const mockApi = {
   getExamList, updateExamStatus,
   // v0.19.4
   generateStructuredReport,
+  // v0.19.4 P0-2
+  getPathologyQCList, getPathologyQCStats,
 }
 
 export default mockApi
