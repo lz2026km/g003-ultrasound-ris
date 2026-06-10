@@ -11,10 +11,11 @@ import {
   AlertCircle, ClipboardList, Save, RotateCcw, Timer,
   Radio, DoorOpen, SprayCan, Settings, ChevronRight,
   Eye, ThumbsUp, ThumbsDown, Copy, X, ChevronDown, ChevronUp,
-  Smartphone, Monitor,
+  Smartphone, Monitor, Sparkles,
 } from 'lucide-react'
 import { initialAppointments, initialUltrasoundExams, initialExamRooms } from '../data/initialData'
 import { mockApi } from '../data/mockApi'
+import { runFullUltrasoundAI, AI_MODULE_NAMES, AI_MODULE_ORDER, AIModuleKey, AIModuleResult, FullAIOutput } from '../data/fullUltrasoundAI'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EndoscopyExam = any
 
@@ -2338,6 +2339,9 @@ export default function ExamPage() {
                 {renderPhaseTimeline()}
               </div>
 
+              {/* v0.19.4 P0-3: 全流程 AI 辅助（5 大模块串联） */}
+              <FullUltrasoundAIPanel exam={activeExam} />
+
               {/* 操作按钮 */}
               <div style={s.actionRowWrap}>
                 {activeExam.status === '已接诊' && (
@@ -2792,6 +2796,128 @@ export default function ExamPage() {
           50% { opacity: 0.3; }
         }
       `}</style>
+    </div>
+  )
+}
+
+// ============================================================
+// v0.19.4 P0-3: 全流程 AI 辅助协调器组件
+// ============================================================
+function FullUltrasoundAIPanel({ exam }: { exam: any }) {
+  const [running, setRunning] = useState(false)
+  const [progress, setProgress] = useState<Record<string, number>>({})
+  const [results, setResults] = useState<AIModuleResult[]>([])
+  const [summary, setSummary] = useState<FullAIOutput['summary'] | null>(null)
+  const [totalMs, setTotalMs] = useState(0)
+  const [expanded, setExpanded] = useState(false)
+  const startAI = async () => {
+    setRunning(true)
+    setProgress({})
+    setResults([])
+    setSummary(null)
+    setTotalMs(0)
+    try {
+      const output = await runFullUltrasoundAI(
+        {
+          examId: exam.id || 'unknown',
+          examItemName: exam.examItem || exam.examItemName || '',
+          patientId: exam.patientId,
+          patientName: exam.patientName,
+          gender: exam.gender,
+          age: exam.age,
+          doctorId: exam.doctorId,
+          doctorName: exam.doctorName,
+          imageCount: exam.imageCount || 22,
+        },
+        {
+          onModuleProgress: (m, p) => setProgress((prev) => ({ ...prev, [m]: p })),
+          onModuleEnd: (r) => setResults((prev) => [...prev, r]),
+        }
+      )
+      setSummary(output.summary)
+      setTotalMs(output.totalDurationMs)
+      setExpanded(true)
+    } finally {
+      setRunning(false)
+    }
+  }
+  return (
+    <div style={{ background: 'linear-gradient(135deg, #f0f4ff 0%, #faf5ff 100%)', border: '1px solid #c7d2fe', borderRadius: 10, padding: 14, marginBottom: 14 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: '#1a3a5c', display: 'flex', alignItems: 'center', gap: 6 }}>
+          <Sparkles size={14} color="#6366f1" />全流程 AI 辅助（P0-3 · 5 大模块串联）
+          {totalMs > 0 && !running && (
+            <span style={{ fontSize: 11, fontWeight: 400, color: '#64748b' }}>· 总耗时 {(totalMs / 1000).toFixed(1)}s</span>
+          )}
+        </div>
+        <div style={{ display: 'flex', gap: 6 }}>
+          {(results.length > 0 || running) && (
+            <button onClick={() => setExpanded(!expanded)} style={{ padding: '4px 10px', fontSize: 11, borderRadius: 6, border: '1px solid #cbd5e1', background: '#fff', color: '#475569', cursor: 'pointer' }}>
+              {expanded ? '收起详情' : '展开详情'}
+            </button>
+          )}
+          <button
+            onClick={startAI}
+            disabled={running}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 4,
+              padding: '6px 14px', fontSize: 12, borderRadius: 6, border: 'none',
+              background: running ? '#94a3b8' : 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              color: '#fff', cursor: running ? 'not-allowed' : 'pointer', fontWeight: 600,
+              boxShadow: '0 2px 6px rgba(99,102,241,0.3)',
+            }}
+          >
+            <Sparkles size={12} />
+            {running ? `AI 运行中（${results.length}/${AI_MODULE_ORDER.length}）` : '一键启动全流程 AI'}
+          </button>
+        </div>
+      </div>
+      {/* 5 大模块进度条（始终显示，初始为待执行） */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 8 }}>
+        {AI_MODULE_ORDER.map((m) => {
+          const p = progress[m] || 0
+          const finished = results.find(r => r.module === m)
+          const isRunning = running && !finished && results[results.length - 1]?.module !== m
+          const color = finished ? (finished.status === 'success' ? '#16a34a' : '#dc2626') : isRunning ? '#6366f1' : '#cbd5e1'
+          return (
+            <div key={m} style={{ background: '#fff', borderRadius: 8, padding: 10, border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: 11, color: '#64748b', marginBottom: 4 }}>{AI_MODULE_NAMES[m]}</div>
+              <div style={{ height: 5, background: '#f1f5f9', borderRadius: 3, overflow: 'hidden', marginBottom: 4 }}>
+                <div style={{ width: `${finished ? 100 : p}%`, height: '100%', background: color, transition: 'width 100ms ease-out' }} />
+              </div>
+              <div style={{ fontSize: 10, color }}>
+                {finished ? (finished.status === 'success' ? '✓ 完成' : '✗ 失败') :
+                  isRunning ? `${p}%` :
+                  running ? '等待中' : '待执行'}
+              </div>
+            </div>
+          )
+        })}
+      </div>
+      {/* 展开：模块详情 + 汇总 */}
+      {expanded && (results.length > 0 || summary) && (
+        <div style={{ marginTop: 12, padding: 12, background: '#fff', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+          {summary && (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 10, marginBottom: 12 }}>
+              <div><div style={{ fontSize: 10, color: '#94a3b8' }}>识别切面</div><div style={{ fontSize: 18, fontWeight: 700, color: '#1a3a5c' }}>{summary.planeCount}</div></div>
+              <div><div style={{ fontSize: 10, color: '#94a3b8' }}>测量项</div><div style={{ fontSize: 18, fontWeight: 700, color: '#1a3a5c' }}>{summary.measurements}</div></div>
+              <div><div style={{ fontSize: 10, color: '#94a3b8' }}>报告生成</div><div style={{ fontSize: 18, fontWeight: 700, color: summary.reportGenerated ? '#16a34a' : '#94a3b8' }}>{summary.reportGenerated ? '✓' : '—'}</div></div>
+              <div><div style={{ fontSize: 10, color: '#94a3b8' }}>危急值</div><div style={{ fontSize: 18, fontWeight: 700, color: summary.criticalAlerts > 0 ? '#dc2626' : '#16a34a' }}>{summary.criticalAlerts}</div></div>
+              <div><div style={{ fontSize: 10, color: '#94a3b8' }}>影像质评</div><div style={{ fontSize: 18, fontWeight: 700, color: '#6366f1' }}>{summary.qcScore}</div></div>
+              <div><div style={{ fontSize: 10, color: '#94a3b8' }}>总体置信度</div><div style={{ fontSize: 18, fontWeight: 700, color: '#8b5cf6' }}>{(summary.overallConfidence * 100).toFixed(0)}%</div></div>
+            </div>
+          )}
+          <div style={{ fontSize: 12, fontWeight: 600, color: '#475569', marginBottom: 6 }}>模块详情</div>
+          {results.map((r) => (
+            <div key={r.module} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 0', fontSize: 12, borderBottom: '1px solid #f1f5f9' }}>
+              <span style={{ color: '#1a3a5c' }}>{r.moduleName}</span>
+              <span style={{ color: r.status === 'success' ? '#16a34a' : '#dc2626', fontWeight: 600 }}>
+                {r.status === 'success' ? '✓ 成功' : '✗ 失败'} · {(r.durationMs! / 1000).toFixed(2)}s
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }
