@@ -422,7 +422,15 @@ export default function InfectionPage() {
   const [filterStatus, setFilterStatus] = useState('全部')
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedItem, setSelectedItem] = useState<InfectionCase | OccupationalExposure | EnvironmentMonitor | null>(null)
+  const [actionLog, setActionLog] = useState<string | null>(null)  // v0.19.3: 操作反馈横幅
   const pageSize = 10
+
+  // v0.19.3: 11 个空按钮接上反馈（内嵌横幅，3秒消失）
+  const notify = (msg: string) => {
+    console.log(`[InfectionPage] ${msg}`)
+    setActionLog(msg)
+    setTimeout(() => setActionLog(null), 3000)
+  }
 
   const infectionCases = generateInfectionCases()
   const occupationalExposures = generateOccupationalExposures()
@@ -503,6 +511,13 @@ export default function InfectionPage() {
 
   return (
     <div style={s.root}>
+      {/* v0.19.3: 操作反馈横幅（3秒自动消失）*/}
+      {actionLog && (
+        <div style={{ padding: '10px 16px', background: '#ecfdf5', border: '1px solid #6ee7b7', borderRadius: 8, marginBottom: 12, fontSize: 13, color: '#065f46', fontWeight: 500, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <CheckCircle size={16} color="#059669" /> {actionLog}
+        </div>
+      )}
+
       {/* 页面头部 */}
       <div style={s.header}>
         <div style={s.titleRow}>
@@ -621,10 +636,10 @@ export default function InfectionPage() {
               <option>治愈</option>
               <option>死亡</option>
             </select>
-            <button style={s.btnSecondary} onClick={() => {}}>
+            <button style={s.btnSecondary} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
               <Filter size={14} /> 筛选
             </button>
-            <button style={s.btnPrimary} onClick={() => {}}>
+            <button style={s.btnPrimary} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
               <Plus size={14} /> 新增病例
             </button>
           </div>
@@ -726,7 +741,7 @@ export default function InfectionPage() {
                       <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => setSelectedItem(item)}>
                         <Eye size={14} />
                       </button>
-                      <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => {}}>
+                      <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
                         <Edit2 size={14} />
                       </button>
                     </div>
@@ -807,7 +822,7 @@ export default function InfectionPage() {
               <option>已完成</option>
               <option>异常</option>
             </select>
-            <button style={s.btnPrimary} onClick={() => {}}>
+            <button style={s.btnPrimary} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
               <Plus size={14} /> 上报暴露
             </button>
           </div>
@@ -912,7 +927,7 @@ export default function InfectionPage() {
                       <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => setSelectedItem(item)}>
                         <Eye size={14} />
                       </button>
-                      <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => {}}>
+                      <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
                         <Edit2 size={14} />
                       </button>
                     </div>
@@ -955,10 +970,10 @@ export default function InfectionPage() {
               <option>不合格</option>
               <option>待复查</option>
             </select>
-            <button style={s.btnSecondary} onClick={() => {}}>
+            <button style={s.btnSecondary} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
               <RefreshCw size={14} /> 刷新
             </button>
-            <button style={s.btnPrimary} onClick={() => {}}>
+            <button style={s.btnPrimary} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
               <Plus size={14} /> 新增监测
             </button>
           </div>
@@ -1057,7 +1072,7 @@ export default function InfectionPage() {
                       <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => setSelectedItem(item)}>
                         <Eye size={14} />
                       </button>
-                      <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => {}}>
+                      <button style={{ ...s.btnSecondary, padding: '4px 8px' }} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
                         <Edit2 size={14} />
                       </button>
                     </div>
@@ -1087,10 +1102,10 @@ export default function InfectionPage() {
               <option>合格</option>
               <option>不合格</option>
             </select>
-            <button style={s.btnSecondary} onClick={() => {}}>
+            <button style={s.btnSecondary} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
               <RefreshCw size={14} /> 刷新
             </button>
-            <button style={s.btnPrimary} onClick={() => {}}>
+            <button style={s.btnPrimary} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
               <Plus size={14} /> 新增记录
             </button>
           </div>
@@ -1202,7 +1217,7 @@ export default function InfectionPage() {
               <option>Q1</option>
               <option>Q2</option>
             </select>
-            <button style={s.btnSecondary} onClick={() => {}}>
+            <button style={s.btnSecondary} onClick={() => notify('✓ 操作已触发（mock 后端可对接）')}>
               <BarChart3 size={14} /> 导出报表
             </button>
           </div>
