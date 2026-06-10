@@ -10,7 +10,7 @@ import {
   Sparkles, CheckCircle2, Circle, ChevronDown, ChevronUp,
   Eye, EyeOff, MessageSquare, Tag, PlusCircle, MinusCircle,
   Camera, Upload, RotateCcw, ShieldCheck, Flag, BookOpen,
-  Pill, Scissors, Activity, FileWarning
+  Pill, Scissors, Activity, FileWarning, CheckCheck
 } from 'lucide-react'
 import type { UltrasoundReport, ReportTemplate, ReportStatus, Gender } from '../types'
 import { initialUltrasoundReports, initialReportTemplates, initialUltrasoundExams } from '../data/initialData'
@@ -1099,8 +1099,21 @@ export default function ReportWritePage() {
 
   // AI 辅助
   const [aiContent, setAiContent] = (useState as any)<{ findings: string; conclusion: string } | null>(null)
+  const [aiFullReport, setAiFullReport] = (useState as any)<{ findings: string; diagnosis: string; impression: string; recommendations: string; confidence: number; templateUsed: string; sourceModules: string[] } | null>(null)
   const [showAIBox, setShowAIBox] = useState(false)
   const [aiLoading, setAiLoading] = useState(false)
+  // v0.19.4 P0-1 第 2 步: 模板选择器 + 进度 + 分项采纳（0 emoji）
+  const [aiTemplateKey, setAiTemplateKey] = useState('default')
+  const [aiProgress, setAiProgress] = useState(0) // 0-100
+  const [aiElapsed, setAiElapsed] = useState(0) // 已用秒
+  const [aiToast, setAiToast] = useState<string | null>(null) // 顶部 3 秒 toast
+  const AI_TEMPLATES = [
+    { key: 'default',     label: '通用模板' },
+    { key: '电子超声检查', label: '腹部超声' },
+    { key: '心脏超声',     label: '心脏超声' },
+    { key: '妇产科超声',   label: '妇产超声' },
+    { key: '浅表超声',     label: '浅表超声' },
+  ]
 
   // 术语提示
   const [termHints, setTermHints] = (useState as any)<{ keyword: string; suggestions: string[] } | null>(null)
@@ -1337,8 +1350,19 @@ export default function ReportWritePage() {
   // AI 辅助
   const handleAIGenerate = async () => {
     setAiLoading(true)
+    setAiProgress(0)
+    setAiElapsed(0)
+    const startTs = Date.now()
+    // 进度模拟（30-300ms 每 50ms 推 12%）
+    const progressTimer = setInterval(() => {
+      setAiProgress((p) => {
+        if (p >= 92) return p
+        return p + 8 + Math.floor(Math.random() * 6)
+      })
+      setAiElapsed(Math.floor((Date.now() - startTs) / 1000))
+    }, 50)
     try {
-      // v0.19.4: 改调 mockApi.generateStructuredReport（对标联影 AI PACS）
+      // v0.19.4 P0-1: 改调 mockApi.generateStructuredReport（对标联影 AI PACS）
       const examType = editingReport.examItemName || ''
       const result = await mockApi.generateStructuredReport({
         examId: editingReport.examId || editingReport.id || 'unknown',
@@ -1349,31 +1373,54 @@ export default function ReportWritePage() {
         age: (editingReport as any).age,
         doctorId: editingReport.doctorId,
         doctorName: editingReport.doctorName,
+        // v0.19.4 P0-1 第 2 步: 显式传 templateKey
+        templateKey: aiTemplateKey,
       })
+      clearInterval(progressTimer)
+      setAiProgress(100)
+      setAiFullReport(result)
       setAiContent({
         findings: result.findings,
         conclusion: result.impression + '\n\n【诊断】\n' + result.diagnosis + '\n\n【建议】\n' + result.recommendations,
       })
       setShowAIBox(true)
+      setAiToast(`AI 报告已生成（模板：${AI_TEMPLATES.find(t => t.key === aiTemplateKey)?.label || aiTemplateKey} · 置信度 ${(result.confidence * 100).toFixed(0)}%）`)
+      setTimeout(() => setAiToast(null), 3000)
     } catch (e) {
+      clearInterval(progressTimer)
       console.error('AI 生成失败', e)
+      setAiToast('AI 生成失败，请重试')
+      setTimeout(() => setAiToast(null), 3000)
     } finally {
-      setAiLoading(false)
+      setTimeout(() => { setAiLoading(false); setAiProgress(0) }, 400)
     }
   }
 
+  // v0.19.4 P0-1 第 2 步: 分项采纳（所见/印象/建议/诊断/全部）
   const adoptAIFindings = () => {
     if (aiContent) {
       handleField('findings', aiContent.findings)
       setShowAIBox(false)
+      setAiToast('已采纳所见描述到报告')
+      setTimeout(() => setAiToast(null), 2500)
     }
   }
-
   const adoptAIConclusion = () => {
     if (aiContent) {
       handleField('conclusion', aiContent.conclusion)
       setShowAIBox(false)
+      setAiToast('已采纳结论（印象+诊断+建议）到报告')
+      setTimeout(() => setAiToast(null), 2500)
     }
+  }
+  // 一键填充整张报告（所见 + 印象 + 建议 + 诊断 4 项）
+  const adoptAIAll = () => {
+    if (!aiFullReport) return
+    handleField('findings', aiFullReport.findings)
+    handleField('conclusion', `${aiFullReport.impression}\n\n【诊断】\n${aiFullReport.diagnosis}\n\n【建议】\n${aiFullReport.recommendations}`)
+    setShowAIBox(false)
+    setAiToast('已一键采纳整张 AI 报告（4 字段填充）')
+    setTimeout(() => setAiToast(null), 2500)
   }
 
   // 校验
@@ -1546,6 +1593,20 @@ export default function ReportWritePage() {
 
   return (
     <div>
+      {/* v0.19.4 P0-1 第 2 步: AI toast 顶部横幅（3 秒自动消失） */}
+      {aiToast && (
+        <div style={{
+          position: 'fixed', top: 20, left: '50%', transform: 'translateX(-50%)',
+          background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+          color: 'white', padding: '10px 20px', borderRadius: 8,
+          fontSize: 13, fontWeight: 500, zIndex: 9999,
+          boxShadow: '0 4px 16px rgba(99, 102, 241, 0.3)',
+          display: 'flex', alignItems: 'center', gap: 8,
+          animation: 'aiToastFade 0.25s ease-out',
+        }}>
+          <Sparkles size={14} /> {aiToast}
+        </div>
+      )}
       {/* 页头 */}
       <div style={s.pageHeader}>
         <div style={s.title}>报告书写</div>
@@ -1741,16 +1802,40 @@ export default function ReportWritePage() {
                         {tab.icon} {tab.label}
                       </div>
                     ))}
-                    {/* AI 辅助按钮 */}
-                    <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8 }}>
+                    {/* AI 辅助按钮 — v0.19.4 P0-1 第 2 步: 模板选择 + 进度条 + 加载动画 */}
+                    <div style={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 8, position: 'relative' }}>
+                      <select
+                        style={{ ...s.input, padding: '4px 8px', fontSize: 11, minWidth: 90 }}
+                        value={aiTemplateKey}
+                        onChange={(e) => setAiTemplateKey(e.target.value)}
+                        disabled={aiLoading}
+                        title="选择 AI 报告模板"
+                      >
+                        {AI_TEMPLATES.map(t => (
+                          <option key={t.key} value={t.key}>{t.label}</option>
+                        ))}
+                      </select>
                       <button
                         style={s.btnAIGhost}
                         onClick={handleAIGenerate}
                         disabled={aiLoading}
                       >
                         <Sparkles size={13} />
-                        {aiLoading ? 'AI 生成中...' : 'AI 辅助报告'}
+                        {aiLoading ? `AI 生成中 ${aiProgress}%` : 'AI 辅助报告'}
                       </button>
+                      {aiLoading && (
+                        <div style={{
+                          position: 'absolute', top: '100%', right: 0, marginTop: 4,
+                          width: 180, height: 4, background: '#e2e8f0', borderRadius: 2, overflow: 'hidden',
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.1)',
+                        }}>
+                          <div style={{
+                            width: `${aiProgress}%`, height: '100%',
+                            background: 'linear-gradient(90deg, #6366f1 0%, #8b5cf6 100%)',
+                            transition: 'width 80ms ease-out',
+                          }} />
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -1862,16 +1947,22 @@ export default function ReportWritePage() {
                         </div>
                       )}
 
-                      {/* AI 辅助内容 */}
+                      {/* AI 辅助内容 — v0.19.4 P0-1 第 2 步: 模板/进度/置信度/分项采纳/一键全采纳 */}
                       {showAIBox && aiContent && (
                         <div style={s.aiBox}>
                           <div style={s.aiBoxHeader}>
                             <div style={s.aiBoxTitle}>
                               <Sparkles size={14} /> AI 生成内容
+                              {aiFullReport && (
+                                <span style={{ fontSize: 10, fontWeight: 400, color: '#64748b', marginLeft: 8 }}>
+                                  模板：{aiFullReport.templateUsed} · 置信度 {(aiFullReport.confidence * 100).toFixed(0)}% · 模块：{aiFullReport.sourceModules.join('/')}
+                                </span>
+                              )}
                             </div>
-                            <div style={{ display: 'flex', gap: 6 }}>
+                            <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
                               <button style={{ ...s.btnSuccess, padding: '4px 10px', fontSize: 11 }} onClick={adoptAIFindings}><Check size={11} /> 采纳所见</button>
                               <button style={{ ...s.btnSuccess, padding: '4px 10px', fontSize: 11 }} onClick={adoptAIConclusion}><Check size={11} /> 采纳结论</button>
+                              <button style={{ ...s.btnPrimary, padding: '4px 10px', fontSize: 11, background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)' }} onClick={adoptAIAll}><CheckCheck size={11} /> 一键采纳全部</button>
                               <button style={s.btnIcon} onClick={() => setShowAIBox(false)}><EyeOff size={12} /></button>
                             </div>
                           </div>
