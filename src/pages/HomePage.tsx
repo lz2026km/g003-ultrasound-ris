@@ -3,7 +3,7 @@
 // G004 超声管理系统 - 首页概览（增强版）
 // 快速操作 / 今日进度 / 快捷入口 / 专业仪表盘风格
 // ============================================================
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate as useNavigateRouter } from 'react-router-dom'
 import type { LucideIcon } from 'lucide-react'
 import {
@@ -16,13 +16,14 @@ import {
   HeartPulse, ClipboardCheck, UserCog, Zap,
   ChevronRight, BellRing, AlertOctagon, Info,
   CheckSquare, Square, Clock3, Tag,
-  PackageSearch, Wrench, HardDrive
+  PackageSearch, Wrench, HardDrive, Database
 } from 'lucide-react'
 import {
   LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from 'recharts'
 import { initialStatisticsData } from '../data/initialData'
+import { mockApi } from '../data/mockApi'
 
 // ---------- 样式 ----------
 const s: Record<string, React.CSSProperties> = {
@@ -472,8 +473,22 @@ const VERSION_INFO = [
 // ============ 首页组件 ============
 export default function HomePage() {
   const navigate = useNavigateRouter()
-  const stats = initialStatisticsData
+  const [stats, setStats] = useState(initialStatisticsData)
+  const [dashboardMeta, setDashboardMeta] = useState({ totalPatients: 0, totalAppointments: 0, totalExams: 0, totalReports: 0 })
+  const [loading, setLoading] = useState(true)
   const [todos, setTodos] = useState(TODAY_TODOS)
+
+  // v0.19 Mock API 拉取真实业务数据
+  useEffect(() => {
+    let mounted = true
+    mockApi.getDashboardStats().then(meta => {
+      if (mounted) {
+        setDashboardMeta(meta)
+        setLoading(false)
+      }
+    })
+    return () => { mounted = false }
+  }, [])
 
   // 合并趋势数据用于双线图
   const trendData = stats.examTrend.map((item, i) => ({
@@ -629,6 +644,32 @@ export default function HomePage() {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* ===== v0.19 API 实时数据 (Mock API 拉取) ===== */}
+      <div style={s.versionCard}>
+        <div style={s.chartTitle}>
+          <Database size={16} style={s.chartIcon} />
+          <span>系统数据 (Mock API 实时)</span>
+          {loading && <span style={{ ...s.versionTag, background: '#fef3c7', color: '#92400e' }}>加载中</span>}
+          {!loading && <span style={{ ...s.versionTag, background: '#dcfce7', color: '#166534' }}>已连接</span>}
+        </div>
+        <div style={s.versionRow}>
+          <div style={s.versionLabel}><Users size={14} color="#64748b" />患者总数</div>
+          <span style={s.versionValue}>{dashboardMeta.totalPatients.toLocaleString()}</span>
+        </div>
+        <div style={s.versionRow}>
+          <div style={s.versionLabel}><CalendarClock size={14} color="#64748b" />预约总数</div>
+          <span style={s.versionValue}>{dashboardMeta.totalAppointments.toLocaleString()}</span>
+        </div>
+        <div style={s.versionRow}>
+          <div style={s.versionLabel}><Activity size={14} color="#64748b" />检查总数</div>
+          <span style={s.versionValue}>{dashboardMeta.totalExams.toLocaleString()}</span>
+        </div>
+        <div style={{ ...s.versionRow, borderBottom: 'none' }}>
+          <div style={s.versionLabel}><FileText size={14} color="#64748b" />报告总数</div>
+          <span style={s.versionValue}>{dashboardMeta.totalReports.toLocaleString()}</span>
+        </div>
       </div>
 
       {/* ===== 医生工作台 ===== */}
