@@ -289,6 +289,99 @@ export async function updateExamStatus(
 }
 
 // ============================================================
+// v0.19.4 P0-1: AI 结构化报告生成（对标联影 AI PACS）
+// ============================================================
+export interface StructuredReportInput {
+  examId: string
+  examItemName: string
+  patientId?: string
+  patientName?: string
+  gender?: '男' | '女' | string
+  age?: number
+  doctorId?: string
+  doctorName?: string
+  /** 模板 key（不传则按 examItemName 自动匹配）*/
+  templateKey?: string
+}
+
+export interface StructuredReportOutput {
+  findings: string
+  diagnosis: string
+  impression: string
+  recommendations: string
+  confidence: number           // 0-1
+  templateUsed: string
+  sourceModules: string[]      // ['plane-recognition', 'auto-measure', 'report-generator']
+  generatedAt: string
+}
+
+/** AI 结构化报告生成（mock 模式：对标联影 AI PACS 北医三院案例） */
+export async function generateStructuredReport(
+  input: StructuredReportInput
+): Promise<StructuredReportOutput> {
+  await delay(300)              // 模拟 AI 推理 300ms（北医三院报告 5× 速度）
+  // 模板库
+  const templates: Record<string, { findings: string; diagnosis: string; impression: string; recommendations: string }> = {
+    '电子超声检查': {
+      findings: '肝右叶最大斜径约 {HEPATIC_SIZE} cm，肝实质回声均匀，未见明显占位性病变。胆囊大小形态正常，壁不厚，腔内未见结石回声。胰腺形态正常，主胰管不扩张。脾脏大小正常。',
+      diagnosis: '腹部超声检查未见明显异常',
+      impression: '腹部超声检查未见明显异常',
+      recommendations: '建议定期体检。',
+    },
+    '心脏超声': {
+      findings: '左室壁各节段运动未见明显异常。左室射血分数（LVEF）约 {LVEF}%。二尖瓣形态及活动正常，瓣口血流速度正常。三尖瓣、主动脉瓣、肺动脉瓣形态及活动未见明显异常。',
+      diagnosis: '心脏超声检查未见明显异常',
+      impression: '心脏超声检查未见明显异常',
+      recommendations: '建议定期心脏专科随访。',
+    },
+    '妇产科超声': {
+      findings: '子宫大小形态正常，宫壁回声均匀，内膜线居中。右侧卵巢大小约 {OVARY_R} cm，左侧卵巢大小约 {OVARY_L} cm，双侧附件区未见明显异常回声。',
+      diagnosis: '妇科超声检查未见明显异常',
+      impression: '妇科超声检查未见明显异常',
+      recommendations: '建议定期妇科专科随访。',
+    },
+    '浅表超声': {
+      findings: '甲状腺大小形态正常，边界清晰，内部回声均匀，未见明显占位性病变。CDFI：腺体内血流信号未见明显异常。双侧颈部未见明显肿大淋巴结。',
+      diagnosis: '甲状腺超声检查未见明显异常',
+      impression: '甲状腺超声检查未见明显异常',
+      recommendations: '建议定期专科随访。',
+    },
+    'default': {
+      findings: '检查区域结构清晰，未见明显占位性病变、积液或其他异常回声。CDFI：血流信号未见明显异常。',
+      diagnosis: '超声检查未见明显异常',
+      impression: '超声检查未见明显异常',
+      recommendations: '建议定期体检。',
+    },
+  }
+  const tpl = templates[input.templateKey || ''] || templates[input.examItemName || ''] || templates.default
+
+  // 变量替换
+  const varMap: Record<string, string> = {
+    '{HEPATIC_SIZE}': String(10 + Math.floor(Math.random() * 4)),
+    '{LVEF}': String(55 + Math.floor(Math.random() * 10)),
+    '{OVARY_R}': String((2 + Math.random()).toFixed(1)),
+    '{OVARY_L}': String((2 + Math.random()).toFixed(1)),
+    '{PATIENT_NAME}': input.patientName || '患者',
+    '{PATIENT_ID}': input.patientId || '',
+    '{GENDER}': input.gender || '',
+    '{AGE}': input.age ? String(input.age) : '',
+    '{DOCTOR_NAME}': input.doctorName || '',
+  }
+  const replace = (s: string) => s.replace(/\{[A-Z_]+\}/g, (m) => varMap[m] ?? m)
+
+  return {
+    findings: replace(tpl.findings),
+    diagnosis: replace(tpl.diagnosis),
+    impression: replace(tpl.impression),
+    recommendations: replace(tpl.recommendations),
+    confidence: 0.85,
+    templateUsed: input.templateKey || input.examItemName || 'default',
+    sourceModules: ['plane-recognition', 'auto-measure', 'report-generator', 'quality-evaluation'],
+    generatedAt: new Date().toISOString(),
+  }
+}
+
+// ============================================================
 // 统一导出
 // ============================================================
 export const mockApi = {
@@ -298,6 +391,8 @@ export const mockApi = {
   // v0.19.2
   getWorkOrderList, createWorkOrder, updateWorkOrderStatus,
   getExamList, updateExamStatus,
+  // v0.19.4
+  generateStructuredReport,
 }
 
 export default mockApi

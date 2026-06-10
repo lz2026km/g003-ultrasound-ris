@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import type { UltrasoundReport, ReportTemplate, ReportStatus, Gender } from '../types'
 import { initialUltrasoundReports, initialReportTemplates, initialUltrasoundExams } from '../data/initialData'
+import { mockApi } from '../data/mockApi'
 
 // ---------- 常量 ----------
 const UPPER_ABDOMINAL_MIN_PHOTOS = 22
@@ -1334,17 +1335,31 @@ export default function ReportWritePage() {
   }
 
   // AI 辅助
-  const handleAIGenerate = () => {
+  const handleAIGenerate = async () => {
     setAiLoading(true)
-    setTimeout(() => {
+    try {
+      // v0.19.4: 改调 mockApi.generateStructuredReport（对标联影 AI PACS）
       const examType = editingReport.examItemName || ''
-      const ai = AI_CONTENT[examType] || AI_CONTENT['电子超声检查']
-      const replacedFindings = replaceTemplateVars(ai.findings, editingReport)
-      const replacedConclusion = replaceTemplateVars(ai.conclusion, editingReport)
-      setAiContent({ findings: replacedFindings, conclusion: replacedConclusion })
+      const result = await mockApi.generateStructuredReport({
+        examId: editingReport.examId || editingReport.id || 'unknown',
+        examItemName: examType,
+        patientId: editingReport.patientId,
+        patientName: editingReport.patientName,
+        gender: editingReport.gender,
+        age: (editingReport as any).age,
+        doctorId: editingReport.doctorId,
+        doctorName: editingReport.doctorName,
+      })
+      setAiContent({
+        findings: result.findings,
+        conclusion: result.impression + '\n\n【诊断】\n' + result.diagnosis + '\n\n【建议】\n' + result.recommendations,
+      })
       setShowAIBox(true)
+    } catch (e) {
+      console.error('AI 生成失败', e)
+    } finally {
       setAiLoading(false)
-    }, 1500)
+    }
   }
 
   const adoptAIFindings = () => {
