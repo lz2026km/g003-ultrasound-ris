@@ -246,7 +246,7 @@ export class MeasureEngine {
 
       if (BPD && FL) {
         // 估算胎儿体重（简化Hadlock公式）
-        const EFW = Math.pow(10, (1.304 + 0.05281 * AC?.value + 0.1938 * FL.value - 0.004 * (AC?.value || 0) * FL.value)) * 1000;
+        const EFW = Math.pow(10, (1.304 + 0.05281 * (AC?.value ?? 0) + 0.1938 * FL.value - 0.004 * (AC?.value ?? 0) * FL.value)) * 1000;
         if (!isNaN(EFW) && EFW > 0) {
           results.push({
             name: '估算胎儿体重(EFW)',

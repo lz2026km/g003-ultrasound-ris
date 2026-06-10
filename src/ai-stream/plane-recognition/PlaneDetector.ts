@@ -254,7 +254,7 @@ export class PlaneDetector {
     return candidates.map((plane, i) => ({
       plane,
       confidence: 0.92 - i * 0.15,
-      bbox: [100 + i * 20, 80 + i * 30, 400 - i * 30, 300 - i * 20],
+      bbox: [100 + i * 20, 80 + i * 30, 400 - i * 30, 300 - i * 20] as [number, number, number, number],
       qualityScore: 4.5 - i * 0.5,
       timestamp: Date.now(),
       imageHash: this.hashImage(imageData)

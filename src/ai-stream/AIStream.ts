@@ -17,7 +17,7 @@ import {
 } from './types';
 
 import { PlaneDetector, PLANE_LIBRARY, PlaneScorer } from './plane-recognition';
-import { MeasureEngine, MeasurementRule } from './auto-measure';
+import { MeasureEngine } from './auto-measure';
 import { ReportGenerator, ReportData } from './report-generator';
 import { QualityEvaluator, ComprehensiveQualityResult } from './quality-evaluation';
 

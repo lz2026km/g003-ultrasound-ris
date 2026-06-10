@@ -37,7 +37,6 @@ const AppointmentPage = lazy(() => import('./pages/AppointmentPage'))
 const ExamPage = lazy(() => import('./pages/ExamPage'))
 const ReportPage = lazy(() => import('./pages/ReportPage'))
 const ReportWritePage = lazy(() => import('./pages/ReportWritePage'))
-import TestPage from './pages/TestPage'
 const UltrasoundPage = lazy(() => import('./pages/UltrasoundPage'))
 const DisinfectionPage = lazy(() => import('./pages/DisinfectionPage'))
 const StatisticsPage = lazy(() => import('./pages/StatisticsPage'))
@@ -59,6 +58,8 @@ const TemplatePage = lazy(() => import('./pages/TemplatePage'))
 const NursingPage = lazy(() => import('./pages/NursingPage'))
 const PreOpPage = lazy(() => import('./pages/PreOpPage'))
 const AIQCPage = lazy(() => import('./pages/AIQCPage'))
+const TrainingExamPage = lazy(() => import('./pages/TrainingExamPage'))
+const UltrasoundModesPage = lazy(() => import('./pages/UltrasoundModesPage'))
 const StatsEnhancedPage = lazy(() => import('./pages/StatsEnhancedPage'))
 const DisinfectionTracePage = lazy(() => import('./pages/DisinfectionTracePage'))
 const ConsultationPage = lazy(() => import('./pages/ConsultationPage'))
@@ -224,6 +225,7 @@ const NAV_ITEMS = [
     items: [
       { path: '/ultrasound', icon: Activity, label: '超声设备' },
       { path: '/probe-management', icon: Scan, label: '探头管理' },
+      { path: '/ultrasound-modes', icon: Activity, label: '超声模式' },
       { path: '/disinfection', icon: ShieldCheck, label: '洗消追溯' },
       { path: '/disinfection-trace', icon: ShieldCheck, label: '洗消追溯增强' },
       { path: '/workorder', icon: Wrench, label: '维修工单' },
@@ -270,6 +272,7 @@ const NAV_ITEMS = [
     items: [
       { path: '/education', icon: GraduationCap, label: '教育培训' },
       { path: '/training', icon: BookOpen, label: '技能培训中心' },
+      { path: '/training-exam', icon: GraduationCap, label: '培训考试' },
     ],
   },
 ]
@@ -407,6 +410,8 @@ function AppShell() {
             <Route path="/preop" element={<PreOpPage />} />
             <Route path="/education" element={<EducationPage />} />
             <Route path="/ai-qc" element={<AIQCPage />} />
+            <Route path="/training-exam" element={<TrainingExamPage />} />
+            <Route path="/ultrasound-modes" element={<UltrasoundModesPage />} />
             <Route path="/stats-enhanced" element={<StatsEnhancedPage />} />
             <Route path="/disinfection-trace" element={<DisinfectionTracePage />} />
             <Route path="/consultation" element={<ConsultationPage />} />

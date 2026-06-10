@@ -18,7 +18,7 @@ import React, { useState } from 'react'
 import {
   Wrench, AlertTriangle, Check, Clock, Package, Search, Plus,
   Download, Activity, Calendar, TrendingUp, DollarSign, User,
-  Phone, Camera, FileText, Settings, Tool, ClipboardCheck,
+  Phone, Camera, FileText, Settings, Wrench as Tool, ClipboardCheck,
   Zap, X, ChevronRight, BarChart3, AlertCircle
 } from 'lucide-react'
 

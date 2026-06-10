@@ -14,8 +14,6 @@ export {
   VASCULAR_TEMPLATES
 } from './ReportTemplates';
 export type {
-  ReportTemplate,
-  ReportSection,
   ReportData,
   ReportGenerationCallbacks
 } from './ReportGenerator';

@@ -3,7 +3,8 @@
  * @version v0.8.0
  */
 
-import { PlaneType, PLANE_LIBRARY } from './PlaneDetector';
+import { PlaneType } from '../types';
+import { PLANE_LIBRARY } from './PlaneDetector';
 
 export interface QualityScore {
   overall: number;           // 1-5 总分
@@ -20,7 +21,7 @@ export class PlaneScorer {
    * 综合评分
    */
   score(plane: PlaneType, features: Record<string, number>): QualityScore {
-    const meta = PLANE_LIBRARY[plane];
+    const meta: any = PLANE_LIBRARY[plane];
     if (!meta) {
       return {
         overall: 0,

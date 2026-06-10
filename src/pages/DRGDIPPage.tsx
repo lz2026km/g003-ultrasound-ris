@@ -16,7 +16,7 @@ import React, { useState } from 'react'
 import {
   DollarSign, TrendingUp, TrendingDown, Activity, AlertCircle, Check,
   FileText, Search, Plus, Download, BarChart3, Target, Zap, BookOpen,
-  Calculator, ClipboardCheck, Stethoscope, Hospital, PieChart, Award
+  Calculator, ClipboardCheck, Stethoscope, Building2 as Hospital, PieChart, Award
 } from 'lucide-react'
 
 const C = {

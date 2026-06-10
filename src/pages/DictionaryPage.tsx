@@ -201,10 +201,10 @@ const emptyDictionary = (): Partial<DictionaryItem> => ({
 // ---------- 校验 ----------
 const validateDictionary = (d: Partial<DictionaryItem>): string[] => {
   const errs: string[] = []
-  if (!(d.category ?? "").trim()) errs.push('分类不能为空')
-  if (!d.code ?? "".trim()) errs.push('编码不能为空')
-  if (!d.name ?? "".trim()) errs.push('名称不能为空')
-  if (d.sortOrder ?? 0 < 0) errs.push('排序号不能为负数')
+  if (!(d.category ?? '').trim()) errs.push('分类不能为空')
+  if (!(d.code ?? '').trim()) errs.push('编码不能为空')
+  if (!(d.name ?? '').trim()) errs.push('名称不能为空')
+  if ((d.sortOrder ?? 0) < 0) errs.push('排序号不能为负数')
   return errs
 }
 

@@ -1100,8 +1100,8 @@ export default function ExamPage() {
   }
 
   // 计时器
-  const timerRef = useRef<NodeJS.Timeout | null>(null)
-  const recordingTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const recordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 筛选后的数据
   const appointments = initialAppointments.filter(

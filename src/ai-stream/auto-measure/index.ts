@@ -13,7 +13,6 @@ export {
   VASCULAR_MEASURES
 } from './MeasureRules';
 export type {
-  MeasurementRule,
   MeasurementPrediction,
   MeasurementValidation,
   PatientContext

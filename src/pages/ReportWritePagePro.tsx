@@ -361,7 +361,7 @@ export default function ReportWritePagePro() {
   const filteredProtocols = ULTRASOUND_PROTOCOLS.filter(p => p.name.includes(protocolSearch) || p.category.includes(protocolSearch))
   const totalChars = reportContent.findings.length + reportContent.diagnosis.length + reportContent.impression.length
   const attentionCount = MEASUREMENTS.filter(m => m.attention).length
-  const toggleSection = (k: string) => setLeftSection(p => ({ ...p, [k]: !p[k] }))
+  const toggleSection = (k: keyof typeof leftSection) => setLeftSection(p => ({ ...p, [k]: !p[k] }))
   const toggleRightCard = (k: string) => setRightCardsCollapsed(p => ({ ...p, [k]: !p[k] }))
 
   // ===== 通用弹窗 =====

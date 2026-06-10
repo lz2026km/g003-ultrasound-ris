@@ -267,7 +267,7 @@ export default function TrainingPage() {
       case '有效': case '已完成': case '进行中': return '#10b981';
       case '待开始': case '未开始': case '待领取': return '#3b82f6';
       case '即将到期': return '#f59e0b';
-      case '已过期': case '已过期': return '#ef4444';
+      case '已过期': return '#ef4444';
       default: return '#64748b';
     }
   };
