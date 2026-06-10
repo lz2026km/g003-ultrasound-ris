@@ -14,13 +14,14 @@
  * - 维修成本分析
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Wrench, AlertTriangle, Check, Clock, Package, Search, Plus,
   Download, Activity, Calendar, TrendingUp, DollarSign, User,
   Phone, Camera, FileText, Settings, Wrench as Tool, ClipboardCheck,
-  Zap, X, ChevronRight, BarChart3, AlertCircle
+  Zap, X, ChevronRight, BarChart3, AlertCircle, Database
 } from 'lucide-react'
+import { mockApi } from '../data/mockApi'
 
 const C = {
   primary: '#1a365d',
@@ -61,19 +62,6 @@ const s: Record<string, React.CSSProperties> = {
   grid4: { display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12 },
   alert: { padding: 14, background: '#fef2f2', borderRadius: 8, border: '1px solid #fecaca', marginBottom: 12 },
 }
-
-const WORK_ORDERS = [
-  { id: 'WO2026-0512', device: 'GE Voluson E10', dept: '妇产科', type: '故障报修', priority: 'urgent', status: 'in_progress', reporter: '王医生', assignee: '张工程师', reportTime: '2026-06-05 08:30', issue: '探头图像雪花严重', response: '12分钟', progress: 65 },
-  { id: 'WO2026-0511', device: '西门子ACUSON Sequoia', dept: '心血管内科', type: '故障报修', priority: 'high', status: 'in_progress', reporter: '李医生', assignee: '刘工程师', reportTime: '2026-06-05 07:15', issue: '开机无显示', response: '8分钟', progress: 40 },
-  { id: 'WO2026-0510', device: '飞利浦EPIQ 7C', dept: '超声科', type: '预防性维护', priority: 'normal', status: 'pending', reporter: '巡检计划', assignee: '待派工', reportTime: '2026-06-05 06:00', issue: '季度深度保养', response: '-', progress: 0 },
-  { id: 'WO2026-0509', device: '迈瑞Resona R9T', dept: '急诊科', type: '故障报修', priority: 'urgent', status: 'completed', reporter: '陈护士', assignee: '张工程师', reportTime: '2026-06-04 22:18', issue: '电源故障', response: '6分钟', progress: 100 },
-  { id: 'WO2026-0508', device: 'GE LOGIQ E9', dept: '超声科', type: '校准', priority: 'normal', status: 'completed', reporter: '质控计划', assignee: '王工程师', reportTime: '2026-06-04 14:30', issue: '探头频率校准', response: '30分钟', progress: 100 },
-  { id: 'WO2026-0507', device: '开立S60', dept: '体检中心', type: '故障报修', priority: 'high', status: 'completed', reporter: '张医生', assignee: '刘工程师', reportTime: '2026-06-04 11:45', issue: '触摸屏失灵', response: '15分钟', progress: 100 },
-  { id: 'WO2026-0506', device: '东芝Aplio i800', dept: '肝胆外科', type: '配件更换', priority: 'normal', status: 'dispatched', reporter: '孙医生', assignee: '李工程师', reportTime: '2026-06-04 09:20', issue: '更换耦合剂瓶', response: '20分钟', progress: 30 },
-  { id: 'WO2026-0505', device: 'GE Voluson E10', dept: '妇产科', type: '故障报修', priority: 'normal', status: 'completed', reporter: '王医生', assignee: '张工程师', reportTime: '2026-06-03 16:50', issue: '打印机卡纸', response: '18分钟', progress: 100 },
-  { id: 'WO2026-0504', device: '西门子ACUSON S3000', dept: '超声科', type: '故障报修', priority: 'urgent', status: 'completed', reporter: '质控员', assignee: '王工程师', reportTime: '2026-06-03 10:30', issue: '散热风扇异响', response: '8分钟', progress: 100 },
-  { id: 'WO2026-0503', device: '迈瑞DC-80', dept: '心内科', type: '巡检', priority: 'normal', status: 'completed', reporter: '巡检计划', assignee: '陈工程师', reportTime: '2026-06-03 08:00', issue: '月度常规巡检', response: '40分钟', progress: 100 },
-]
 
 const INSPECTIONS = [
   { id: 'IN001', name: '6月全院设备巡检', type: '常规巡检', startDate: '2026-06-10', endDate: '2026-06-15', devices: 24, status: 'planned' },
@@ -124,6 +112,26 @@ const getPriorityInfo = (priority: string) => {
 export default function WorkOrderPage() {
   const [activeTab, setActiveTab] = useState('orders')
   const [searchText, setSearchText] = useState('')
+  // v0.19.2: 工单数据改由 mockApi 提供
+  const [workOrders, setWorkOrders] = useState<any[]>([])
+  const [workOrderTotal, setWorkOrderTotal] = useState(0)
+  const [workOrderStats, setWorkOrderStats] = useState<any>({ total: 0, pending: 0, dispatched: 0, inProgress: 0, completed: 0, urgent: 0 })
+
+  const refreshWorkOrders = async () => {
+    const r = await mockApi.getWorkOrderList({ keyword: searchText || undefined })
+    setWorkOrders(r.items)
+    setWorkOrderTotal(r.total)
+    setWorkOrderStats(r.stats)
+  }
+
+  useEffect(() => { refreshWorkOrders() }, [])
+  useEffect(() => { refreshWorkOrders() }, [searchText])
+
+  // 状态流转按钮
+  const handleStatusChange = async (id: string, newStatus: string) => {
+    await mockApi.updateWorkOrderStatus(id, newStatus)
+    refreshWorkOrders()
+  }
 
   return (
     <div style={s.root}>
@@ -134,9 +142,9 @@ export default function WorkOrderPage() {
 
       <div style={s.kpiRow}>
         {[
-          { value: '12', label: '待处理工单', color: C.danger, hint: '紧急 3 单' },
-          { value: '8', label: '进行中', color: C.accent, hint: '平均响应 12分' },
-          { value: '186', label: '本月完成', color: C.success, hint: '↑ 12%' },
+          { value: workOrderStats.pending, label: '待处理工单', color: C.danger, hint: `紧急 ${workOrderStats.urgent} 单` },
+          { value: workOrderStats.dispatched + workOrderStats.inProgress, label: '进行中', color: C.accent, hint: '已派工 + 维修中' },
+          { value: workOrderStats.completed, label: '本月完成', color: C.success, hint: '已完成工单' },
           { value: '92%', label: 'SLA达成率', color: C.primary, hint: '↑ 3%' },
           { value: '¥45.6K', label: '本月维修成本', color: C.purple, hint: '↓ 8%' },
         ].map((k, i) => (
@@ -169,11 +177,11 @@ export default function WorkOrderPage() {
       {activeTab === 'orders' && (
         <div style={s.card}>
           <div style={s.cardHeader}>
-            <span style={s.cardTitle}><Wrench size={16} color={C.primary} /> 维修工单（10条）</span>
+            <span style={s.cardTitle}><Wrench size={16} color={C.primary} /> 维修工单（{workOrderTotal}条）<span style={{ marginLeft: 12, fontSize: 11, color: C.accent, fontWeight: 500 }}><Database size={11} style={{ verticalAlign: 'middle' }} /> Mock API 实时</span></span>
             <div style={{ display: 'flex', gap: 8 }}>
               <input
                 style={{ padding: '8px 12px', borderRadius: 6, border: `1px solid ${C.border}`, fontSize: 13, outline: 'none', width: 220 }}
-                placeholder="搜索工单号/设备..."
+                placeholder="搜索工单号/设备/问题..."
                 value={searchText}
                 onChange={e => setSearchText(e.target.value)}
               />
@@ -198,7 +206,7 @@ export default function WorkOrderPage() {
               </tr>
             </thead>
             <tbody>
-              {WORK_ORDERS.map(w => {
+              {workOrders.map((w: any) => {
                 const ps = getPriorityInfo(w.priority)
                 const ss = getStatusInfo(w.status)
                 return (
@@ -217,9 +225,13 @@ export default function WorkOrderPage() {
                         <button style={{ ...s.badge, background: C.textLight, color: C.white, padding: '4px 12px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
                           查看报告
                         </button>
+                      ) : w.status === 'pending' ? (
+                        <button onClick={() => handleStatusChange(w.id, 'dispatched')} style={{ ...s.badge, background: C.accent, color: C.white, padding: '4px 12px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
+                          派工
+                        </button>
                       ) : (
-                        <button style={{ ...s.badge, background: C.accent, color: C.white, padding: '4px 12px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
-                          处理
+                        <button onClick={() => handleStatusChange(w.id, 'completed')} style={{ ...s.badge, background: C.success, color: C.white, padding: '4px 12px', border: 'none', borderRadius: 6, cursor: 'pointer', fontSize: 12 }}>
+                          完成
                         </button>
                       )}
                     </td>

@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   Mic, User, Clock, Camera, AlertTriangle, CheckCircle,
   XCircle, Play, Square, Volume2, Bell, Stethoscope,
-  Activity, FileText, RefreshCw, ShieldCheck, Video,
+  Activity, FileText, RefreshCw, ShieldCheck, Video, Database,
   Footprints, Image as ImageIcon, CheckSquare, Square as SquareOutline,
   AlertCircle, ClipboardList, Save, RotateCcw, Timer,
   Radio, DoorOpen, SprayCan, Settings, ChevronRight,
@@ -14,6 +14,7 @@ import {
   Smartphone, Monitor,
 } from 'lucide-react'
 import { initialAppointments, initialUltrasoundExams, initialExamRooms } from '../data/initialData'
+import { mockApi } from '../data/mockApi'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type EndoscopyExam = any
 
@@ -982,6 +983,16 @@ export default function ExamPage() {
   const [currentCall, setCurrentCall] = useState<typeof appointments[0] | null>(null)
   const [calling, setCalling] = useState(false)
 
+  // v0.19.2: 改由 mockApi 实时拉取预约/检查数据
+  const [allAppointments, setAllAppointments] = useState<typeof initialAppointments>(
+    initialAppointments as typeof initialAppointments
+  )
+  const refreshAppointments = async () => {
+    const r = await mockApi.list<any>('appointments')
+    setAllAppointments(r as any)
+  }
+  useEffect(() => { refreshAppointments() }, [])
+
   // 当前检查工作流
   const [activeExam, setActiveExam] = useState<ExamWorkflow | null>(null)
 
@@ -1103,8 +1114,8 @@ export default function ExamPage() {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const recordingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // 筛选后的数据
-  const appointments = initialAppointments.filter(
+  // 筛选后的数据（v0.19.2: 数据源从 allAppointments 实时获取）
+  const appointments = allAppointments.filter(
     (a) => a.appointmentDate === '2026-04-29' && a.examRoom === selectedRoom
   )
 
@@ -1162,6 +1173,8 @@ export default function ExamPage() {
     setLivePhotoCount(0)
     setLiveWithdrawalTime(0)
     setExamElapsedSeconds(0)
+    // v0.19.2: 写入 mockApi 数据库
+    mockApi.create('ultrasoundExams', newExam)
   }
 
   // 状态推进
@@ -1187,6 +1200,8 @@ export default function ExamPage() {
       setRoomStatuses(prev => ({ ...prev, [selectedRoom]: '清洁中' }))
     }
     setActiveExam(prev => prev ? { ...prev, ...updates } : null)
+    // v0.19.2: 同步状态到 mockApi 数据库
+    mockApi.update('ultrasoundExams', activeExam.id, updates as Record<string, any>)
   }
 
   // 结束检查
@@ -1207,6 +1222,8 @@ export default function ExamPage() {
     setIsRecording(false)
     if (timerRef.current) clearInterval(timerRef.current)
     if (recordingTimerRef.current) clearInterval(recordingTimerRef.current)
+    // v0.19.2: 同步到 mockApi
+    mockApi.update('ultrasoundExams', activeExam.id, { status: '已完成', endTime: completedExam.endTime, imageCount: completedExam.imageCount })
   }
 
   // 取消检查
@@ -2205,11 +2222,11 @@ export default function ExamPage() {
       {/* 标题栏 */}
       <div style={s.header}>
         <div>
-          <h1 style={s.title}>检查执行工作台</h1>
+          <h1 style={s.title}>检查执行工作台<span style={{ marginLeft: 12, fontSize: 11, color: '#2563eb', fontWeight: 500, verticalAlign: 'middle' }}><Database size={11} style={{ verticalAlign: 'middle' }} /> Mock API 实时</span></h1>
           <p style={s.subtitle}>超声影像检查工作台 · 检查执行与质量控制</p>
         </div>
         <div style={s.headerActions}>
-          <button style={{ ...s.btn, ...s.btnGhost }}>
+          <button onClick={refreshAppointments} style={{ ...s.btn, ...s.btnGhost }}>
             <RefreshCw size={13} /> 刷新
           </button>
         </div>

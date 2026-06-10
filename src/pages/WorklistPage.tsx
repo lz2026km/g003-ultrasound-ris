@@ -3,12 +3,13 @@
 // 卡片列表 + 状态流程
 // ============================================================
 import type { LucideIcon } from 'lucide-react';
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Calendar, Clock, User, Stethoscope, CheckCircle,
-  Circle, AlertCircle, ChevronRight, Filter, RefreshCw
+  Circle, AlertCircle, ChevronRight, Filter, RefreshCw, Database
 } from 'lucide-react'
 import { initialAppointments, initialUltrasoundExams } from '../data/initialData'
+import { mockApi } from '../data/mockApi'
 import type { Appointment, AppointmentStatus } from '../types'
 
 // ---------- 样式 ----------
@@ -231,10 +232,25 @@ const GENDER_COLORS = { '男': '#3b82f6', '女': '#ec4899' }
 export default function WorklistPage() {
   const today = '2026-04-29'
 
+  // v0.19.2: 改由 mockApi 提供实时数据
+  const [allAppointments, setAllAppointments] = useState<Appointment[]>(initialAppointments as Appointment[])
+  const [allExams, setAllExams] = useState<any[]>(initialUltrasoundExams as any[])
+
+  const refreshData = async () => {
+    const [apts, exams] = await Promise.all([
+      mockApi.list<Appointment>('appointments'),
+      mockApi.list<any>('ultrasoundExams'),
+    ])
+    setAllAppointments(apts)
+    setAllExams(exams)
+  }
+
+  useEffect(() => { refreshData() }, [])
+
   // 今日预约
   const todayAppointments = useMemo(() => {
-    return initialAppointments.filter(apt => apt.appointmentDate === today)
-  }, [])
+    return allAppointments.filter(apt => apt.appointmentDate === today)
+  }, [allAppointments])
 
   // 已完成的检查
   const todayExams = useMemo(() => {
@@ -270,7 +286,7 @@ export default function WorklistPage() {
       {/* 标题区 */}
       <div style={s.header}>
         <div>
-          <h1 style={s.title}>今日检查工作台</h1>
+          <h1 style={s.title}>今日检查工作台<span style={{ marginLeft: 12, fontSize: 11, color: '#2563eb', fontWeight: 500, verticalAlign: 'middle' }}><Database size={11} style={{ verticalAlign: 'middle' }} /> Mock API 实时</span></h1>
           <p style={s.subtitle}>
             <Calendar size={14} style={{ display: 'inline', verticalAlign: 'middle', marginRight: 4 }} />
             {new Date(today).toLocaleDateString('zh-CN', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' })}
@@ -281,7 +297,7 @@ export default function WorklistPage() {
           </p>
         </div>
         <div style={s.headerRight}>
-          <button style={{ ...s.refreshBtn, minHeight: 44, padding: '8px 16px' }}>
+          <button onClick={refreshData} style={{ ...s.refreshBtn, minHeight: 44, padding: '8px 16px' }}>
             <RefreshCw size={15} />
             刷新列表
           </button>
@@ -390,7 +406,7 @@ export default function WorklistPage() {
           </div>
         ) : (
           filteredAppointments.map((apt) => (
-            <WorklistCard key={apt.id} appointment={apt} />
+            <WorklistCard key={apt.id} appointment={apt} exams={allExams} />
           ))
         )}
       </div>
@@ -424,14 +440,15 @@ function SummaryCard({ icon: Icon, iconBg, iconColor, value, label }: SummaryCar
 // ---------- WorklistCard ----------
 interface WorklistCardProps {
   appointment: Appointment
+  exams: any[]
 }
 
-function WorklistCard({ appointment }: WorklistCardProps) {
+function WorklistCard({ appointment, exams }: WorklistCardProps) {
   const cfg = STATUS_CONFIG[appointment.status] || STATUS_CONFIG['待确认']
   const genderColor = GENDER_COLORS[appointment.patientId.startsWith('P00') && parseInt(appointment.patientId.slice(3)) % 2 === 0 ? '女' : '男']
 
-  // 获取关联检查信息
-  const relatedExam = initialUltrasoundExams.find(ex => ex.appointmentId === appointment.id)
+  // 获取关联检查信息（v0.19.2: 从 mockApi 实时数据查找）
+  const relatedExam = exams.find((ex: any) => ex.appointmentId === appointment.id)
 
   return (
     <div style={s.card}>
