@@ -1,0 +1,144 @@
+/* ============================================================
+ * G003 智慧超声影像管理系统 · 设计 Token（v0.20.0-alpha）
+ * 来源：docs/design-system/G003_DESIGN_SYSTEM_v0.20.0.md
+ * 范围：颜色、间距、圆角、字号、阴影、动画
+ * 主题：默认亮色，[data-theme="dark"] 切换深色
+ * 主色：#3b82f6（蓝紫调，禁用 #6366f1）
+ * ============================================================ */
+
+:root {
+  /* ---------- 主题：浅色（默认）---------- */
+  --bg-app: #f5f7fa;
+  --bg-surface: #ffffff;
+  --bg-surface-alt: #f8fafc;
+  --bg-elevated: #ffffff;
+  --bg-hover: #eff6ff;
+  --bg-active: #dbeafe;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-tertiary: #94a3b8;
+  --text-on-primary: #ffffff;
+
+  --border-subtle: #e2e8f0;
+  --border-default: #cbd5e1;
+  --border-strong: #94a3b8;
+
+  --primary: #3b82f6;
+  --primary-hover: #2563eb;
+  --primary-active: #1d4ed8;
+  --primary-bg: #eff6ff;
+  --primary-border: #93c5fd;
+
+  --success: #10b981;
+  --success-bg: #d1fae5;
+  --warning: #f59e0b;
+  --warning-bg: #fef3c7;
+  --danger: #ef4444;
+  --danger-bg: #fee2e2;
+  --info: #06b6d4;
+  --info-bg: #cffafe;
+
+  /* ---------- 间距（4px 基线，16 阶梯）---------- */
+  --space-0: 0;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-14: 56px;
+  --space-16: 64px;
+  --space-20: 80px;
+  --space-24: 96px;
+  --space-32: 128px;
+
+  /* ---------- 圆角（7 档）---------- */
+  --radius-none: 0;
+  --radius-sm: 2px;
+  --radius-md: 6px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+  --radius-full: 9999px;
+
+  /* ---------- 字号（8 阶梯）---------- */
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-base: 14px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 18px;
+  --text-2xl: 20px;
+  --text-3xl: 24px;
+  --text-4xl: 32px;
+
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+  --weight-bold: 700;
+
+  /* ---------- 阴影（4 级）---------- */
+  --shadow-1: 0 1px 2px rgba(15, 23, 42, 0.05);
+  --shadow-2: 0 2px 8px rgba(15, 23, 42, 0.08);
+  --shadow-3: 0 8px 24px rgba(15, 23, 42, 0.12);
+  --shadow-4: 0 16px 48px rgba(15, 23, 42, 0.18);
+
+  /* ---------- 布局尺寸（与 han-empire / 主公 design sense 对齐）---------- */
+  --sidebar-width: 260px;
+  --topbar-height: 56px;
+  --content-max-width: 1920px;
+  --content-padding: 24px;
+
+  /* ---------- 动画 ---------- */
+  --duration-fast: 120ms;
+  --duration-base: 200ms;
+  --duration-slow: 320ms;
+  --ease-standard: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ---------- 主题：深色 ---------- */
+[data-theme="dark"] {
+  --bg-app: #0f172a;
+  --bg-surface: #1e293b;
+  --bg-surface-alt: #172033;
+  --bg-elevated: #293548;
+  --bg-hover: #1e3a5f;
+  --bg-active: #1e4976;
+
+  --text-primary: #f1f5f9;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #64748b;
+  --text-on-primary: #ffffff;
+
+  --border-subtle: #334155;
+  --border-default: #475569;
+  --border-strong: #64748b;
+
+  --primary: #60a5fa;
+  --primary-hover: #3b82f6;
+  --primary-active: #2563eb;
+  --primary-bg: #1e3a5f;
+  --primary-border: #1e40af;
+
+  --success: #34d399;
+  --success-bg: #064e3b;
+  --warning: #fbbf24;
+  --warning-bg: #78350f;
+  --danger: #f87171;
+  --danger-bg: #7f1d1d;
+  --info: #22d3ee;
+  --info-bg: #155e75;
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-2: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-3: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-4: 0 16px 48px rgba(0, 0, 0, 0.6);
+}

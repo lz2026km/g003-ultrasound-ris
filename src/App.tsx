@@ -1,28 +1,5 @@
 import { useState, lazy, Suspense, createContext, useContext, Component } from 'react'
-
-// ErrorBoundary - 防止组件崩溃导致整个页面无法交互
-class ErrorBoundary extends Component<{children: React.ReactNode}, {hasError: boolean; error?: string}> {
-  constructor(props: any) { super(props); this.state = { hasError: false } }
-  static getDerivedStateFromError(error: any) { return { hasError: true, error: String(error) } }
-  componentDidCatch(error: any, errorInfo: any) { console.error('App Error:', error, errorInfo) }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div style={{ padding: 40, textAlign: 'center' }}>
-          <h2 style={{ color: '#dc2626' }}>⚠️ 组件加载出错</h2>
-          <p style={{ color: '#64748b' }}>{this.state.error}</p>
-          <button onClick={() => this.setState({ hasError: false })} style={{ padding: '10px 20px', background: '#1a365d', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', marginTop: 16 }}>重试</button>
-        </div>
-      )
-    }
-    return this.props.children
-  }
-}
 import { Routes, Route, Navigate, HashRouter, useNavigate, useLocation } from 'react-router-dom'
-
-const NavigateCtx = createContext<(path: string) => void>(() => {})
-export const useNav = () => useContext(NavigateCtx)
-
 import {
   LayoutDashboard, Users, CalendarClock, Activity, FileText, Microscope,
   ShieldCheck, BarChart3, ClipboardCheck, BookOpen, Shield, ListChecks,
@@ -30,6 +7,11 @@ import {
   Camera, UserCheck, AlertCircle, GraduationCap, UsersRound, Database,
   Scan, Heart, Thermometer, Droplets, Video, ClipboardList, Wrench, DollarSign, Wifi, Sliders, Brain
 } from 'lucide-react'
+import styles from './styles/app-shell.module.css'
+import { useTheme } from './hooks/useTheme'
+
+const NavigateCtx = createContext<(path: string) => void>(() => {})
+export const useNav = () => useContext(NavigateCtx)
 
 const HomePage = lazy(() => import('./pages/HomePage'))
 const PatientPage = lazy(() => import('./pages/PatientPage'))
@@ -79,11 +61,9 @@ const ImagingModesPage = lazy(() => import('./pages/ImagingModesPage'))
 const ReportQCPage = lazy(() => import('./pages/ReportQCPage'))
 const ProbeManagementPage = lazy(() => import('./pages/ProbeManagementPage'))
 const ExamFlowPage = lazy(() => import('./pages/ExamFlowPage'))
-// v0.9.0 新增模块
 const RemoteUltrasoundPage = lazy(() => import('./pages/RemoteUltrasoundPage'))
 const DRGDIPPage = lazy(() => import('./pages/DRGDIPPage'))
 const WorkOrderPage = lazy(() => import('./pages/WorkOrderPage'))
-// v0.18.8 专业报告工作站
 const ReportWritePagePro = lazy(() => import('./pages/ReportWritePagePro'))
 const MedicalAuditPage = lazy(() => import('./pages/MedicalAuditPage'))
 
@@ -124,66 +104,22 @@ const Loading = () => (
   </div>
 )
 
-const s: Record<string, React.CSSProperties> = {
-  root: { display: 'flex', minHeight: '100vh', background: '#f0f4f8' },
-  sidebar: {
-    width: 280, background: '#1a3a5c', color: '#fff', display: 'flex',
-    flexDirection: 'column', position: 'fixed', height: '100vh', overflowY: 'auto',
-    fontFamily: '"Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif',
-  },
-  logo: {
-    padding: '28px 24px 24px', fontSize: 22, fontWeight: 700,
-    borderBottom: '1px solid rgba(255,255,255,0.1)', letterSpacing: 1,
-    display: 'flex', alignItems: 'center', gap: 12,
-  },
-  nav: { flex: 1, padding: '20px 0', overflowY: 'auto' },
-  navSection: { marginBottom: 8 },
-  navSectionTitle: {
-    fontSize: 13, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase',
-    letterSpacing: 1.5, padding: '14px 24px 8px', fontWeight: 700, lineHeight: 1.4,
-  },
-  navItem: {
-    display: 'flex', alignItems: 'center', gap: 14, padding: '14px 24px',
-    cursor: 'pointer', borderRadius: 0, transition: 'all 0.2s',
-    fontSize: 16, color: 'rgba(255,255,255,0.8)', borderLeft: '4px solid transparent', lineHeight: 1.5,
-  },
-  navItemActive: {
-    background: 'rgba(255,255,255,0.15)', color: '#fff',
-    borderLeft: '4px solid #4ade80',
-  },
-  navIcon: { flexShrink: 0, opacity: 0.9 },
-  sidebarFooter: {
-    borderTop: '1px solid rgba(255,255,255,0.1)', padding: '20px 24px',
-  },
-  userInfo: { fontSize: 14, color: 'rgba(255,255,255,0.6)' },
-  main: {
-    marginLeft: 280, flex: 1, display: 'flex', flexDirection: 'column', minHeight: '100vh',
-  },
-  topbar: {
-    background: '#fff', padding: '0 32px', height: 72,
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    boxShadow: '0 2px 4px rgba(0,0,0,0.08)', position: 'sticky', top: 0, zIndex: 10,
-  },
-  topbarTitle: { fontSize: 20, fontWeight: 600, color: '#1a3a5c' },
-  topbarRight: { display: 'flex', alignItems: 'center', gap: 24 },
-  topbarBadge: {
-    position: 'relative', cursor: 'pointer', color: '#64748b', display: 'flex',
-  },
-  badge: {
-    position: 'absolute', top: -8, right: -8, background: '#ef4444',
-    color: '#fff', borderRadius: '50%', width: 20, height: 20,
-    fontSize: 12, display: 'flex', alignItems: 'center', justifyContent: 'center',
-  },
-  page: { padding: 32, flex: 1, overflowX: 'auto' },
-  mobileMenuBtn: {
-    display: 'flex', background: 'none', border: 'none', cursor: 'pointer',
-    color: '#1a3a5c', padding: 8, minWidth: 44, minHeight: 44,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  overlay: {
-    position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', zIndex: 99, display: 'block',
-    overflow: 'auto',
-  },
+class ErrorBoundary extends Component<{children: React.ReactNode}, {hasError: boolean; error?: string}> {
+  constructor(props: any) { super(props); this.state = { hasError: false } }
+  static getDerivedStateFromError(error: any) { return { hasError: true, error: String(error) } }
+  componentDidCatch(error: any, errorInfo: any) { console.error('App Error:', error, errorInfo) }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: 40, textAlign: 'center' }}>
+          <h2 style={{ color: '#dc2626' }}>组件加载出错</h2>
+          <p style={{ color: '#64748b' }}>{this.state.error}</p>
+          <button onClick={() => this.setState({ hasError: false })} style={{ padding: '10px 20px', background: 'var(--primary)', color: '#fff', border: 'none', borderRadius: 6, cursor: 'pointer', marginTop: 16 }}>重试</button>
+        </div>
+      )
+    }
+    return this.props.children
+  }
 }
 
 const NAV_ITEMS = [
@@ -209,7 +145,7 @@ const NAV_ITEMS = [
       { path: '/queue-call', icon: Bell, label: '叫号管理' },
       { path: '/reports', icon: FileText, label: '报告管理' },
       { path: '/report-write', icon: Stethoscope, label: '报告书写' },
-      { path: '/report-write-pro', icon: Brain, label: '专业报告工作站 ⭐' },
+      { path: '/report-write-pro', icon: Brain, label: '专业报告工作站' },
       { path: '/critical-value', icon: Bell, label: '危急值' },
       { path: '/critical-alert', icon: AlertTriangle, label: '危机预警' },
       { path: '/images', icon: Camera, label: '影像管理' },
@@ -277,6 +213,8 @@ const NAV_ITEMS = [
   },
 ]
 
+const APP_VERSION = 'v0.20.0-alpha'
+
 function App() {
   return (
     <HashRouter>
@@ -292,6 +230,7 @@ function AppShell() {
   const location = useLocation()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showVersionModal, setShowVersionModal] = useState(false)
+  const { resolved: themeResolved, cycle: cycleTheme } = useTheme()
   const currentPath = location.pathname
 
   const navTo = (path: string) => {
@@ -304,81 +243,89 @@ function AppShell() {
     return (
       <div
         key={item.path}
-        style={{ ...s.navItem, ...(isActive ? s.navItemActive : {}) }}
+        className={`${styles.navItem} ${isActive ? styles.navItemActive : ''}`}
         onClick={() => navTo(item.path)}
         role="button"
         tabIndex={0}
         onKeyDown={(e) => e.key === 'Enter' && navTo(item.path)}
       >
-        <item.icon size={16} style={s.navIcon} />
+        <item.icon size={16} className={styles.navItemIcon} />
         <span>{item.label}</span>
       </div>
     )
   }
 
+  const currentTitle = NAV_ITEMS.flatMap(g => g.items).find(i => i.path === currentPath)?.label ?? '超声RIS系统'
+
   return (
-    <div style={s.root}>
-      <aside style={{ ...s.sidebar }}>
-        <div style={s.logo}>
-          <Activity size={22} color="#4ade80" />
+    <div className={styles.shell}>
+      <aside className={`${styles.sidebar} ${sidebarOpen ? styles.sidebarOpen : ''}`}>
+        <div className={styles.sidebarBrand}>
+          <Activity size={22} className={styles.sidebarBrandIcon} />
           <span>G003 · 超声RIS</span>
         </div>
-        <nav style={s.nav}>
+        <nav className={styles.sidebarNav}>
           {NAV_ITEMS.map((group) => (
-            <div key={group.section} style={s.navSection}>
-              <div style={s.navSectionTitle}>{group.section}</div>
+            <div key={group.section} className={styles.navGroup}>
+              <div className={styles.navGroupTitle}>{group.section}</div>
               {group.items.map(renderNavItem)}
             </div>
           ))}
         </nav>
-        <div style={s.sidebarFooter}>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>智慧超声影像信息管理系统</div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ fontFamily: 'monospace', fontSize: 13, color: '#4ade80', fontWeight: 700 }}>v0.19.3</div>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.4)', cursor: 'pointer' }}
-              onClick={() => setShowVersionModal(true)}>历史版本 ▾</div>
+        <div className={styles.sidebarFooter}>
+          <div className={styles.sidebarFooterTitle}>智慧超声影像信息管理系统</div>
+          <div className={styles.sidebarFooterRow}>
+            <div className={styles.sidebarVersionTag}>{APP_VERSION}</div>
+            <div
+              className={styles.sidebarVersionLink}
+              onClick={() => setShowVersionModal(true)}
+              role="button"
+              tabIndex={0}
+            >历史版本 ▾</div>
           </div>
         </div>
       </aside>
 
-      {sidebarOpen && (
-        <div style={{ ...s.overlay, display: 'block' }} onClick={() => setSidebarOpen(false)} />
-      )}
+      <div
+        className={`${styles.overlay} ${sidebarOpen ? styles.overlayActive : ''}`}
+        onClick={() => setSidebarOpen(false)}
+      />
 
-      <div style={s.main}>
-        <header style={s.topbar}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button style={s.mobileMenuBtn} onClick={() => setSidebarOpen(!sidebarOpen)}>
-              {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
-            </button>
-            <span style={s.topbarTitle}>
-              {NAV_ITEMS.flatMap(g => g.items).find(i => i.path === currentPath)?.label ?? '超声RIS系统'}
-            </span>
+      <header className={styles.topbar}>
+        <div className={styles.topbarLeft}>
+          <button
+            className={styles.menuToggle}
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label="切换侧栏"
+          >
+            {sidebarOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+          <span className={styles.topbarTitle}>{currentTitle}</span>
+        </div>
+        <div className={styles.topbarRight}>
+          <div
+            className={styles.versionBadge}
+            onClick={cycleTheme}
+            role="button"
+            tabIndex={0}
+            title={`主题：${themeResolved}（点击切换）`}
+          >{APP_VERSION}</div>
+          <div className={styles.bellWrap} role="button" tabIndex={0}>
+            <Bell size={20} />
+            <span className={styles.bellBadge}>1</span>
           </div>
-          <div style={s.topbarRight}>
-            <div style={{ fontSize: 11, color: '#3b82f6', fontFamily: 'monospace', background: '#eff6ff', padding: '3px 8px', borderRadius: 10, border: '1px solid #bfdbfe', fontWeight: 600, minWidth: 44, minHeight: 22, display: 'flex', alignItems: 'center' }}>v0.19.3</div>
-            <div style={s.topbarBadge}>
-              <Bell size={20} />
-              <span style={s.badge}>1</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <div style={{
-                width: 32, height: 32, borderRadius: '50%', background: '#1a3a5c',
-                color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 13, fontWeight: 600,
-              }}>
-                张
-              </div>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: '#1a3a5c' }}>张建国</div>
-                <div style={{ fontSize: 11, color: '#94a3b8' }}>超声科 · 医生</div>
-              </div>
+          <div className={styles.userBlock}>
+            <div className={styles.userAvatar}>张</div>
+            <div className={styles.userInfo}>
+              <div className={styles.userName}>张建国</div>
+              <div className={styles.userRole}>超声科 · 医生</div>
             </div>
           </div>
-        </header>
+        </div>
+      </header>
 
-        <div style={s.page}>
-          <Suspense fallback={<Loading />}>
+      <main className={styles.main}>
+        <Suspense fallback={<Loading />}>
           <Routes>
             <Route path="/" element={<HomePage />} />
             <Route path="/worklist" element={<WorklistPage />} />
@@ -429,7 +376,6 @@ function AppShell() {
             <Route path="/equipment-lifecycle" element={<EquipmentLifecyclePage />} />
             <Route path="/operations" element={<OperationsCenterPage />} />
             <Route path="/exam-flow" element={<ExamFlowPage />} />
-            {/* v0.9.0 新增 */}
             <Route path="/remote-ultrasound" element={<RemoteUltrasoundPage />} />
             <Route path="/drg-dip" element={<DRGDIPPage />} />
             <Route path="/workorder" element={<WorkOrderPage />} />
@@ -437,73 +383,76 @@ function AppShell() {
             <Route path="/report-write-pro" element={<ReportWritePagePro />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-          </Suspense>
-        </div>
-      </div>
+        </Suspense>
+      </main>
 
       {showVersionModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }} onClick={() => setShowVersionModal(false)}>
-          <div style={{
-            background: '#fff', borderRadius: 12, padding: '24px 28px', maxWidth: 520, width: '90%',
-            boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-          }} onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-              <h2 style={{ margin: 0, fontSize: 18, color: '#1a3a5c' }}>版本升级日志</h2>
-              <button onClick={() => setShowVersionModal(false)} style={{
-                background: 'none', border: 'none', cursor: 'pointer', fontSize: 24, color: '#94a3b8',
-                lineHeight: 1,
-              }}>×</button>
+        <div className={styles.modalBackdrop} onClick={() => setShowVersionModal(false)}>
+          <div className={styles.modalCard} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h2 className={styles.modalTitle}>版本升级日志</h2>
+              <button className={styles.modalClose} onClick={() => setShowVersionModal(false)} aria-label="关闭">×</button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, maxHeight: 480, overflowY: 'auto' }}>
-              <div style={{ padding: '14px 16px', background: '#f0fdf4', borderRadius: 8, border: '1px solid #bbf7d0' }}>
-                <div style={{ fontWeight: 600, color: '#166534', marginBottom: 6 }}>
-                  v0.19.3 <span style={{ fontSize: 12, fontWeight: 400, color: '#15803d' }}>（当前版本）</span>
+            <div className={styles.versionList}>
+              <div className={`${styles.versionItem} ${styles.versionItemCurrent}`}>
+                <div className={styles.versionItemTitle}>
+                  {APP_VERSION} <span className={styles.versionItemTag}>（当前版本）</span>
                 </div>
-                <div style={{ fontSize: 13, color: '#166534', lineHeight: 1.6 }}>
-                  v0.9.0 四大核心模块上线：1) 远程超声（实时）- 5G WebRTC+探头反控+5G云存储+录播管理+边缘节点；2) DRG/DIP医保控费 - 376 ADRG分组+6000+病种+病案质控+费用预测+控费建议；3) 维修工单 - 工单流转+巡检计划+配件库存+设备健康度+SLA管理；4) 医保智能审核 - 事前/事中/事后审核+248条规则+申诉管理
-                </div>
-              </div>
-              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                  v0.14.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（竞品整合版）</span>
-                </div>
-                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                  全面对标超声RIS行业竞品（蓝网科技/东软/联影/开立/岱嘉），整合所有产品优秀功能：词库辅助输入、模板分级管理(三级)、报告历史对比(可视化)、报告审核电子签名、危急值超时预警(30/60分钟)、工作量多维统计(医师/设备/部位/时段)、DICOM MWL强化(五步状态机/HL7模拟)、5G远程会诊模块、探头使用维护管理、卫健委数据上报接口；彻底清理所有内镜数据污染；配套扩充超声科演示数据
+                <div className={styles.versionItemDesc}>
+                  v0.20.0-alpha 引入设计系统：62 个 CSS 变量、4 套主题、ThemeProvider 切换（亮色/暗色/跟随系统）、AppShell 全部内联样式迁移到 CSS Module；主色统一为 #3b82f6；为后续 51 个 page 的批量重构提供基础设施。
                 </div>
               </div>
-              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                  v0.13.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（超声RIS独立版）</span>
+              <div className={styles.versionItem}>
+                <div className={styles.versionItemTitle}>
+                  v0.19.4 <span className={styles.versionItemTag}>（P0 全部完成）</span>
                 </div>
-                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                  G003超声RIS正式从G004内镜系统拆分独立，初始化47个核心业务模块，包含：首页仪表盘、工作列表、预约管理、患者管理、排班管理、检查管理、报告管理、危急值管理、质控统计、AI辅助诊断、设备台账、物资管理、护理管理、运营大屏、知识词库、继续教育等；基础DICOM浏览与测量工具；200+医学术语/24套报告模板
-                </div>
-              </div>
-              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                  v0.8.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（AI原生版）</span>
-                </div>
-                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                  AIStream智能工作流 + 影像AI模块：对标联影uSONIQUE AIStream，实现4步流水线（识别→测量→评价→生成）；切面识别（PlaneDetector + PlaneScorer）；智能测量（MeasureEngine + 规则库）；LLM流式报告生成（基于MiniMax-M3）；图像质量+报告质量双轨评价（0-100分+5维度）；影像AI：DICOM SEG查看器+甲状腺/乳腺/颈动脉/肝脏4个病灶检测器+胎儿生物测量（BiometricMeasure）；开启G003从「功能齐全」到「AI原生」的战略升维
+                <div className={styles.versionItemDesc}>
+                  4 项 P0 完成：1) 报告 AI 生成 mockApi 接口 + 5 模板 + 4 维输出 + 进度条 + 3 分项采纳；2) 影像-病理质控 200 mock + 5 维统计 + AIQCPage 第 7 Tab；3) fullUltrasoundAI.ts 5 模块协调器 + ExamPage 启动器；4) reportConstant.ts 抽 7 常量（2996→2731 行）。
                 </div>
               </div>
-              <div style={{ padding: '14px 16px', background: '#f8fafc', borderRadius: 8, border: '1px solid #e2e8f0' }}>
-                <div style={{ fontWeight: 600, color: '#475569', marginBottom: 6 }}>
-                  v0.1.0 <span style={{ fontSize: 12, fontWeight: 400, color: '#64748b' }}>（初始版本）</span>
+              <div className={styles.versionItem}>
+                <div className={styles.versionItemTitle}>
+                  v0.19.3 <span className={styles.versionItemTag}>（四大核心模块）</span>
                 </div>
-                <div style={{ fontSize: 13, color: '#475569', lineHeight: 1.6 }}>
-                  基础框架搭建，基于G004内镜系统复制重构，移植46个页面模块，适配超声科业务流程
+                <div className={styles.versionItemDesc}>
+                  v0.9.0 四大核心模块：1) 远程超声（实时）- 5G WebRTC + 探头反控 + 5G 云存储 + 录播；2) DRG/DIP 控费 - 376 ADRG 分组 + 6000+ 病种；3) 维修工单 - 工单流转 + 配件库存 + SLA；4) 医保智能审核 - 248 条规则。
+                </div>
+              </div>
+              <div className={styles.versionItem}>
+                <div className={styles.versionItemTitle}>
+                  v0.14.0 <span className={styles.versionItemTag}>（竞品整合）</span>
+                </div>
+                <div className={styles.versionItemDesc}>
+                  对标蓝网科技/东软/联影/开立/岱嘉 5 家行业竞品，整合词库辅助输入、模板三级管理、报告历史对比、电子签名、危急值超时预警（30/60 分钟）、工作量多维统计、DICOM MWL 强化、5G 远程会诊、探头管理、卫健委数据上报接口。
+                </div>
+              </div>
+              <div className={styles.versionItem}>
+                <div className={styles.versionItemTitle}>
+                  v0.13.0 <span className={styles.versionItemTag}>（超声 RIS 独立）</span>
+                </div>
+                <div className={styles.versionItemDesc}>
+                  G003 超声 RIS 正式从 G004 内镜系统拆分独立，初始化 47 个核心业务模块。
+                </div>
+              </div>
+              <div className={styles.versionItem}>
+                <div className={styles.versionItemTitle}>
+                  v0.8.0 <span className={styles.versionItemTag}>（AI 原生版）</span>
+                </div>
+                <div className={styles.versionItemDesc}>
+                  AIStream 智能工作流：4 步流水线（识别→测量→评价→生成）；切面识别、智能测量、LLM 流式报告生成、图像+报告双轨评价、影像 AI（4 病灶检测器 + 胎儿生物测量）。
+                </div>
+              </div>
+              <div className={styles.versionItem}>
+                <div className={styles.versionItemTitle}>
+                  v0.1.0 <span className={styles.versionItemTag}>（初始版本）</span>
+                </div>
+                <div className={styles.versionItemDesc}>
+                  基础框架搭建，基于 G004 内镜系统复制重构，移植 46 个页面模块。
                 </div>
               </div>
             </div>
-            <div style={{ marginTop: 20, textAlign: 'right' }}>
-              <button onClick={() => setShowVersionModal(false)} style={{
-                background: '#1a3a5c', color: '#fff', border: 'none', borderRadius: 6,
-                padding: '8px 24px', fontSize: 13, cursor: 'pointer',
-              }}>关闭</button>
+            <div className={styles.modalFooter}>
+              <button className={styles.btnPrimary} onClick={() => setShowVersionModal(false)}>关闭</button>
             </div>
           </div>
         </div>

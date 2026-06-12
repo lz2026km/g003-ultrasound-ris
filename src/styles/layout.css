@@ -1,0 +1,119 @@
+/* ============================================================
+ * G003 布局（v0.20.0-alpha）
+ * AppShell: sidebar 260 + topbar 56 + main
+ * ============================================================ */
+
+.appShell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  grid-template-rows: var(--topbar-height) 1fr;
+  grid-template-areas:
+    "sidebar topbar"
+    "sidebar main";
+  height: 100vh;
+  background: var(--bg-app);
+  color: var(--text-primary);
+  transition: background var(--duration-base) var(--ease-standard);
+}
+
+.sidebar {
+  grid-area: sidebar;
+  width: var(--sidebar-width);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-subtle);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebarBrand {
+  height: var(--topbar-height);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-5);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  color: var(--primary);
+  border-bottom: 1px solid var(--border-subtle);
+  gap: var(--space-2);
+}
+
+.sidebarNav {
+  flex: 1;
+  padding: var(--space-3) 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebarItem {
+  display: flex;
+  align-items: center;
+  padding: var(--space-2) var(--space-5);
+  color: var(--text-secondary);
+  font-size: var(--text-base);
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-standard);
+  border-left: 3px solid transparent;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+.sidebarItem:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.sidebarItem.active {
+  background: var(--primary-bg);
+  color: var(--primary);
+  border-left-color: var(--primary);
+  font-weight: var(--weight-medium);
+}
+
+.topbar {
+  grid-area: topbar;
+  height: var(--topbar-height);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-6);
+  gap: var(--space-4);
+  box-shadow: var(--shadow-1);
+}
+
+.topbarSpacer { flex: 1; }
+
+.topbarIconBtn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--duration-fast) var(--ease-standard);
+}
+.topbarIconBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.main {
+  grid-area: main;
+  overflow-y: auto;
+  padding: var(--content-padding);
+  background: var(--bg-app);
+}
+
+.contentInner {
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}

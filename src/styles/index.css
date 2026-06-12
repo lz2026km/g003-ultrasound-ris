@@ -1,0 +1,9 @@
+/* ============================================================
+ * G003 样式入口（v0.20.0-alpha）
+ * 顺序：tokens → base → layout → components
+ * main.tsx 只需 import './styles/index.css'
+ * ============================================================ */
+
+@import './tokens.css';
+@import './base.css';
+@import './layout.css';
